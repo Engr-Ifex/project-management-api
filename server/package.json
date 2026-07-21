@@ -1,0 +1,20 @@
+{
+  "name": "project-management-api",
+  "version": "1.0.0",
+  "description": "A RESTful Project Management API built with Node.js, Express, MongoDB, and Mongoose, designed to practice professional backend development concepts including authentication, authorization, project and task management, validation, security, and scalable API architecture.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Engr-Ifex/project-management-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Engr-Ifex/project-management-api/issues"
+  },
+  "homepage": "https://github.com/Engr-Ifex/project-management-api#readme"
+}
