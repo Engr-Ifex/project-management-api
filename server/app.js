@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import indexRoutes from './src/routes/index.routes.js';
+import errorHandler from './src/middlewares/error.middleware.js';
 
 const app = express();
 
@@ -17,6 +18,9 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 // Routes
-app.use('/', indexRoutes);
+app.use('/api/v1', indexRoutes);
+
+
+app.use(errorHandler);
 
 export default app;

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
-import EMAIL_REGEX from '../constants/regex.js';
+import jwt from 'jsonwebtoken';
+import { EMAIL_REGEX } from '../constants/regex.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -62,19 +63,6 @@ userSchema.pre('save', async function (next) {
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
-};
-
-userSchema.methods.generateAccessToken = function () {
-  return jwt.sign(
-    {
-      userId: this._id,
-      role: this.role,
-    },
-    process.env.JWT_ACCESS_SECRET,
-    {
-      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
-    }
-  );
 };
 
 userSchema.methods.generateAccessToken = function () {
