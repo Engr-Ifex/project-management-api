@@ -7,18 +7,18 @@ import mongoose from 'mongoose';
  */
 const registerGracefulShutdown = (server) => {
   const shutdown = async (signal) => {
-  console.log(`\n📴 ${signal} received. Shutting down gracefully...`);
+    console.log(`\n📴 ${signal} received. Shutting down gracefully...`);
 
-  server.close(async () => {
-    console.log('🛑 HTTP server closed.');
+    server.close(async () => {
+      console.log('🛑 HTTP server closed.');
 
-    await mongoose.connection.close();
-    console.log('✅ MongoDB connection closed.');
+      await mongoose.connection.close();
+      console.log('✅ MongoDB connection closed.');
 
-    console.log('👋 Application stopped successfully.');
-    process.exit(0);
-  });
-};
+      console.log('👋 Application stopped successfully.');
+      process.exit(0);
+    });
+  };
 
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));

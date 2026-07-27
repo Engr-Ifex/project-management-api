@@ -1,7 +1,7 @@
 {
   "name": "project-management-api",
   "version": "1.0.0",
-   "type": "module",
+  "type": "module",
   "description": "A RESTful Project Management API built with Node.js, Express, MongoDB, and Mongoose, designed to practice professional backend development concepts including authentication, authorization, project and task management, validation, security, and scalable API architecture.",
   "main": "server.js",
   "scripts": {
