@@ -60,10 +60,15 @@ const getCurrentUser = async (user) => {
   };
 };
 
+const logoutUser = async () => {
+  return;
+};
+
 const authService = {
   registerUser,
   loginUser,
   getCurrentUser,
+  logoutUser,
 };
 
 export default authService;

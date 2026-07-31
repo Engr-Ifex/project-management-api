@@ -32,3 +32,11 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, 'Current user retrieved successfully', data));
 });
+
+export const logout = asyncHandler(async (req, res) => {
+  await authService.logoutUser();
+
+  res.clearCookie('accessToken', getCookieOptions());
+
+  return res.status(200).json(new ApiResponse(200, 'Logout successful'));
+});
