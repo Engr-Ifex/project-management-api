@@ -20,7 +20,6 @@ app.use(cookieParser());
 // Routes
 app.use('/api/v1', indexRoutes);
 
-
 app.use(errorHandler);
 
 export default app;

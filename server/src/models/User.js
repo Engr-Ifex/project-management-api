@@ -1,3 +1,4 @@
+import env from '../config/env.js';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -49,16 +50,10 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function (next) {
-  // Only hash the password if it has been modified
-  if (!this.isModified('password')) {
-    return next();
-  }
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
 
-  // Hash the password
-  this.password = await bcrypt.hash(this.password, process.env.BCRYPT_SALT_ROUNDS);
-
-  next();
+  this.password = await bcrypt.hash(this.password, Number(env.bcryptSaltRounds));
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
@@ -71,9 +66,9 @@ userSchema.methods.generateAccessToken = function () {
       userId: this._id,
       role: this.role,
     },
-    process.env.JWT_ACCESS_SECRET,
+    env.jwtAccessSecret,
     {
-      expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
+      expiresIn: env.jwtAccessExpiresIn,
     }
   );
 };

@@ -1,11 +1,9 @@
-import dotenv from 'dotenv';
+import env from './src/config/env.js';
 import app from './app.js';
 import connectDB from './src/config/database.js';
 import registerGracefulShutdown from './src/utils/gracefulShutdown.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 5000;
+const PORT = env.port;
 
 const startServer = async () => {
   try {
@@ -15,7 +13,7 @@ const startServer = async () => {
       console.log('=====================================');
       console.log('🚀 Product Management API Started');
       console.log('=====================================');
-      console.log(`🌍 Environment : ${process.env.NODE_ENV}`);
+      console.log(`🌍 Environment : ${env.nodeEnv}`);
       console.log(`🚀 Server      : http://localhost:${PORT}`);
       console.log('=====================================');
     });

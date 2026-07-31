@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import ApiError from '../utils/ApiError.js';
+import sanitizeUser from '../utils/sanitizeUser.js';
 
 export const registerUser = async (userData) => {
   const { name, email, password } = userData;
@@ -23,13 +24,46 @@ export const registerUser = async (userData) => {
 
   // Return only business data
   return {
-    user,
+    user: sanitizeUser(user),
     accessToken,
+  };
+};
+
+export const loginUser = async ({ email, password }) => {
+  // Find the user and include the password field
+  const user = await User.findOne({ email }).select('+password');
+
+  // Check if the user exists
+  if (!user) {
+    throw new ApiError(401, 'Invalid email or password');
+  }
+
+  // Compare the entered password with the hashed password
+  const isPasswordCorrect = await user.comparePassword(password);
+
+  if (!isPasswordCorrect) {
+    throw new ApiError(401, 'Invalid email or password');
+  }
+
+  // Generate access token
+  const accessToken = user.generateAccessToken();
+
+  return {
+    user: sanitizeUser(user),
+    accessToken,
+  };
+};
+
+const getCurrentUser = async (user) => {
+  return {
+    user: sanitizeUser(user),
   };
 };
 
 const authService = {
   registerUser,
+  loginUser,
+  getCurrentUser,
 };
 
 export default authService;
