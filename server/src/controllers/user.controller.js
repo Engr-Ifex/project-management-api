@@ -2,6 +2,7 @@ import ApiResponse from '../utils/ApiResponse.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiError from '../utils/ApiError.js';
 import userService from '../services/user.service.js';
+import { getCookieOptions } from '../constants/cookie.js';
 
 export const getProfile = asyncHandler(async (req, res) => {
   const data = await userService.getProfile(req.user);
@@ -43,4 +44,12 @@ export const updateSettings = asyncHandler(async (req, res) => {
   const data = await userService.updateSettings(req.user.id, req.body);
 
   return res.status(200).json(new ApiResponse(200, 'Settings updated successfully', data));
+});
+
+export const deleteAccount = asyncHandler(async (req, res) => {
+  await userService.deleteAccount(req.user.id);
+
+  res.clearCookie('accessToken', getCookieOptions());
+
+  return res.status(200).json(new ApiResponse(200, 'Account deleted successfully'));
 });

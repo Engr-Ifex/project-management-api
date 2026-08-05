@@ -8,6 +8,7 @@ import {
   changePassword,
   getSettings,
   updateSettings,
+  deleteAccount,
 } from '../controllers/user.controller.js';
 
 import validate from '../middlewares/validate.middleware.js';
@@ -31,5 +32,7 @@ router.patch('/change-password', authenticate, validate(changePasswordSchema), c
 router.get('/settings', authenticate, getSettings);
 
 router.patch('/settings', authenticate, validate(updateSettingsSchema), updateSettings);
+
+router.delete('/account', authenticate, deleteAccount);
 
 export default router;

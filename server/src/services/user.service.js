@@ -9,7 +9,7 @@ const getProfile = async (user) => {
 };
 
 const updateProfile = async (userId, updateData) => {
-  const user = await User.findById(userId);
+  const user = await User.findActiveById(userId);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -27,7 +27,7 @@ const updateProfile = async (userId, updateData) => {
 };
 
 const updateAvatar = async (userId, avatarPath) => {
-  const user = await User.findById(userId);
+  const user = await User.findActiveById(userId);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -44,7 +44,7 @@ const updateAvatar = async (userId, avatarPath) => {
 
 const changePassword = async (userId, currentPassword, newPassword) => {
   // Find the user and include the password
-  const user = await User.findById(userId).select('+password');
+  const user = await User.findActiveById(userId).select('+password');
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -74,7 +74,7 @@ const changePassword = async (userId, currentPassword, newPassword) => {
 };
 
 const getSettings = async (userId) => {
-  const user = await User.findById(userId);
+  const user = await User.findActiveById(userId);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -86,7 +86,7 @@ const getSettings = async (userId) => {
 };
 
 const updateSettings = async (userId, settingsData) => {
-  const user = await User.findById(userId);
+  const user = await User.findActiveById(userId);
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -102,6 +102,26 @@ const updateSettings = async (userId, settingsData) => {
   };
 };
 
+const deleteAccount = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  if (user.isDeleted) {
+    throw new ApiError(400, 'Account has already been deleted');
+  }
+
+  // Soft delete
+  user.isDeleted = true;
+  user.deletedAt = new Date();
+
+  await user.save();
+
+  return null;
+};
+
 const userService = {
   getProfile,
   updateProfile,
@@ -109,6 +129,7 @@ const userService = {
   changePassword,
   getSettings,
   updateSettings,
+  deleteAccount,
 };
 
 export default userService;

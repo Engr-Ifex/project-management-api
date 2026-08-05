@@ -18,7 +18,7 @@ const authenticate = asyncHandler(async (req, res, next) => {
   const decoded = jwt.verify(accessToken, env.jwtAccessSecret);
 
   // 4. Find the user
-  const user = await User.findById(decoded.userId);
+  const user = await User.findActiveById(decoded.userId);
 
   // 5. Ensure the user still exists
   if (!user) {

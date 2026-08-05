@@ -31,7 +31,7 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async ({ email, password }) => {
   // Find the user and include the password field
-  const user = await User.findOne({ email }).select('+password');
+  const user = await User.findActiveByEmail(email).select('+password');
 
   // Check if the user exists
   if (!user) {

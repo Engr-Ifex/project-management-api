@@ -45,6 +45,15 @@ const userSchema = new mongoose.Schema(
         default: false,
       },
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -82,6 +91,26 @@ userSchema.methods.generateAccessToken = function () {
       expiresIn: env.jwtAccessExpiresIn,
     }
   );
+};
+
+// ====================
+// Static Methods
+// ====================
+
+// Find an active user by ID
+userSchema.statics.findActiveById = function (id) {
+  return this.findOne({
+    _id: id,
+    isDeleted: false,
+  });
+};
+
+// Find an active user by email
+userSchema.statics.findActiveByEmail = function (email) {
+  return this.findOne({
+    email,
+    isDeleted: false,
+  });
 };
 
 const User = mongoose.model('User', userSchema);
