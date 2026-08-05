@@ -73,11 +73,42 @@ const changePassword = async (userId, currentPassword, newPassword) => {
   return null;
 };
 
+const getSettings = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  return {
+    settings: user.settings,
+  };
+};
+
+const updateSettings = async (userId, settingsData) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  // Update only the provided settings
+  Object.assign(user.settings, settingsData);
+
+  await user.save();
+
+  return {
+    settings: user.settings,
+  };
+};
+
 const userService = {
   getProfile,
   updateProfile,
   updateAvatar,
   changePassword,
+  getSettings,
+  updateSettings,
 };
 
 export default userService;

@@ -34,6 +34,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    settings: {
+      emailNotifications: {
+        type: Boolean,
+        default: true,
+      },
+
+      marketingEmails: {
+        type: Boolean,
+        default: false,
+      },
+    },
   },
   {
     timestamps: true,

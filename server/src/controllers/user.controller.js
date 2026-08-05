@@ -32,3 +32,15 @@ export const changePassword = asyncHandler(async (req, res) => {
 
   return res.status(200).json(new ApiResponse(200, 'Password changed successfully'));
 });
+
+export const getSettings = asyncHandler(async (req, res) => {
+  const data = await userService.getSettings(req.user.id);
+
+  return res.status(200).json(new ApiResponse(200, 'Settings retrieved successfully', data));
+});
+
+export const updateSettings = asyncHandler(async (req, res) => {
+  const data = await userService.updateSettings(req.user.id, req.body);
+
+  return res.status(200).json(new ApiResponse(200, 'Settings updated successfully', data));
+});

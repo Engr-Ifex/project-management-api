@@ -33,3 +33,19 @@ export const changePasswordSchema = z.object({
 
   query: z.object({}),
 });
+
+export const updateSettingsSchema = z.object({
+  body: z
+    .object({
+      emailNotifications: z.boolean().optional(),
+      marketingEmails: z.boolean().optional(),
+    })
+    .strict()
+    .refine((data) => Object.keys(data).length > 0, {
+      message: 'At least one setting must be provided',
+    }),
+
+  params: z.object({}),
+
+  query: z.object({}),
+});
