@@ -54,12 +54,6 @@ export const loginUser = async ({ email, password }) => {
   };
 };
 
-const getCurrentUser = async (user) => {
-  return {
-    user: sanitizeUser(user),
-  };
-};
-
 const logoutUser = async () => {
   return;
 };
@@ -67,7 +61,6 @@ const logoutUser = async () => {
 const authService = {
   registerUser,
   loginUser,
-  getCurrentUser,
   logoutUser,
 };
 

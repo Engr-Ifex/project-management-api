@@ -27,12 +27,6 @@ export const login = asyncHandler(async (req, res) => {
   );
 });
 
-export const getCurrentUser = asyncHandler(async (req, res) => {
-  const data = await authService.getCurrentUser(req.user);
-
-  return res.status(200).json(new ApiResponse(200, 'Current user retrieved successfully', data));
-});
-
 export const logout = asyncHandler(async (req, res) => {
   await authService.logoutUser();
 
