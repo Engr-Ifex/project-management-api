@@ -33,5 +33,11 @@ router.patch(
   validate(updateWorkspaceSchema),
   workspaceController.updateWorkspace
 );
+router.patch(
+  '/:workspaceId/archive',
+  authenticate,
+  validate(workspaceIdSchema),
+  workspaceController.archiveWorkspace
+);
 
 export default router;

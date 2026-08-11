@@ -46,11 +46,22 @@ export const updateWorkspace = asyncHandler(async (req, res) => {
   );
 });
 
+export const archiveWorkspace = asyncHandler(async (req, res) => {
+  const workspace = await workspaceService.archiveWorkspace(req.params.workspaceId, req.user.id);
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Workspace archived successfully', {
+      workspace,
+    })
+  );
+});
+
 const workspaceController = {
   createWorkspace,
   getUserWorkspaces,
   getWorkspaceById,
   updateWorkspace,
+  archiveWorkspace,
 };
 
 export default workspaceController;
