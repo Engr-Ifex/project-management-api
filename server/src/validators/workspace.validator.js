@@ -48,3 +48,14 @@ export const updateWorkspaceSchema = z.object({
 
   query: z.object({}),
 });
+
+
+export const workspaceIdSchema = z.object({
+  body: z.object({}).optional(),
+
+  params: z.object({
+    workspaceId: z.string().min(1, 'Workspace ID is required'),
+  }),
+
+  query: z.object({}).optional(),
+});

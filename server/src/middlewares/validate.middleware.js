@@ -17,7 +17,6 @@ const validate = (schema) => {
       });
     }
 
-    // Replace request data with validated data
     if (result.data.body) {
       req.body = result.data.body;
     }
