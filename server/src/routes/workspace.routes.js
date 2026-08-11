@@ -8,6 +8,7 @@ import validate from '../middlewares/validate.middleware.js';
 import {
   createWorkspaceSchema,
   workspaceIdSchema,
+  updateWorkspaceSchema,
 } from '../validators/workspace.validator.js';
 
 const router = Router();
@@ -25,6 +26,12 @@ router.get(
   authenticate,
   validate(workspaceIdSchema),
   workspaceController.getWorkspaceById
+);
+router.patch(
+  '/:workspaceId',
+  authenticate,
+  validate(updateWorkspaceSchema),
+  workspaceController.updateWorkspace
 );
 
 export default router;

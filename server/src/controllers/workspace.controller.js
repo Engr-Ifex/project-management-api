@@ -23,19 +23,26 @@ export const getUserWorkspaces = asyncHandler(async (req, res) => {
 });
 
 export const getWorkspaceById = asyncHandler(async (req, res) => {
-  const workspace = await workspaceService.getWorkspaceById(
+  const workspace = await workspaceService.getWorkspaceById(req.params.workspaceId, req.user.id);
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Workspace retrieved successfully', {
+      workspace,
+    })
+  );
+});
+
+export const updateWorkspace = asyncHandler(async (req, res) => {
+  const workspace = await workspaceService.updateWorkspace(
     req.params.workspaceId,
-    req.user.id
+    req.user.id,
+    req.body
   );
 
   return res.status(200).json(
-    new ApiResponse(
-      200,
-      'Workspace retrieved successfully',
-      {
-        workspace,
-      }
-    )
+    new ApiResponse(200, 'Workspace updated successfully', {
+      workspace,
+    })
   );
 });
 
@@ -43,6 +50,7 @@ const workspaceController = {
   createWorkspace,
   getUserWorkspaces,
   getWorkspaceById,
+  updateWorkspace,
 };
 
 export default workspaceController;

@@ -33,16 +33,39 @@ export const getWorkspaceById = async (workspaceId, userId) => {
     throw new ApiError(404, 'Workspace not found');
   }
 
-  const isMember = workspace.members.some(
-    (member) => member.user.toString() === userId.toString()
-  );
+  const isMember = workspace.members.some((member) => member.user.toString() === userId.toString());
 
   if (!isMember) {
-    throw new ApiError(
-      403,
-      'You do not have access to this workspace'
-    );
+    throw new ApiError(403, 'You do not have access to this workspace');
   }
+
+  return workspace;
+};
+
+export const updateWorkspace = async (workspaceId, userId, workspaceData) => {
+  const workspace = await Workspace.findActiveById(workspaceId);
+
+  if (!workspace) {
+    throw new ApiError(404, 'Workspace not found');
+  }
+
+  const isMember = workspace.members.some((member) => member.user.toString() === userId.toString());
+
+  if (!isMember) {
+    throw new ApiError(403, 'You do not have access to this workspace');
+  }
+
+  const { name, description } = workspaceData;
+
+  if (name !== undefined) {
+    workspace.name = name;
+  }
+
+  if (description !== undefined) {
+    workspace.description = description;
+  }
+
+  await workspace.save();
 
   return workspace;
 };
@@ -51,6 +74,7 @@ const workspaceService = {
   createWorkspace,
   getUserWorkspaces,
   getWorkspaceById,
+  updateWorkspace,
 };
 
 export default workspaceService;
