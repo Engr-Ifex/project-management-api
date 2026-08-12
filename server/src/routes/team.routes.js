@@ -13,11 +13,11 @@ import validate from '../middlewares/validate.middleware.js';
 import {
   inviteMemberSchema,
   removeMemberSchema,
+  updateMemberRoleSchema,
 } from '../validators/team.validator.js';
 
 import { WORKSPACE_ROLES } from '../constants/workspaceRoles.js';
 import { workspaceIdSchema } from '../validators/workspace.validator.js';
-
 
 const router = Router();
 
@@ -45,11 +45,17 @@ router.delete(
   authenticate,
   validate(removeMemberSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(
-    WORKSPACE_ROLES.OWNER,
-    WORKSPACE_ROLES.ADMIN
-  ),
+  requireWorkspaceRole(WORKSPACE_ROLES.OWNER, WORKSPACE_ROLES.ADMIN),
   teamController.removeWorkspaceMember
+);
+
+router.patch(
+  '/workspaces/:workspaceId/members/:userId/role',
+  authenticate,
+  validate(updateMemberRoleSchema),
+  requireWorkspaceMember,
+  requireWorkspaceRole(WORKSPACE_ROLES.OWNER),
+  teamController.updateMemberRole
 );
 
 export default router;

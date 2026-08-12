@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { WORKSPACE_ROLES } from '../constants/workspaceRoles.js';
 
 const invitationSchema = new mongoose.Schema(
   {
@@ -23,8 +24,8 @@ const invitationSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ['admin', 'member'],
-      default: 'member',
+      enum: [WORKSPACE_ROLES.ADMIN, WORKSPACE_ROLES.MEMBER],
+      default: WORKSPACE_ROLES.MEMBER,
     },
 
     token: {

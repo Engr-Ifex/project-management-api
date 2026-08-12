@@ -1,5 +1,5 @@
-export const WORKSPACE_ROLES = {
+export const WORKSPACE_ROLES = Object.freeze({
   OWNER: 'owner',
   ADMIN: 'admin',
   MEMBER: 'member',
-};
+});

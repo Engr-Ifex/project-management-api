@@ -33,28 +33,33 @@ export const getWorkspaceMembers = asyncHandler(async (req, res) => {
   );
 });
 
-export const removeWorkspaceMember = asyncHandler(
-  async (req, res) => {
-    await teamService.removeWorkspaceMember(
-      req.workspace,
-      req.workspaceMember,
-      req.params.userId
-    );
+export const removeWorkspaceMember = asyncHandler(async (req, res) => {
+  await teamService.removeWorkspaceMember(req.workspace, req.workspaceMember, req.params.userId);
 
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        'Workspace member removed successfully'
-      )
-    );
-  }
-);
+  return res.status(200).json(new ApiResponse(200, 'Workspace member removed successfully'));
+});
+
+export const updateMemberRole = asyncHandler(async (req, res) => {
+  const member = await teamService.updateMemberRole(
+    req.workspace,
+    req.workspaceMember,
+    req.params.userId,
+    req.body.role
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Member role updated successfully', {
+      member,
+    })
+  );
+});
 
 const teamController = {
   inviteMember,
   acceptInvitation,
   getWorkspaceMembers,
   removeWorkspaceMember,
+  updateMemberRole,
 };
 
 export default teamController;
