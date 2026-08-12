@@ -23,7 +23,7 @@ export const getUserWorkspaces = asyncHandler(async (req, res) => {
 });
 
 export const getWorkspaceById = asyncHandler(async (req, res) => {
-  const workspace = await workspaceService.getWorkspaceById(req.params.workspaceId, req.user.id);
+  const workspace = await workspaceService.getWorkspaceById(req.workspace);
 
   return res.status(200).json(
     new ApiResponse(200, 'Workspace retrieved successfully', {
@@ -33,11 +33,7 @@ export const getWorkspaceById = asyncHandler(async (req, res) => {
 });
 
 export const updateWorkspace = asyncHandler(async (req, res) => {
-  const workspace = await workspaceService.updateWorkspace(
-    req.params.workspaceId,
-    req.user.id,
-    req.body
-  );
+  const workspace = await workspaceService.updateWorkspace(req.workspace, req.body);
 
   return res.status(200).json(
     new ApiResponse(200, 'Workspace updated successfully', {
@@ -47,7 +43,7 @@ export const updateWorkspace = asyncHandler(async (req, res) => {
 });
 
 export const archiveWorkspace = asyncHandler(async (req, res) => {
-  const workspace = await workspaceService.archiveWorkspace(req.params.workspaceId, req.user.id);
+  const workspace = await workspaceService.archiveWorkspace(req.workspace);
 
   return res.status(200).json(
     new ApiResponse(200, 'Workspace archived successfully', {
@@ -56,12 +52,30 @@ export const archiveWorkspace = asyncHandler(async (req, res) => {
   );
 });
 
+export const restoreWorkspace = asyncHandler(async (req, res) => {
+  const workspace = await workspaceService.restoreWorkspace(req.workspace);
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Workspace restored successfully', {
+      workspace,
+    })
+  );
+});
+
+export const deleteWorkspace = asyncHandler(async (req, res) => {
+  await workspaceService.deleteWorkspace(req.workspace);
+
+  return res.status(200).json(new ApiResponse(200, 'Workspace deleted successfully'));
+});
+
 const workspaceController = {
   createWorkspace,
   getUserWorkspaces,
   getWorkspaceById,
   updateWorkspace,
   archiveWorkspace,
+  restoreWorkspace,
+  deleteWorkspace,
 };
 
 export default workspaceController;

@@ -26,35 +26,11 @@ export const getUserWorkspaces = async (userId) => {
   return workspaces;
 };
 
-export const getWorkspaceById = async (workspaceId, userId) => {
-  const workspace = await Workspace.findActiveById(workspaceId);
-
-  if (!workspace) {
-    throw new ApiError(404, 'Workspace not found');
-  }
-
-  const isMember = workspace.members.some((member) => member.user.toString() === userId.toString());
-
-  if (!isMember) {
-    throw new ApiError(403, 'You do not have access to this workspace');
-  }
-
+export const getWorkspaceById = async (workspace) => {
   return workspace;
 };
 
-export const updateWorkspace = async (workspaceId, userId, workspaceData) => {
-  const workspace = await Workspace.findActiveById(workspaceId);
-
-  if (!workspace) {
-    throw new ApiError(404, 'Workspace not found');
-  }
-
-  const isMember = workspace.members.some((member) => member.user.toString() === userId.toString());
-
-  if (!isMember) {
-    throw new ApiError(403, 'You do not have access to this workspace');
-  }
-
+export const updateWorkspace = async (workspace, workspaceData) => {
   const { name, description } = workspaceData;
 
   if (name !== undefined) {
@@ -70,19 +46,7 @@ export const updateWorkspace = async (workspaceId, userId, workspaceData) => {
   return workspace;
 };
 
-export const archiveWorkspace = async (workspaceId, userId) => {
-  const workspace = await Workspace.findActiveById(workspaceId);
-
-  if (!workspace) {
-    throw new ApiError(404, 'Workspace not found');
-  }
-
-  const isMember = workspace.members.some((member) => member.user.toString() === userId.toString());
-
-  if (!isMember) {
-    throw new ApiError(403, 'You do not have access to this workspace');
-  }
-
+export const archiveWorkspace = async (workspace) => {
   workspace.isArchived = true;
   workspace.archivedAt = new Date();
 
@@ -91,12 +55,27 @@ export const archiveWorkspace = async (workspaceId, userId) => {
   return workspace;
 };
 
+export const restoreWorkspace = async (workspace) => {
+  workspace.isArchived = false;
+  workspace.archivedAt = null;
+
+  await workspace.save();
+
+  return workspace;
+};
+
+export const deleteWorkspace = async (workspace) => {
+  await workspace.deleteOne();
+};
+
 const workspaceService = {
   createWorkspace,
   getUserWorkspaces,
   getWorkspaceById,
   updateWorkspace,
   archiveWorkspace,
+  restoreWorkspace,
+  deleteWorkspace,
 };
 
 export default workspaceService;
