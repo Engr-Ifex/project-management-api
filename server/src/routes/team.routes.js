@@ -14,7 +14,11 @@ import {
   inviteMemberSchema,
   removeMemberSchema,
   updateMemberRoleSchema,
+  transferOwnershipSchema,
 } from '../validators/team.validator.js';
+import requireWorkspacePermission from '../middlewares/requireWorkspacePermission.middleware.js';
+
+import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
 
 import { WORKSPACE_ROLES } from '../constants/workspaceRoles.js';
 import { workspaceIdSchema } from '../validators/workspace.validator.js';
@@ -26,7 +30,7 @@ router.post(
   authenticate,
   validate(inviteMemberSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(WORKSPACE_ROLES.OWNER, WORKSPACE_ROLES.ADMIN),
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.INVITE_MEMBERS),
   teamController.inviteMember
 );
 
@@ -45,7 +49,7 @@ router.delete(
   authenticate,
   validate(removeMemberSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(WORKSPACE_ROLES.OWNER, WORKSPACE_ROLES.ADMIN),
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.REMOVE_MEMBERS),
   teamController.removeWorkspaceMember
 );
 
@@ -54,8 +58,17 @@ router.patch(
   authenticate,
   validate(updateMemberRoleSchema),
   requireWorkspaceMember,
-  requireWorkspaceRole(WORKSPACE_ROLES.OWNER),
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.CHANGE_ROLES),
   teamController.updateMemberRole
+);
+
+router.patch(
+  '/workspaces/:workspaceId/transfer-ownership',
+  authenticate,
+  validate(transferOwnershipSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.TRANSFER_OWNERSHIP),
+  teamController.transferOwnership
 );
 
 export default router;

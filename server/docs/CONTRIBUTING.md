@@ -128,9 +128,9 @@ Use camelCase.
 Examples:
 
 ```javascript
-projectOwner
-taskPriority
-assignedUser
+projectOwner;
+taskPriority;
+assignedUser;
 ```
 
 ---
@@ -142,9 +142,9 @@ Use UPPER_SNAKE_CASE.
 Examples:
 
 ```javascript
-JWT_SECRET
-MAX_FILE_SIZE
-DEFAULT_PAGE_SIZE
+JWT_SECRET;
+MAX_FILE_SIZE;
+DEFAULT_PAGE_SIZE;
 ```
 
 ---

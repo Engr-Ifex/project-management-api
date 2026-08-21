@@ -110,12 +110,12 @@ users
 
 ## Schema Fields
 
-| Field | Type | Required | Default |
-|--------|------|----------|---------|
-| name | String | Yes | - |
-| email | String | Yes | - |
-| password | String | Yes | - |
-| createdAt | Date | Yes | Current Date |
+| Field     | Type   | Required | Default      |
+| --------- | ------ | -------- | ------------ |
+| name      | String | Yes      | -            |
+| email     | String | Yes      | -            |
+| password  | String | Yes      | -            |
+| createdAt | Date   | Yes      | Current Date |
 
 ---
 

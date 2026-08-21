@@ -63,13 +63,13 @@ Base Route
 /auth
 ```
 
-| Method | Endpoint | Description | Auth Required |
-|---------|----------|-------------|---------------|
-| POST | /register | Register a user | No |
-| POST | /login | Login | No |
-| POST | /logout | Logout | Yes |
-| GET | /me | Get current user | Yes |
-| PATCH | /change-password | Change password | Yes |
+| Method | Endpoint         | Description      | Auth Required |
+| ------ | ---------------- | ---------------- | ------------- |
+| POST   | /register        | Register a user  | No            |
+| POST   | /login           | Login            | No            |
+| POST   | /logout          | Logout           | Yes           |
+| GET    | /me              | Get current user | Yes           |
+| PATCH  | /change-password | Change password  | Yes           |
 
 ---
 
@@ -81,12 +81,12 @@ Base Route
 /users
 ```
 
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| GET | /profile | Get profile |
-| PATCH | /profile | Update profile |
+| Method | Endpoint | Description    |
+| ------ | -------- | -------------- |
+| GET    | /profile | Get profile    |
+| PATCH  | /profile | Update profile |
 | DELETE | /profile | Delete account |
-| PATCH | /avatar | Upload avatar |
+| PATCH  | /avatar  | Upload avatar  |
 
 ---
 
@@ -98,15 +98,15 @@ Base Route
 /workspaces
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | / |
-| GET | /:id |
-| POST | / |
-| PATCH | /:id |
-| DELETE | /:id |
-| PATCH | /:id/archive |
-| PATCH | /:id/restore |
+| Method | Endpoint     |
+| ------ | ------------ |
+| GET    | /            |
+| GET    | /:id         |
+| POST   | /            |
+| PATCH  | /:id         |
+| DELETE | /:id         |
+| PATCH  | /:id/archive |
+| PATCH  | /:id/restore |
 
 ---
 
@@ -118,12 +118,12 @@ Base Route
 /workspaces/:workspaceId/members
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | / |
-| POST | /invite |
-| PATCH | /:memberId/role |
-| DELETE | /:memberId |
+| Method | Endpoint        |
+| ------ | --------------- |
+| GET    | /               |
+| POST   | /invite         |
+| PATCH  | /:memberId/role |
+| DELETE | /:memberId      |
 
 ---
 
@@ -135,15 +135,15 @@ Base Route
 /projects
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | / |
-| GET | /:id |
-| POST | / |
-| PATCH | /:id |
-| DELETE | /:id |
-| PATCH | /:id/archive |
-| PATCH | /:id/restore |
+| Method | Endpoint     |
+| ------ | ------------ |
+| GET    | /            |
+| GET    | /:id         |
+| POST   | /            |
+| PATCH  | /:id         |
+| DELETE | /:id         |
+| PATCH  | /:id/archive |
+| PATCH  | /:id/restore |
 
 ---
 
@@ -156,22 +156,22 @@ Base Route
 ```
 
 | Method | Endpoint |
-|---------|----------|
-| GET | / |
-| GET | /:id |
-| POST | / |
-| PATCH | /:id |
-| DELETE | /:id |
+| ------ | -------- |
+| GET    | /        |
+| GET    | /:id     |
+| POST   | /        |
+| PATCH  | /:id     |
+| DELETE | /:id     |
 
 Additional Routes
 
-| Method | Endpoint |
-|---------|----------|
-| PATCH | /:id/status |
-| PATCH | /:id/priority |
-| PATCH | /:id/assign |
-| PATCH | /:id/archive |
-| PATCH | /:id/restore |
+| Method | Endpoint      |
+| ------ | ------------- |
+| PATCH  | /:id/status   |
+| PATCH  | /:id/priority |
+| PATCH  | /:id/assign   |
+| PATCH  | /:id/archive  |
+| PATCH  | /:id/restore  |
 
 ---
 
@@ -183,12 +183,12 @@ Base Route
 /comments
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | /task/:taskId |
-| POST | / |
-| PATCH | /:id |
-| DELETE | /:id |
+| Method | Endpoint      |
+| ------ | ------------- |
+| GET    | /task/:taskId |
+| POST   | /             |
+| PATCH  | /:id          |
+| DELETE | /:id          |
 
 ---
 
@@ -201,11 +201,11 @@ Base Route
 ```
 
 | Method | Endpoint |
-|---------|----------|
-| GET | / |
-| POST | / |
-| PATCH | /:id |
-| DELETE | /:id |
+| ------ | -------- |
+| GET    | /        |
+| POST   | /        |
+| PATCH  | /:id     |
+| DELETE | /:id     |
 
 ---
 
@@ -217,12 +217,12 @@ Base Route
 /notifications
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | / |
-| PATCH | /:id/read |
-| PATCH | /read-all |
-| DELETE | /:id |
+| Method | Endpoint  |
+| ------ | --------- |
+| GET    | /         |
+| PATCH  | /:id/read |
+| PATCH  | /read-all |
+| DELETE | /:id      |
 
 ---
 
@@ -235,9 +235,9 @@ Base Route
 ```
 
 | Method | Endpoint |
-|---------|----------|
-| GET | / |
-| GET | /:id |
+| ------ | -------- |
+| GET    | /        |
+| GET    | /:id     |
 
 ---
 
@@ -250,9 +250,9 @@ Base Route
 ```
 
 | Method | Endpoint |
-|---------|----------|
-| POST | / |
-| DELETE | /:id |
+| ------ | -------- |
+| POST   | /        |
+| DELETE | /:id     |
 
 ---
 
@@ -264,11 +264,11 @@ Base Route
 /dashboard
 ```
 
-| Method | Endpoint |
-|---------|----------|
-| GET | /overview |
-| GET | /projects |
-| GET | /tasks |
+| Method | Endpoint  |
+| ------ | --------- |
+| GET    | /overview |
+| GET    | /projects |
+| GET    | /tasks    |
 
 ---
 
@@ -281,8 +281,8 @@ Base Route
 ```
 
 | Method | Endpoint |
-|---------|----------|
-| GET | / |
+| ------ | -------- |
+| GET    | /        |
 
 Query Parameters
 
@@ -343,18 +343,18 @@ Authorization: Bearer <token>
 
 # HTTP Status Codes
 
-| Code | Meaning |
-|------|----------|
-| 200 | OK |
-| 201 | Created |
-| 204 | No Content |
-| 400 | Bad Request |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 409 | Conflict |
-| 422 | Validation Error |
-| 500 | Internal Server Error |
+| Code | Meaning               |
+| ---- | --------------------- |
+| 200  | OK                    |
+| 201  | Created               |
+| 204  | No Content            |
+| 400  | Bad Request           |
+| 401  | Unauthorized          |
+| 403  | Forbidden             |
+| 404  | Not Found             |
+| 409  | Conflict              |
+| 422  | Validation Error      |
+| 500  | Internal Server Error |
 
 ---
 

@@ -572,18 +572,18 @@ A phase is considered complete only when:
 
 # Progress Tracker
 
-| Phase | Status |
-|--------|--------|
-| Phase 0 | 🟡 In Progress |
-| Phase 1 | ⬜ Not Started |
-| Phase 2 | ⬜ Not Started |
-| Phase 3 | ⬜ Not Started |
-| Phase 4 | ⬜ Not Started |
-| Phase 5 | ⬜ Not Started |
-| Phase 6 | ⬜ Not Started |
-| Phase 7 | ⬜ Not Started |
-| Phase 8 | ⬜ Not Started |
-| Phase 9 | ⬜ Not Started |
+| Phase    | Status         |
+| -------- | -------------- |
+| Phase 0  | 🟡 In Progress |
+| Phase 1  | ⬜ Not Started |
+| Phase 2  | ⬜ Not Started |
+| Phase 3  | ⬜ Not Started |
+| Phase 4  | ⬜ Not Started |
+| Phase 5  | ⬜ Not Started |
+| Phase 6  | ⬜ Not Started |
+| Phase 7  | ⬜ Not Started |
+| Phase 8  | ⬜ Not Started |
+| Phase 9  | ⬜ Not Started |
 | Phase 10 | ⬜ Not Started |
 | Phase 11 | ⬜ Not Started |
 | Phase 12 | ⬜ Not Started |

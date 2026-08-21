@@ -54,12 +54,28 @@ export const updateMemberRole = asyncHandler(async (req, res) => {
   );
 });
 
+export const transferOwnership = asyncHandler(async (req, res) => {
+  const result = await teamService.transferOwnership(
+    req.workspace,
+    req.workspaceMember,
+    req.body.userId
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Workspace ownership transferred successfully', {
+      newOwner: result.newOwner,
+      previousOwner: result.previousOwner,
+    })
+  );
+});
+
 const teamController = {
   inviteMember,
   acceptInvitation,
   getWorkspaceMembers,
   removeWorkspaceMember,
   updateMemberRole,
+  transferOwnership,
 };
 
 export default teamController;

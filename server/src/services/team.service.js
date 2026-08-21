@@ -72,3 +72,45 @@ export const updateMemberRole = async (workspace, requestingMember, userId, newR
 
   return targetMember;
 };
+
+export const transferOwnership = async (workspace, requestingMember, newOwnerId) => {
+  // Only the current owner can transfer ownership
+  if (requestingMember.role !== WORKSPACE_ROLES.OWNER) {
+    throw new ApiError(403, 'Only the workspace owner can transfer ownership');
+  }
+
+  // Prevent transferring to yourself
+  if (requestingMember.user.toString() === newOwnerId.toString()) {
+    throw new ApiError(400, 'You are already the workspace owner');
+  }
+
+  // Find the new owner
+  const newOwner = workspace.members.find(
+    (member) => member.user.toString() === newOwnerId.toString()
+  );
+
+  if (!newOwner) {
+    throw new ApiError(404, 'User is not a member of this workspace');
+  }
+
+  // Find current owner
+  const currentOwner = workspace.members.find((member) => member.role === WORKSPACE_ROLES.OWNER);
+
+  if (!currentOwner) {
+    throw new ApiError(500, 'Workspace does not have a valid owner');
+  }
+
+  // Transfer ownership
+  currentOwner.role = WORKSPACE_ROLES.ADMIN;
+  newOwner.role = WORKSPACE_ROLES.OWNER;
+
+  // Update workspace owner field if your model has one
+  workspace.owner = newOwner.user;
+
+  await workspace.save();
+
+  return {
+    previousOwner: currentOwner,
+    newOwner,
+  };
+};

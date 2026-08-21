@@ -39,3 +39,15 @@ export const updateMemberRoleSchema = z.object({
 
   query: z.object({}).optional(),
 });
+
+export const transferOwnershipSchema = z.object({
+  body: z.object({
+    userId: z.string().min(1, 'User ID is required'),
+  }),
+
+  params: z.object({
+    workspaceId: z.string().min(1, 'Workspace ID is required'),
+  }),
+
+  query: z.object({}).optional(),
+});
