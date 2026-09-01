@@ -16,8 +16,28 @@ export const createProject = asyncHandler(async (req, res) => {
   );
 });
 
+export const getWorkspaceProjects = asyncHandler(
+  async (req, res) => {
+    const projects =
+      await projectService.getWorkspaceProjects(
+        req.params.workspaceId
+      );
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        'Projects retrieved successfully',
+        {
+          projects,
+        }
+      )
+    );
+  }
+);
+
 const projectController = {
   createProject,
+  getWorkspaceProjects,
 };
 
 export default projectController;

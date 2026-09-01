@@ -120,3 +120,15 @@ export const removeProjectMemberSchema = z.object({
 
   query: z.object({}).optional(),
 });
+
+export const workspaceProjectsSchema = z.object({
+  body: z.object({}).optional(),
+
+  params: z.object({
+    workspaceId: z
+      .string()
+      .min(1, 'Workspace ID is required'),
+  }),
+
+  query: z.object({}).optional(),
+});
