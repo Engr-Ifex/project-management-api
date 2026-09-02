@@ -50,11 +50,26 @@ export const updateProject = asyncHandler(async (req, res) => {
   );
 });
 
+export const archiveProject = asyncHandler(async (req, res) => {
+  const project = await projectService.archiveProject(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.user.id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project archived successfully', {
+      project,
+    })
+  );
+});
+
 const projectController = {
   createProject,
   getWorkspaceProjects,
   getProjectById,
   updateProject,
+  archiveProject,
 };
 
 export default projectController;

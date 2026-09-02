@@ -67,3 +67,31 @@ export const updateProject = async (workspaceId, projectId, updateData) => {
 
   return project;
 };
+
+export const archiveProject = async (workspaceId, projectId, userId) => {
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: false,
+    },
+    {
+      isArchived: true,
+      archivedAt: new Date(),
+      archivedBy: userId,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
+    .populate('createdBy', 'name email avatar')
+    .populate('members.user', 'name email avatar')
+    .populate('archivedBy', 'name email avatar');
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found or already archived');
+  }
+
+  return project;
+};

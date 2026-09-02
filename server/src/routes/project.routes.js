@@ -52,4 +52,13 @@ router.patch(
   projectController.updateProject
 );
 
+router.patch(
+  '/:workspaceId/projects/:projectId/archive',
+  authenticate,
+  validate(projectIdSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
+  projectController.archiveProject
+);
+
 export default router;
