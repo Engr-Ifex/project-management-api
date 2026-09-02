@@ -40,7 +40,8 @@ export const updateProject = asyncHandler(async (req, res) => {
   const project = await projectService.updateProject(
     req.params.workspaceId,
     req.params.projectId,
-    req.body
+    req.body,
+    req.user.id
   );
 
   return res.status(200).json(
@@ -65,7 +66,11 @@ export const archiveProject = asyncHandler(async (req, res) => {
 });
 
 export const restoreProject = asyncHandler(async (req, res) => {
-  const project = await projectService.restoreProject(req.params.workspaceId, req.params.projectId);
+  const project = await projectService.restoreProject(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.user.id
+  );
 
   return res.status(200).json(
     new ApiResponse(200, 'Project restored successfully', {
@@ -73,16 +78,45 @@ export const restoreProject = asyncHandler(async (req, res) => {
     })
   );
 });
-
 export const updateProjectStatus = asyncHandler(async (req, res) => {
   const project = await projectService.updateProjectStatus(
     req.params.workspaceId,
     req.params.projectId,
-    req.body.status
+    req.body.status,
+    req.user.id
   );
 
   return res.status(200).json(
     new ApiResponse(200, 'Project status updated successfully', {
+      project,
+    })
+  );
+});
+
+export const addProjectMember = asyncHandler(async (req, res) => {
+  const project = await projectService.addProjectMember(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.body.userId,
+    req.user.id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project member added successfully', {
+      project,
+    })
+  );
+});
+export const removeProjectMember = asyncHandler(async (req, res) => {
+  const project = await projectService.removeProjectMember(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.userId,
+    req.user.id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project member removed successfully', {
       project,
     })
   );
@@ -96,6 +130,8 @@ const projectController = {
   archiveProject,
   restoreProject,
   updateProjectStatus,
+  addProjectMember,
+  removeProjectMember,
 };
 
 export default projectController;

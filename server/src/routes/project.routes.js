@@ -13,7 +13,11 @@ import {
   projectIdSchema,
   updateProjectSchema,
   updateProjectStatusSchema,
+  removeProjectMemberSchema,
+  addProjectMemberSchema,
 } from '../validators/project.validator.js';
+
+import projectActivityController from '../controllers/projectActivity.controller.js';
 
 import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
 
@@ -77,6 +81,32 @@ router.patch(
   requireWorkspaceMember,
   requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
   projectController.updateProjectStatus
+);
+
+router.post(
+  '/:workspaceId/projects/:projectId/members',
+  authenticate,
+  validate(addProjectMemberSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
+  projectController.addProjectMember
+);
+
+router.delete(
+  '/:workspaceId/projects/:projectId/members/:userId',
+  authenticate,
+  validate(removeProjectMemberSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
+  projectController.removeProjectMember
+);
+
+router.get(
+  '/:workspaceId/projects/:projectId/activities',
+  authenticate,
+  validate(projectIdSchema),
+  requireWorkspaceMember,
+  projectActivityController.getProjectActivities
 );
 
 export default router;
