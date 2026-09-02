@@ -122,3 +122,28 @@ export const restoreProject = async (workspaceId, projectId) => {
 
   return project;
 };
+
+export const updateProjectStatus = async (workspaceId, projectId, status) => {
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: false,
+    },
+    {
+      status,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
+    .populate('createdBy', 'name email avatar')
+    .populate('members.user', 'name email avatar');
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  return project;
+};

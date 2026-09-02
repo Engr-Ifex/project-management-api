@@ -12,6 +12,7 @@ import {
   workspaceProjectsSchema,
   projectIdSchema,
   updateProjectSchema,
+  updateProjectStatusSchema,
 } from '../validators/project.validator.js';
 
 import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
@@ -68,6 +69,14 @@ router.patch(
   requireWorkspaceMember,
   requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
   projectController.restoreProject
+);
+router.patch(
+  '/:workspaceId/projects/:projectId/status',
+  authenticate,
+  validate(updateProjectStatusSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
+  projectController.updateProjectStatus
 );
 
 export default router;

@@ -74,6 +74,20 @@ export const restoreProject = asyncHandler(async (req, res) => {
   );
 });
 
+export const updateProjectStatus = asyncHandler(async (req, res) => {
+  const project = await projectService.updateProjectStatus(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.body.status
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project status updated successfully', {
+      project,
+    })
+  );
+});
+
 const projectController = {
   createProject,
   getWorkspaceProjects,
@@ -81,6 +95,7 @@ const projectController = {
   updateProject,
   archiveProject,
   restoreProject,
+  updateProjectStatus,
 };
 
 export default projectController;
