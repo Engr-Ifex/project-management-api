@@ -16,28 +16,45 @@ export const createProject = asyncHandler(async (req, res) => {
   );
 });
 
-export const getWorkspaceProjects = asyncHandler(
-  async (req, res) => {
-    const projects =
-      await projectService.getWorkspaceProjects(
-        req.params.workspaceId
-      );
+export const getWorkspaceProjects = asyncHandler(async (req, res) => {
+  const projects = await projectService.getWorkspaceProjects(req.params.workspaceId);
 
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        'Projects retrieved successfully',
-        {
-          projects,
-        }
-      )
-    );
-  }
-);
+  return res.status(200).json(
+    new ApiResponse(200, 'Projects retrieved successfully', {
+      projects,
+    })
+  );
+});
+
+export const getProjectById = asyncHandler(async (req, res) => {
+  const project = await projectService.getProjectById(req.params.workspaceId, req.params.projectId);
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project retrieved successfully', {
+      project,
+    })
+  );
+});
+
+export const updateProject = asyncHandler(async (req, res) => {
+  const project = await projectService.updateProject(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.body
+  );
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project updated successfully', {
+      project,
+    })
+  );
+});
 
 const projectController = {
   createProject,
   getWorkspaceProjects,
+  getProjectById,
+  updateProject,
 };
 
 export default projectController;

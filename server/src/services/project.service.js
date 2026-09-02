@@ -1,4 +1,5 @@
 import Project from '../models/Project.js';
+import ApiError from '../utils/ApiError.js';
 
 export const createProject = async (workspaceId, userId, projectData) => {
   const project = await Project.create({
@@ -27,4 +28,42 @@ export const getWorkspaceProjects = async (workspaceId) => {
     .sort({ createdAt: -1 });
 
   return projects;
+};
+
+export const getProjectById = async (workspaceId, projectId) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+  })
+    .populate('createdBy', 'name email avatar')
+    .populate('members.user', 'name email avatar');
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  return project;
+};
+
+export const updateProject = async (workspaceId, projectId, updateData) => {
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: false,
+    },
+    updateData,
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
+    .populate('createdBy', 'name email avatar')
+    .populate('members.user', 'name email avatar');
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  return project;
 };

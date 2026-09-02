@@ -30,6 +30,6 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/workspaces', workspaceRoutes);
 router.use('/', teamRoutes);
-router.use('/', projectRoutes);
+router.use('/workspaces', projectRoutes);
 
 export default router;
