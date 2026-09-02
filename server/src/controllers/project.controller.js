@@ -64,12 +64,23 @@ export const archiveProject = asyncHandler(async (req, res) => {
   );
 });
 
+export const restoreProject = asyncHandler(async (req, res) => {
+  const project = await projectService.restoreProject(req.params.workspaceId, req.params.projectId);
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Project restored successfully', {
+      project,
+    })
+  );
+});
+
 const projectController = {
   createProject,
   getWorkspaceProjects,
   getProjectById,
   updateProject,
   archiveProject,
+  restoreProject,
 };
 
 export default projectController;

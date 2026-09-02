@@ -95,3 +95,30 @@ export const archiveProject = async (workspaceId, projectId, userId) => {
 
   return project;
 };
+
+export const restoreProject = async (workspaceId, projectId) => {
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: true,
+    },
+    {
+      isArchived: false,
+      archivedAt: null,
+      archivedBy: null,
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
+    .populate('createdBy', 'name email avatar')
+    .populate('members.user', 'name email avatar');
+
+  if (!project) {
+    throw new ApiError(404, 'Archived project not found');
+  }
+
+  return project;
+};

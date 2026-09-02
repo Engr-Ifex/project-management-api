@@ -61,4 +61,13 @@ router.patch(
   projectController.archiveProject
 );
 
+router.patch(
+  '/:workspaceId/projects/:projectId/restore',
+  authenticate,
+  validate(projectIdSchema),
+  requireWorkspaceMember,
+  requireWorkspacePermission(WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE),
+  projectController.restoreProject
+);
+
 export default router;
