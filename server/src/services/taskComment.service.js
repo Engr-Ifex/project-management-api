@@ -59,7 +59,7 @@ export const createTaskComment = async (
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'task_comment_added',
     metadata: {
       taskId: task._id,
       action: 'comment_added',
@@ -227,7 +227,7 @@ export const deleteTaskComment = async (
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'task_comment_deleted',
     metadata: {
       taskId: task._id,
       action: 'comment_deleted',

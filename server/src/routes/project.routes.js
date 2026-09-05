@@ -17,6 +17,10 @@ import {
   addProjectMemberSchema,
 } from '../validators/project.validator.js';
 
+import {
+  taskIdSchema
+} from '../validators/task.validator.js';
+
 import projectActivityController from '../controllers/projectActivity.controller.js';
 
 import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
@@ -107,6 +111,14 @@ router.get(
   validate(projectIdSchema),
   requireWorkspaceMember,
   projectActivityController.getProjectActivities
+);
+
+router.get(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/activities',
+  authenticate,
+  validate(taskIdSchema),
+  requireWorkspaceMember,
+  projectActivityController.getTaskActivities
 );
 
 export default router;
