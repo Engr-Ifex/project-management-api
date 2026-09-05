@@ -4,6 +4,7 @@ import userRoutes from './user.routes.js';
 import workspaceRoutes from './workspace.routes.js';
 import teamRoutes from './team.routes.js';
 import projectRoutes from './project.routes.js';
+import taskRoutes from './task.routes.js';
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use('/users', userRoutes);
 router.use('/workspaces', workspaceRoutes);
 router.use('/', teamRoutes);
 router.use('/workspaces', projectRoutes);
+router.use('/workspaces', taskRoutes);
 
 export default router;
