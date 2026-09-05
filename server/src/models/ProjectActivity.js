@@ -38,6 +38,10 @@ const projectActivitySchema = new mongoose.Schema(
         'task_archived',
         'task_restored',
         'task_status_changed',
+        'task_priority_changed',
+        'task_assigned',
+        'task_reassigned',
+        'task_unassigned',
       ],
     },
 

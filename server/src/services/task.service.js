@@ -390,3 +390,273 @@ export const updateTaskStatus = async (
 
   return task;
 };
+
+export const updateTaskPriority = async (
+  workspaceId,
+  projectId,
+  taskId,
+  priority,
+  userId
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(
+      404,
+      'Project not found'
+    );
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(
+      404,
+      'Task not found'
+    );
+  }
+
+  const oldPriority = task.priority;
+
+  if (oldPriority === priority) {
+    throw new ApiError(
+      400,
+      `Task is already ${priority} priority`
+    );
+  }
+
+  task.priority = priority;
+
+  await task.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_priority_changed',
+    metadata: {
+      taskId: task._id,
+      from: oldPriority,
+      to: priority,
+    },
+  });
+
+  await task.populate([
+    {
+      path: 'createdBy',
+      select: 'name email avatar',
+    },
+    {
+      path: 'assignee',
+      select: 'name email avatar',
+    },
+  ]);
+
+  return task;
+};
+
+export const assignTask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  assignee,
+  userId
+) => {
+  // 1. Check that the project exists and is active
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  // 2. Check that the task exists and is active
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  // 3. Get old and new assignee IDs
+  const oldAssignee = task.assignee
+    ? task.assignee.toString()
+    : null;
+
+  const newAssignee = assignee
+    ? assignee.toString()
+    : null;
+
+  // 4. Prevent assigning the same user again
+  if (oldAssignee === newAssignee) {
+    if (newAssignee === null) {
+      throw new ApiError(
+        400,
+        'Task is already unassigned'
+      );
+    }
+
+    throw new ApiError(
+      400,
+      'Task is already assigned to this user'
+    );
+  }
+
+  // 5. If assigning someone, make sure they are a project member
+  if (newAssignee) {
+    const isProjectMember = project.members.some(
+      (member) =>
+        member.user.toString() === newAssignee
+    );
+
+    if (!isProjectMember) {
+      throw new ApiError(
+        400,
+        'Assignee must be a project member'
+      );
+    }
+  }
+
+  // 6. Update assignee
+  task.assignee = assignee || null;
+
+  await task.save();
+
+  // 7. Determine activity type
+  let action;
+
+  if (!oldAssignee && newAssignee) {
+    action = 'task_assigned';
+  } else if (oldAssignee && newAssignee) {
+    action = 'task_reassigned';
+  } else {
+    action = 'task_unassigned';
+  }
+
+  // 8. Create activity log
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action,
+    metadata: {
+      taskId: task._id,
+      from: oldAssignee,
+      to: newAssignee,
+    },
+  });
+
+  // 9. Populate response
+  await task.populate([
+    {
+      path: 'createdBy',
+      select: 'name email avatar',
+    },
+    {
+      path: 'assignee',
+      select: 'name email avatar',
+    },
+  ]);
+
+  return task;
+};
+
+export const updateTaskDueDate = async (
+  workspaceId,
+  projectId,
+  taskId,
+  dueDate,
+  userId
+) => {
+  // 1. Check that the project exists and is active
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  // 2. Check that the task exists and is active
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  // 3. Convert the new date
+  const newDueDate = dueDate
+    ? new Date(dueDate)
+    : null;
+
+  // 4. Check if the date is actually changing
+  const oldDueDate = task.dueDate
+    ? task.dueDate.toISOString()
+    : null;
+
+  const newDueDateValue = newDueDate
+    ? newDueDate.toISOString()
+    : null;
+
+  if (oldDueDate === newDueDateValue) {
+    throw new ApiError(
+      400,
+      dueDate
+        ? 'Task already has this due date'
+        : 'Task already has no due date'
+    );
+  }
+
+  // 5. Update due date
+  task.dueDate = newDueDate;
+
+  await task.save();
+
+  // 6. Log activity
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_updated',
+    metadata: {
+      taskId: task._id,
+      field: 'dueDate',
+      from: oldDueDate,
+      to: newDueDateValue,
+    },
+  });
+
+  // 7. Populate response
+  await task.populate([
+    {
+      path: 'createdBy',
+      select: 'name email avatar',
+    },
+    {
+      path: 'assignee',
+      select: 'name email avatar',
+    },
+  ]);
+
+  return task;
+};

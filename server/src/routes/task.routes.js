@@ -12,6 +12,9 @@ import {
   taskIdSchema,
   updateTaskSchema,
   updateTaskStatusSchema,
+  updateTaskPrioritySchema,
+  assignTaskSchema,
+  taskDueDateSchema,
 } from '../validators/task.validator.js';
 
 const router = express.Router();
@@ -70,6 +73,30 @@ router.patch(
   validate(updateTaskStatusSchema),
   requireWorkspaceMember,
   taskController.updateTaskStatus
+);
+
+router.patch(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/priority',
+  authenticate,
+  validate(updateTaskPrioritySchema),
+  requireWorkspaceMember,
+  taskController.updateTaskPriority
+);
+
+router.patch(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/assignee',
+  authenticate,
+  validate(assignTaskSchema),
+  requireWorkspaceMember,
+  taskController.assignTask
+);
+
+router.patch(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/due-date',
+  authenticate,
+  validate(taskDueDateSchema),
+  requireWorkspaceMember,
+  taskController.updateTaskDueDate
 );
 
 export default router;

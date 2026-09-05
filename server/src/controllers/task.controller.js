@@ -148,6 +148,65 @@ export const updateTaskStatus = asyncHandler(
   }
 );
 
+export const updateTaskPriority = asyncHandler(
+  async (req, res) => {
+    const task =
+      await taskService.updateTaskPriority(
+        req.params.workspaceId,
+        req.params.projectId,
+        req.params.taskId,
+        req.body.priority,
+        req.user.id
+      );
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        'Task priority updated successfully',
+        {
+          task,
+        }
+      )
+    );
+  }
+);
+
+export const assignTask = asyncHandler(async (req, res) => {
+  const task = await taskService.assignTask(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.body.assignee,
+    req.user.id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      'Task assignee updated successfully',
+      { task }
+    )
+  );
+});
+
+export const updateTaskDueDate = asyncHandler(async (req, res) => {
+  const task = await taskService.updateTaskDueDate(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.body.dueDate,
+    req.user.id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      'Task due date updated successfully',
+      { task }
+    )
+  );
+});
+
 const taskController = {
   createTask,
   getProjectTasks,
@@ -156,6 +215,9 @@ const taskController = {
   archiveTask,
   restoreTask,
   updateTaskStatus,
+  updateTaskPriority,
+  assignTask,
+  updateTaskDueDate,
 };
 
 export default taskController;
