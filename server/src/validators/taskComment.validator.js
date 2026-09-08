@@ -6,10 +6,7 @@ export const createTaskCommentSchema = z.object({
       .string()
       .trim()
       .min(1, 'Comment cannot be empty')
-      .max(
-        2000,
-        'Comment cannot exceed 2000 characters'
-      ),
+      .max(2000, 'Comment cannot exceed 2000 characters'),
   }),
 
   params: z.object({
@@ -27,10 +24,7 @@ export const updateTaskCommentSchema = z.object({
       .string()
       .trim()
       .min(1, 'Comment cannot be empty')
-      .max(
-        2000,
-        'Comment cannot exceed 2000 characters'
-      ),
+      .max(2000, 'Comment cannot exceed 2000 characters'),
   }),
 
   params: z.object({

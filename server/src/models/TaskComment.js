@@ -19,14 +19,8 @@ const taskCommentSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Comment content is required'],
       trim: true,
-      minlength: [
-        1,
-        'Comment cannot be empty',
-      ],
-      maxlength: [
-        2000,
-        'Comment cannot exceed 2000 characters',
-      ],
+      minlength: [1, 'Comment cannot be empty'],
+      maxlength: [2000, 'Comment cannot exceed 2000 characters'],
     },
   },
   {
@@ -39,9 +33,6 @@ taskCommentSchema.index({
   createdAt: 1,
 });
 
-const TaskComment = mongoose.model(
-  'TaskComment',
-  taskCommentSchema
-);
+const TaskComment = mongoose.model('TaskComment', taskCommentSchema);
 
 export default TaskComment;

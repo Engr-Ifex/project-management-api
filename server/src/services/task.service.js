@@ -71,11 +71,7 @@ export const createTask = async (workspaceId, projectId, userId, taskData) => {
   return task;
 };
 
-
-export const getProjectTasks = async (
-  workspaceId,
-  projectId
-) => {
+export const getProjectTasks = async (workspaceId, projectId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -83,10 +79,7 @@ export const getProjectTasks = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const tasks = await Task.find({
@@ -100,11 +93,7 @@ export const getProjectTasks = async (
   return tasks;
 };
 
-export const getTaskById = async (
-  workspaceId,
-  projectId,
-  taskId
-) => {
+export const getTaskById = async (workspaceId, projectId, taskId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -112,10 +101,7 @@ export const getTaskById = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOne({
@@ -127,22 +113,13 @@ export const getTaskById = async (
     .populate('assignee', 'name email avatar');
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Task not found'
-    );
+    throw new ApiError(404, 'Task not found');
   }
 
   return task;
 };
 
-export const updateTask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  updateData,
-  userId
-) => {
+export const updateTask = async (workspaceId, projectId, taskId, updateData, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -150,10 +127,7 @@ export const updateTask = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOne({
@@ -163,10 +137,7 @@ export const updateTask = async (
   });
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Task not found'
-    );
+    throw new ApiError(404, 'Task not found');
   }
 
   const changedFields = Object.keys(updateData);
@@ -200,12 +171,7 @@ export const updateTask = async (
   return task;
 };
 
-export const archiveTask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  userId
-) => {
+export const archiveTask = async (workspaceId, projectId, taskId, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -213,10 +179,7 @@ export const archiveTask = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOneAndUpdate(
@@ -240,10 +203,7 @@ export const archiveTask = async (
     .populate('archivedBy', 'name email avatar');
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Task not found or already archived'
-    );
+    throw new ApiError(404, 'Task not found or already archived');
   }
 
   await createProjectActivity({
@@ -260,12 +220,7 @@ export const archiveTask = async (
   return task;
 };
 
-export const restoreTask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  userId
-) => {
+export const restoreTask = async (workspaceId, projectId, taskId, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -273,10 +228,7 @@ export const restoreTask = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOneAndUpdate(
@@ -299,10 +251,7 @@ export const restoreTask = async (
     .populate('assignee', 'name email avatar');
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Archived task not found'
-    );
+    throw new ApiError(404, 'Archived task not found');
   }
 
   await createProjectActivity({
@@ -319,13 +268,7 @@ export const restoreTask = async (
   return task;
 };
 
-export const updateTaskStatus = async (
-  workspaceId,
-  projectId,
-  taskId,
-  status,
-  userId
-) => {
+export const updateTaskStatus = async (workspaceId, projectId, taskId, status, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -333,10 +276,7 @@ export const updateTaskStatus = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOne({
@@ -346,19 +286,13 @@ export const updateTaskStatus = async (
   });
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Task not found'
-    );
+    throw new ApiError(404, 'Task not found');
   }
 
   const oldStatus = task.status;
 
   if (oldStatus === status) {
-    throw new ApiError(
-      400,
-      `Task is already ${status}`
-    );
+    throw new ApiError(400, `Task is already ${status}`);
   }
 
   task.status = status;
@@ -391,13 +325,7 @@ export const updateTaskStatus = async (
   return task;
 };
 
-export const updateTaskPriority = async (
-  workspaceId,
-  projectId,
-  taskId,
-  priority,
-  userId
-) => {
+export const updateTaskPriority = async (workspaceId, projectId, taskId, priority, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -405,10 +333,7 @@ export const updateTaskPriority = async (
   });
 
   if (!project) {
-    throw new ApiError(
-      404,
-      'Project not found'
-    );
+    throw new ApiError(404, 'Project not found');
   }
 
   const task = await Task.findOne({
@@ -418,19 +343,13 @@ export const updateTaskPriority = async (
   });
 
   if (!task) {
-    throw new ApiError(
-      404,
-      'Task not found'
-    );
+    throw new ApiError(404, 'Task not found');
   }
 
   const oldPriority = task.priority;
 
   if (oldPriority === priority) {
-    throw new ApiError(
-      400,
-      `Task is already ${priority} priority`
-    );
+    throw new ApiError(400, `Task is already ${priority} priority`);
   }
 
   task.priority = priority;
@@ -463,13 +382,7 @@ export const updateTaskPriority = async (
   return task;
 };
 
-export const assignTask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  assignee,
-  userId
-) => {
+export const assignTask = async (workspaceId, projectId, taskId, assignee, userId) => {
   // 1. Check that the project exists and is active
   const project = await Project.findOne({
     _id: projectId,
@@ -493,41 +406,27 @@ export const assignTask = async (
   }
 
   // 3. Get old and new assignee IDs
-  const oldAssignee = task.assignee
-    ? task.assignee.toString()
-    : null;
+  const oldAssignee = task.assignee ? task.assignee.toString() : null;
 
-  const newAssignee = assignee
-    ? assignee.toString()
-    : null;
+  const newAssignee = assignee ? assignee.toString() : null;
 
   // 4. Prevent assigning the same user again
   if (oldAssignee === newAssignee) {
     if (newAssignee === null) {
-      throw new ApiError(
-        400,
-        'Task is already unassigned'
-      );
+      throw new ApiError(400, 'Task is already unassigned');
     }
 
-    throw new ApiError(
-      400,
-      'Task is already assigned to this user'
-    );
+    throw new ApiError(400, 'Task is already assigned to this user');
   }
 
   // 5. If assigning someone, make sure they are a project member
   if (newAssignee) {
     const isProjectMember = project.members.some(
-      (member) =>
-        member.user.toString() === newAssignee
+      (member) => member.user.toString() === newAssignee
     );
 
     if (!isProjectMember) {
-      throw new ApiError(
-        400,
-        'Assignee must be a project member'
-      );
+      throw new ApiError(400, 'Assignee must be a project member');
     }
   }
 
@@ -575,13 +474,7 @@ export const assignTask = async (
   return task;
 };
 
-export const updateTaskDueDate = async (
-  workspaceId,
-  projectId,
-  taskId,
-  dueDate,
-  userId
-) => {
+export const updateTaskDueDate = async (workspaceId, projectId, taskId, dueDate, userId) => {
   // 1. Check that the project exists and is active
   const project = await Project.findOne({
     _id: projectId,
@@ -605,25 +498,17 @@ export const updateTaskDueDate = async (
   }
 
   // 3. Convert the new date
-  const newDueDate = dueDate
-    ? new Date(dueDate)
-    : null;
+  const newDueDate = dueDate ? new Date(dueDate) : null;
 
   // 4. Check if the date is actually changing
-  const oldDueDate = task.dueDate
-    ? task.dueDate.toISOString()
-    : null;
+  const oldDueDate = task.dueDate ? task.dueDate.toISOString() : null;
 
-  const newDueDateValue = newDueDate
-    ? newDueDate.toISOString()
-    : null;
+  const newDueDateValue = newDueDate ? newDueDate.toISOString() : null;
 
   if (oldDueDate === newDueDateValue) {
     throw new ApiError(
       400,
-      dueDate
-        ? 'Task already has this due date'
-        : 'Task already has no due date'
+      dueDate ? 'Task already has this due date' : 'Task already has no due date'
     );
   }
 
@@ -659,4 +544,58 @@ export const updateTaskDueDate = async (
   ]);
 
   return task;
+};
+
+export const updateTaskStartDate = async (workspaceId, projectId, taskId, startDate, userId) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  const oldStartDate = task.startDate;
+
+  const oldValue = oldStartDate ? oldStartDate.toISOString() : null;
+
+  const newValue = startDate ? new Date(startDate).toISOString() : null;
+
+  if (oldValue === newValue) {
+    throw new ApiError(400, 'Task already has this start date');
+  }
+
+  task.startDate = startDate ? new Date(startDate) : null;
+
+  await task.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_updated',
+    metadata: {
+      taskId: task._id,
+      field: 'startDate',
+      from: oldValue,
+      to: newValue,
+    },
+  });
+
+  return task.populate([
+    { path: 'createdBy', select: 'name email avatar' },
+    { path: 'assignee', select: 'name email avatar' },
+  ]);
 };

@@ -48,9 +48,19 @@ const taskSchema = new mongoose.Schema(
       default: 'medium',
     },
 
+    startDate: {
+      type: Date,
+      default: null,
+    },
+
     dueDate: {
       type: Date,
       default: null,
+    },
+    estimatedTime: {
+      type: Number,
+      default: 0,
+      min: [0, 'Estimated time cannot be negative'],
     },
 
     position: {

@@ -15,28 +15,21 @@ export const getProjectActivities = asyncHandler(async (req, res) => {
   );
 });
 
-export const getTaskActivities = asyncHandler(
-  async (req, res) => {
-    const activities =
-      await projectActivityService.getTaskActivities(
-        req.params.workspaceId,
-        req.params.projectId,
-        req.params.taskId
-      );
+export const getTaskActivities = asyncHandler(async (req, res) => {
+  const activities = await projectActivityService.getTaskActivities(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId
+  );
 
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        'Task activities retrieved successfully',
-        { activities }
-      )
-    );
-  }
-);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'Task activities retrieved successfully', { activities }));
+});
 
 const projectActivityController = {
   getProjectActivities,
-  getTaskActivities, 
+  getTaskActivities,
 };
 
 export default projectActivityController;

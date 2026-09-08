@@ -31,11 +31,7 @@ export const getProjectActivities = async (workspaceId, projectId) => {
   return activities;
 };
 
-export const getTaskActivities = async (
-  workspaceId,
-  projectId,
-  taskId
-) => {
+export const getTaskActivities = async (workspaceId, projectId, taskId) => {
   if (!mongoose.Types.ObjectId.isValid(taskId)) {
     throw new ApiError(400, 'Invalid task ID');
   }

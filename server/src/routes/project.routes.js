@@ -17,9 +17,7 @@ import {
   addProjectMemberSchema,
 } from '../validators/project.validator.js';
 
-import {
-  taskIdSchema
-} from '../validators/task.validator.js';
+import { taskIdSchema } from '../validators/task.validator.js';
 
 import projectActivityController from '../controllers/projectActivity.controller.js';
 

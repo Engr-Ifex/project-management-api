@@ -23,35 +23,35 @@ const projectActivitySchema = new mongoose.Schema(
     },
 
     action: {
-     type: String,
-     required: true,
+      type: String,
+      required: true,
       enum: [
-    // Project actions
-    'created',
-    'updated',
-    'status_changed',
-    'member_added',
-    'member_removed',
-    'archived',
-    'restored',
+        // Project actions
+        'created',
+        'updated',
+        'status_changed',
+        'member_added',
+        'member_removed',
+        'archived',
+        'restored',
 
-    // Task actions
-    'task_created',
-    'task_updated',
-    'task_archived',
-    'task_restored',
-    'task_status_changed',
-    'task_priority_changed',
-    'task_assigned',
-    'task_reassigned',
-    'task_unassigned',
+        // Task actions
+        'task_created',
+        'task_updated',
+        'task_archived',
+        'task_restored',
+        'task_status_changed',
+        'task_priority_changed',
+        'task_assigned',
+        'task_reassigned',
+        'task_unassigned',
 
-    // Task comment actions
-    'task_comment_added',
-    'task_comment_updated',
-    'task_comment_deleted',
-  ],
-},
+        // Task comment actions
+        'task_comment_added',
+        'task_comment_updated',
+        'task_comment_deleted',
+      ],
+    },
 
     metadata: {
       type: mongoose.Schema.Types.Mixed,
@@ -73,7 +73,6 @@ projectActivitySchema.index({
   'metadata.taskId': 1,
   createdAt: -1,
 });
-
 
 const ProjectActivity = mongoose.model('ProjectActivity', projectActivitySchema);
 

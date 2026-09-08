@@ -4,14 +4,7 @@ import Task from '../models/Task.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
 
-
-export const createTaskComment = async (
-  workspaceId,
-  projectId,
-  taskId,
-  userId,
-  content
-) => {
+export const createTaskComment = async (workspaceId, projectId, taskId, userId, content) => {
   // 1. Check project
   const project = await Project.findOne({
     _id: projectId,
@@ -36,15 +29,11 @@ export const createTaskComment = async (
 
   // 3. Check project membership
   const isProjectMember = project.members.some(
-    (member) =>
-      member.user.toString() === userId.toString()
+    (member) => member.user.toString() === userId.toString()
   );
 
   if (!isProjectMember) {
-    throw new ApiError(
-      403,
-      'You must be a project member to comment on this task'
-    );
+    throw new ApiError(403, 'You must be a project member to comment on this task');
   }
 
   // 4. Create comment
@@ -76,11 +65,7 @@ export const createTaskComment = async (
   return comment;
 };
 
-export const getTaskComments = async (
-  workspaceId,
-  projectId,
-  taskId
-) => {
+export const getTaskComments = async (workspaceId, projectId, taskId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -148,10 +133,7 @@ export const updateTaskComment = async (
   }
 
   if (comment.user.toString() !== userId.toString()) {
-    throw new ApiError(
-      403,
-      'You can only edit your own comments'
-    );
+    throw new ApiError(403, 'You can only edit your own comments');
   }
 
   comment.content = content;
@@ -178,13 +160,7 @@ export const updateTaskComment = async (
   return comment;
 };
 
-export const deleteTaskComment = async (
-  workspaceId,
-  projectId,
-  taskId,
-  commentId,
-  userId
-) => {
+export const deleteTaskComment = async (workspaceId, projectId, taskId, commentId, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -215,10 +191,7 @@ export const deleteTaskComment = async (
   }
 
   if (comment.user.toString() !== userId.toString()) {
-    throw new ApiError(
-      403,
-      'You can only delete your own comments'
-    );
+    throw new ApiError(403, 'You can only delete your own comments');
   }
 
   await comment.deleteOne();
