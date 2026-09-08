@@ -157,6 +157,76 @@ export const updateTaskStartDate = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, 'Task start date updated successfully', { task }));
 });
 
+export const createSubtask = asyncHandler(async (req, res) => {
+  const subtask = await taskService.createSubtask(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.user._id,
+    req.body.title
+  );
+
+  return res.status(201).json(
+    new ApiResponse(
+      201,
+      'Subtask created successfully',
+      { subtask }
+    )
+  );
+});
+
+export const getSubtasks = asyncHandler(async (req, res) => {
+  const subtasks = await taskService.getSubtasks(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      'Subtasks retrieved successfully',
+      { subtasks }
+    )
+  );
+});
+
+export const updateSubtask = asyncHandler(async (req, res) => {
+  const subtask = await taskService.updateSubtask(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.params.subtaskId,
+    req.user._id,
+    req.body
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      'Subtask updated successfully',
+      { subtask }
+    )
+  );
+});
+
+export const deleteSubtask = asyncHandler(async (req, res) => {
+  await taskService.deleteSubtask(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.params.subtaskId,
+    req.user._id
+  );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      'Subtask deleted successfully'
+    )
+  );
+});
+
 const taskController = {
   createTask,
   getProjectTasks,
@@ -169,6 +239,10 @@ const taskController = {
   assignTask,
   updateTaskDueDate,
   updateTaskStartDate,
+  createSubtask,
+  getSubtasks,
+  updateSubtask,
+  deleteSubtask,
 };
 
 export default taskController;

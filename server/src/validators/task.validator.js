@@ -200,3 +200,57 @@ export const taskStartDateSchema = z.object({
 
   query: z.object({}).optional(),
 });
+
+
+export const createSubtaskSchema = z.object({
+  body: z.object({
+    title: z.string()
+      .trim()
+      .min(1, 'Subtask title cannot be empty')
+      .max(200, 'Subtask title cannot exceed 200 characters'),
+  }),
+
+  params: z.object({
+    workspaceId: z.string().min(1),
+    projectId: z.string().min(1),
+    taskId: z.string().min(1),
+  }),
+
+  query: z.object({}).optional(),
+});
+
+export const updateSubtaskSchema = z.object({
+  body: z.object({
+    title: z.string()
+      .trim()
+      .min(1)
+      .max(200)
+      .optional(),
+
+    isCompleted: z.boolean().optional(),
+  }).refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided',
+  }),
+
+  params: z.object({
+    workspaceId: z.string().min(1),
+    projectId: z.string().min(1),
+    taskId: z.string().min(1),
+    subtaskId: z.string().min(1),
+  }),
+
+  query: z.object({}).optional(),
+});
+
+export const subtaskIdSchema = z.object({
+  body: z.object({}).optional(),
+
+  params: z.object({
+    workspaceId: z.string().min(1),
+    projectId: z.string().min(1),
+    taskId: z.string().min(1),
+    subtaskId: z.string().min(1),
+  }),
+
+  query: z.object({}).optional(),
+});

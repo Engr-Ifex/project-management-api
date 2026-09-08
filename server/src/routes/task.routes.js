@@ -16,6 +16,9 @@ import {
   assignTaskSchema,
   taskDueDateSchema,
   taskStartDateSchema,
+  createSubtaskSchema,
+  updateSubtaskSchema,
+  subtaskIdSchema,
 } from '../validators/task.validator.js';
 
 const router = express.Router();
@@ -106,6 +109,38 @@ router.patch(
   validate(taskStartDateSchema),
   requireWorkspaceMember,
   taskController.updateTaskStartDate
+);
+
+router.post(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/subtasks',
+  authenticate,
+  validate(createSubtaskSchema),
+  requireWorkspaceMember,
+  taskController.createSubtask
+);
+
+router.get(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/subtasks',
+  authenticate,
+  validate(taskIdSchema),
+  requireWorkspaceMember,
+  taskController.getSubtasks
+);
+
+router.patch(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/subtasks/:subtaskId',
+  authenticate,
+  validate(updateSubtaskSchema),
+  requireWorkspaceMember,
+  taskController.updateSubtask
+);
+
+router.delete(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/subtasks/:subtaskId',
+  authenticate,
+  validate(subtaskIdSchema),
+  requireWorkspaceMember,
+  taskController.deleteSubtask
 );
 
 export default router;

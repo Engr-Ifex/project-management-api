@@ -1,5 +1,30 @@
 import mongoose from 'mongoose';
 
+const subtaskSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, 'Subtask title is required'],
+      trim: true,
+      minlength: [1, 'Subtask title cannot be empty'],
+      maxlength: [200, 'Subtask title cannot exceed 200 characters'],
+    },
+
+    isCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    completedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 const taskSchema = new mongoose.Schema(
   {
     project: {
@@ -34,6 +59,11 @@ const taskSchema = new mongoose.Schema(
       trim: true,
       maxlength: [5000, 'Task description cannot exceed 5000 characters'],
       default: '',
+    },
+
+    subtasks: {
+      type: [subtaskSchema],
+      default: [],
     },
 
     status: {

@@ -599,3 +599,227 @@ export const updateTaskStartDate = async (workspaceId, projectId, taskId, startD
     { path: 'assignee', select: 'name email avatar' },
   ]);
 };
+
+export const createSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  userId,
+  title
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const isProjectMember = project.members.some(
+    (member) => member.user.toString() === userId.toString()
+  );
+
+  if (!isProjectMember) {
+    throw new ApiError(
+      403,
+      'You must be a project member'
+    );
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  task.subtasks.push({
+    title,
+  });
+
+  await task.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_updated',
+    metadata: {
+      taskId: task._id,
+      field: 'subtask',
+      subtaskTitle: title,
+    },
+  });
+
+  return task;
+};
+
+export const getSubtasks = async (
+  workspaceId,
+  projectId,
+  taskId
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  return task.subtasks;
+};
+
+export const updateSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  subtaskId,
+  userId,
+  data
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const isProjectMember = project.members.some(
+    (member) => member.user.toString() === userId.toString()
+  );
+
+  if (!isProjectMember) {
+    throw new ApiError(
+      403,
+      'You must be a project member'
+    );
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  const subtask = task.subtasks.id(subtaskId);
+
+  if (!subtask) {
+    throw new ApiError(404, 'Subtask not found');
+  }
+
+  if (data.title !== undefined) {
+    subtask.title = data.title;
+  }
+
+  if (data.isCompleted !== undefined) {
+    subtask.isCompleted = data.isCompleted;
+
+    subtask.completedAt = data.isCompleted
+      ? new Date()
+      : null;
+  }
+
+  await task.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_updated',
+    metadata: {
+      taskId: task._id,
+      field: 'subtask',
+      subtaskId: subtask._id,
+    },
+  });
+
+  return subtask;
+};
+
+export const deleteSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  subtaskId,
+  userId
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const isProjectMember = project.members.some(
+    (member) => member.user.toString() === userId.toString()
+  );
+
+  if (!isProjectMember) {
+    throw new ApiError(
+      403,
+      'You must be a project member'
+    );
+  }
+
+  const task = await Task.findOne({
+    _id: taskId,
+    project: projectId,
+    isArchived: false,
+  });
+
+  if (!task) {
+    throw new ApiError(404, 'Task not found');
+  }
+
+  const subtask = task.subtasks.id(subtaskId);
+
+  if (!subtask) {
+    throw new ApiError(404, 'Subtask not found');
+  }
+
+  subtask.deleteOne();
+
+  await task.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId,
+    action: 'task_updated',
+    metadata: {
+      taskId: task._id,
+      field: 'subtask_deleted',
+      subtaskId,
+    },
+  });
+
+  return task;
+};
