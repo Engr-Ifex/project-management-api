@@ -600,13 +600,7 @@ export const updateTaskStartDate = async (workspaceId, projectId, taskId, startD
   ]);
 };
 
-export const createSubtask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  userId,
-  title
-) => {
+export const createSubtask = async (workspaceId, projectId, taskId, userId, title) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -622,10 +616,7 @@ export const createSubtask = async (
   );
 
   if (!isProjectMember) {
-    throw new ApiError(
-      403,
-      'You must be a project member'
-    );
+    throw new ApiError(403, 'You must be a project member');
   }
 
   const task = await Task.findOne({
@@ -659,11 +650,7 @@ export const createSubtask = async (
   return task;
 };
 
-export const getSubtasks = async (
-  workspaceId,
-  projectId,
-  taskId
-) => {
+export const getSubtasks = async (workspaceId, projectId, taskId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -687,14 +674,7 @@ export const getSubtasks = async (
   return task.subtasks;
 };
 
-export const updateSubtask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  subtaskId,
-  userId,
-  data
-) => {
+export const updateSubtask = async (workspaceId, projectId, taskId, subtaskId, userId, data) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -710,10 +690,7 @@ export const updateSubtask = async (
   );
 
   if (!isProjectMember) {
-    throw new ApiError(
-      403,
-      'You must be a project member'
-    );
+    throw new ApiError(403, 'You must be a project member');
   }
 
   const task = await Task.findOne({
@@ -739,9 +716,7 @@ export const updateSubtask = async (
   if (data.isCompleted !== undefined) {
     subtask.isCompleted = data.isCompleted;
 
-    subtask.completedAt = data.isCompleted
-      ? new Date()
-      : null;
+    subtask.completedAt = data.isCompleted ? new Date() : null;
   }
 
   await task.save();
@@ -761,13 +736,7 @@ export const updateSubtask = async (
   return subtask;
 };
 
-export const deleteSubtask = async (
-  workspaceId,
-  projectId,
-  taskId,
-  subtaskId,
-  userId
-) => {
+export const deleteSubtask = async (workspaceId, projectId, taskId, subtaskId, userId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -783,10 +752,7 @@ export const deleteSubtask = async (
   );
 
   if (!isProjectMember) {
-    throw new ApiError(
-      403,
-      'You must be a project member'
-    );
+    throw new ApiError(403, 'You must be a project member');
   }
 
   const task = await Task.findOne({

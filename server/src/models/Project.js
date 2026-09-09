@@ -1,10 +1,18 @@
 import mongoose from 'mongoose';
+import PROJECT_ROLES from '../constants/projectRoles.js';
 
 const projectMemberSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
+    },
+
+    role: {
+      type: String,
+      enum: Object.values(PROJECT_ROLES),
+      default: PROJECT_ROLES.MEMBER,
       required: true,
     },
 
@@ -17,7 +25,6 @@ const projectMemberSchema = new mongoose.Schema(
     _id: false,
   }
 );
-
 const projectSchema = new mongoose.Schema(
   {
     workspace: {

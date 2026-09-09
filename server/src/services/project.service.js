@@ -2,6 +2,7 @@ import Project from '../models/Project.js';
 import Workspace from '../models/Workspace.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
+import PROJECT_ROLES from '../constants/projectRoles.js';
 
 export const createProject = async (workspaceId, userId, projectData) => {
   const project = await Project.create({
@@ -11,6 +12,7 @@ export const createProject = async (workspaceId, userId, projectData) => {
     members: [
       {
         user: userId,
+        role: PROJECT_ROLES.OWNER,
       },
     ],
   });
@@ -198,7 +200,11 @@ export const updateProjectStatus = async (workspaceId, projectId, status, userId
   return project;
 };
 
-export const addProjectMember = async (workspaceId, projectId, userId, performedBy) => {
+export const addProjectMember = async (workspaceId,
+  projectId,
+  userId,
+  performedBy,
+  role = PROJECT_ROLES.MEMBER) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -227,8 +233,9 @@ export const addProjectMember = async (workspaceId, projectId, userId, performed
   }
 
   project.members.push({
-    user: userId,
-  });
+  user: userId,
+  role,
+});
 
   await project.save();
 

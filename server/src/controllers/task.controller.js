@@ -166,13 +166,7 @@ export const createSubtask = asyncHandler(async (req, res) => {
     req.body.title
   );
 
-  return res.status(201).json(
-    new ApiResponse(
-      201,
-      'Subtask created successfully',
-      { subtask }
-    )
-  );
+  return res.status(201).json(new ApiResponse(201, 'Subtask created successfully', { subtask }));
 });
 
 export const getSubtasks = asyncHandler(async (req, res) => {
@@ -182,13 +176,9 @@ export const getSubtasks = asyncHandler(async (req, res) => {
     req.params.taskId
   );
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      'Subtasks retrieved successfully',
-      { subtasks }
-    )
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, 'Subtasks retrieved successfully', { subtasks }));
 });
 
 export const updateSubtask = asyncHandler(async (req, res) => {
@@ -201,13 +191,7 @@ export const updateSubtask = asyncHandler(async (req, res) => {
     req.body
   );
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      'Subtask updated successfully',
-      { subtask }
-    )
-  );
+  return res.status(200).json(new ApiResponse(200, 'Subtask updated successfully', { subtask }));
 });
 
 export const deleteSubtask = asyncHandler(async (req, res) => {
@@ -219,12 +203,7 @@ export const deleteSubtask = asyncHandler(async (req, res) => {
     req.user._id
   );
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      'Subtask deleted successfully'
-    )
-  );
+  return res.status(200).json(new ApiResponse(200, 'Subtask deleted successfully'));
 });
 
 const taskController = {
