@@ -5,7 +5,7 @@ import taskController from '../controllers/task.controller.js';
 import authenticate from '../middlewares/authenticate.middleware.js';
 import validate from '../middlewares/validate.middleware.js';
 import { requireWorkspaceMember } from '../middlewares/workspace.middleware.js';
-import requireWorkspacePermission from '../middlewares/requireWorkspacePermission.middleware.js';
+import requireProjectPermission from '../middlewares/requireProjectPermission.middleware.js';
 
 import {
   createTaskSchema,
@@ -29,7 +29,7 @@ router.post(
   authenticate,
   validate(createTaskSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:create'),
+  requireProjectPermission('task:create'),
   taskController.createTask
 );
 
@@ -54,7 +54,7 @@ router.patch(
   authenticate,
   validate(updateTaskSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('task:update'),
   taskController.updateTask
 );
 
@@ -63,7 +63,7 @@ router.patch(
   authenticate,
   validate(taskIdSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:archive'),
+  requireProjectPermission('task:archive'),
   taskController.archiveTask
 );
 
@@ -72,7 +72,7 @@ router.patch(
   authenticate,
   validate(taskIdSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:restore'),
+  requireProjectPermission('task:restore'),
   taskController.restoreTask
 );
 
@@ -81,7 +81,7 @@ router.patch(
   authenticate,
   validate(updateTaskStatusSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('task:update'),
   taskController.updateTaskStatus
 );
 
@@ -90,7 +90,7 @@ router.patch(
   authenticate,
   validate(updateTaskPrioritySchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('task:update'),
   taskController.updateTaskPriority
 );
 
@@ -99,7 +99,7 @@ router.patch(
   authenticate,
   validate(assignTaskSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:assign'),
+  requireProjectPermission('task:assign'),
   taskController.assignTask
 );
 
@@ -108,7 +108,7 @@ router.patch(
   authenticate,
   validate(taskDueDateSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('task:update'),
   taskController.updateTaskDueDate
 );
 
@@ -117,7 +117,7 @@ router.patch(
   authenticate,
   validate(taskStartDateSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('task:update'),
   taskController.updateTaskStartDate
 );
 
@@ -126,7 +126,7 @@ router.post(
   authenticate,
   validate(createSubtaskSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:create'),
+  requireProjectPermission('subtask:create'),
   taskController.createSubtask
 );
 
@@ -143,7 +143,7 @@ router.patch(
   authenticate,
   validate(updateSubtaskSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:update'),
+  requireProjectPermission('subtask:update'),
   taskController.updateSubtask
 );
 
@@ -152,7 +152,7 @@ router.delete(
   authenticate,
   validate(subtaskIdSchema),
   requireWorkspaceMember,
-  requireWorkspacePermission('task:delete'),
+  requireProjectPermission('subtask:delete'),
   taskController.deleteSubtask
 );
 

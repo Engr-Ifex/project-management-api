@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import PROJECT_ROLES from '../constants/projectRoles.js';
 
 const projectStatus = ['planning', 'active', 'on_hold', 'completed', 'cancelled'];
 
@@ -126,6 +127,20 @@ export const workspaceProjectsSchema = z.object({
 
   params: z.object({
     workspaceId: z.string().min(1, 'Workspace ID is required'),
+  }),
+
+  query: z.object({}).optional(),
+});
+
+export const changeProjectMemberRoleSchema = z.object({
+  body: z.object({
+    role: z.enum(Object.values(PROJECT_ROLES)),
+  }),
+
+  params: z.object({
+    workspaceId: z.string().min(1),
+    projectId: z.string().min(1),
+    userId: z.string().min(1),
   }),
 
   query: z.object({}).optional(),

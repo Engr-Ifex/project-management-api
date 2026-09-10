@@ -1,5 +1,5 @@
 import PROJECT_ROLES from './projectRoles.js';
-import PROJECT_PERMISSIONS from './projectPermissions.js';
+import PROJECT_PERMISSIONS from './projectPermission.js';
 
 export const PROJECT_ROLE_PERMISSIONS = Object.freeze({
   [PROJECT_ROLES.OWNER]: [

@@ -1,9 +1,7 @@
 import ApiError from '../utils/ApiError.js';
 import Project from '../models/Project.js';
 
-import {
-  hasProjectPermission,
-} from '../constants/projectRolePermissions.js';
+import { hasProjectPermission } from '../constants/projectRolePermissions.js';
 
 import PROJECT_ROLES from '../constants/projectRoles.js';
 
@@ -16,12 +14,7 @@ const requireProjectPermission = (permission) => {
       const { workspaceId, projectId } = req.params;
 
       if (!req.workspaceMember) {
-        return next(
-          new ApiError(
-            403,
-            'You are not a member of this workspace'
-          )
-        );
+        return next(new ApiError(403, 'You are not a member of this workspace'));
       }
 
       const project = await Project.findOne({
@@ -31,9 +24,7 @@ const requireProjectPermission = (permission) => {
       });
 
       if (!project) {
-        return next(
-          new ApiError(404, 'Project not found')
-        );
+        return next(new ApiError(404, 'Project not found'));
       }
 
       const userId = req.user._id;
@@ -44,11 +35,10 @@ const requireProjectPermission = (permission) => {
        * Workspace owners and admins have elevated
        * authority over projects inside their workspace.
        */
-      const isWorkspaceOwnerOrAdmin =
-        hasPermission(
-          req.workspaceMember.role,
-          WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE
-        );
+      const isWorkspaceOwnerOrAdmin = hasPermission(
+        req.workspaceMember.role,
+        WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE
+      );
 
       if (isWorkspaceOwnerOrAdmin) {
         return next();
@@ -58,34 +48,20 @@ const requireProjectPermission = (permission) => {
        * Find the user's project membership.
        */
       const projectMember = project.members.find(
-        (member) =>
-          member.user.toString() === userId.toString()
+        (member) => member.user.toString() === userId.toString()
       );
 
       if (!projectMember) {
-        return next(
-          new ApiError(
-            403,
-            'You are not a member of this project'
-          )
-        );
+        return next(new ApiError(403, 'You are not a member of this project'));
       }
 
       /*
        * Check the user's project role.
        */
-      const hasAccess = hasProjectPermission(
-        projectMember.role,
-        permission
-      );
+      const hasAccess = hasProjectPermission(projectMember.role, permission);
 
       if (!hasAccess) {
-        return next(
-          new ApiError(
-            403,
-            'You do not have permission to perform this action'
-          )
-        );
+        return next(new ApiError(403, 'You do not have permission to perform this action'));
       }
 
       /*

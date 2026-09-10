@@ -122,6 +122,23 @@ export const removeProjectMember = asyncHandler(async (req, res) => {
   );
 });
 
+export const changeProjectMemberRoleController = asyncHandler(async (req, res) => {
+  const { workspaceId, projectId, userId } = req.params;
+  const { role } = req.body;
+
+  const project = await projectService.changeProjectMemberRole(
+    workspaceId,
+    projectId,
+    userId,
+    role,
+    req.user._id
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, project, 'Project member role updated successfully'));
+});
+
 const projectController = {
   createProject,
   getWorkspaceProjects,
@@ -132,6 +149,7 @@ const projectController = {
   updateProjectStatus,
   addProjectMember,
   removeProjectMember,
+  changeProjectMemberRoleController,
 };
 
 export default projectController;

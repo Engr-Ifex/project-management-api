@@ -200,11 +200,13 @@ export const updateProjectStatus = async (workspaceId, projectId, status, userId
   return project;
 };
 
-export const addProjectMember = async (workspaceId,
+export const addProjectMember = async (
+  workspaceId,
   projectId,
   userId,
   performedBy,
-  role = PROJECT_ROLES.MEMBER) => {
+  role = PROJECT_ROLES.MEMBER
+) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -233,9 +235,9 @@ export const addProjectMember = async (workspaceId,
   }
 
   project.members.push({
-  user: userId,
-  role,
-});
+    user: userId,
+    role,
+  });
 
   await project.save();
 
@@ -299,6 +301,68 @@ export const removeProjectMember = async (workspaceId, projectId, userId, perfor
     action: 'member_removed',
     metadata: {
       memberId: userId,
+    },
+  });
+
+  await project.populate([
+    {
+      path: 'createdBy',
+      select: 'name email avatar',
+    },
+    {
+      path: 'members.user',
+      select: 'name email avatar',
+    },
+  ]);
+
+  return project;
+};
+
+export const changeProjectMemberRole = async (
+  workspaceId,
+  projectId,
+  userId,
+  newRole,
+  performedBy
+) => {
+  const project = await Project.findOne({
+    _id: projectId,
+    workspace: workspaceId,
+    isArchived: false,
+  });
+
+  if (!project) {
+    throw new ApiError(404, 'Project not found');
+  }
+
+  const member = project.members.find((member) => member.user.toString() === userId.toString());
+
+  if (!member) {
+    throw new ApiError(404, 'User is not a member of this project');
+  }
+
+  // Project owner cannot be changed to another role.
+  if (member.user.toString() === project.createdBy.toString() && newRole !== PROJECT_ROLES.OWNER) {
+    throw new ApiError(400, 'The project owner role cannot be changed');
+  }
+
+  // Only one project owner is allowed.
+  if (newRole === PROJECT_ROLES.OWNER && member.user.toString() !== project.createdBy.toString()) {
+    throw new ApiError(400, 'Only the project creator can be the project owner');
+  }
+
+  member.role = newRole;
+
+  await project.save();
+
+  await createProjectActivity({
+    workspaceId,
+    projectId,
+    userId: performedBy,
+    action: 'member_role_changed',
+    metadata: {
+      memberId: userId,
+      role: newRole,
     },
   });
 

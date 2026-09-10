@@ -6,7 +6,7 @@ import authenticate from '../middlewares/authenticate.middleware.js';
 import validate from '../middlewares/validate.middleware.js';
 import { requireWorkspaceMember } from '../middlewares/workspace.middleware.js';
 import requireWorkspacePermission from '../middlewares/requireWorkspacePermission.middleware.js';
-
+import requireProjectPermission from '../middlewares/requireProjectPermission.middleware.js';
 import {
   createProjectSchema,
   workspaceProjectsSchema,
@@ -15,6 +15,7 @@ import {
   updateProjectStatusSchema,
   removeProjectMemberSchema,
   addProjectMemberSchema,
+  changeProjectMemberRoleSchema,
 } from '../validators/project.validator.js';
 
 import { taskIdSchema } from '../validators/task.validator.js';
@@ -117,6 +118,15 @@ router.get(
   validate(taskIdSchema),
   requireWorkspaceMember,
   projectActivityController.getTaskActivities
+);
+
+router.patch(
+  '/:workspaceId/projects/:projectId/members/:userId/role',
+  authenticate,
+  validate(changeProjectMemberRoleSchema),
+  requireWorkspaceMember,
+  requireProjectPermission('project:change_role'),
+  projectController.changeProjectMemberRoleController
 );
 
 export default router;
