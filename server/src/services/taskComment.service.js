@@ -4,6 +4,9 @@ import Task from '../models/Task.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
 
+import PROJECT_PERMISSIONS from '../constants/projectPermission.js';
+import { hasProjectPermission } from '../constants/projectRolePermissions.js';
+
 /*
  * Author fields that are safe to expose.
  * `password` is `select: false` on the User model and is never returned.
@@ -61,15 +64,41 @@ const getActiveComment = async (taskId, commentId) => {
 };
 
 /**
- * Enforce object-level ownership: only the comment author may modify it.
+ * Enforce object-level ownership: only the comment author may edit it.
  *
- * Elevated project roles are still gated by `requireProjectPermission`
- * at the route level, but the architecture does not define an explicit
- * "moderate other users' comments" capability, so ownership is required.
+ * Editing another user's words is not a moderation action, so no role
+ * (project or workspace) may override this.
  */
 const assertCommentOwner = (comment, userId) => {
   if (comment.author.toString() !== userId.toString()) {
-    throw new ApiError(403, 'You can only modify your own comments');
+    throw new ApiError(403, 'You can only edit your own comments');
+  }
+};
+
+/**
+ * Deletion follows the same author-only rule as editing, with one explicit
+ * exception: the authorization architecture grants `comment:moderate` to
+ * project OWNER/ADMIN, and workspace owners/admins already hold elevated
+ * authority over their projects. Those callers may delete another member's
+ * comment. Plain project members and viewers cannot.
+ */
+const assertCanDeleteComment = (comment, project, userId, isWorkspaceElevated) => {
+  const isAuthor = comment.author.toString() === userId.toString();
+
+  if (isAuthor) return;
+
+  const projectMember = project.members.find(
+    (member) => member.user.toString() === userId.toString()
+  );
+
+  const canModerate =
+    isWorkspaceElevated ||
+    (projectMember
+      ? hasProjectPermission(projectMember.role, PROJECT_PERMISSIONS.MODERATE_COMMENT)
+      : false);
+
+  if (!canModerate) {
+    throw new ApiError(403, 'You can only delete your own comments');
   }
 };
 
@@ -163,12 +192,22 @@ export const updateTaskComment = async (
   return comment;
 };
 
-export const deleteTaskComment = async (workspaceId, projectId, taskId, commentId, userId) => {
-  const { task } = await getActiveProjectAndTask(workspaceId, projectId, taskId);
+export const deleteTaskComment = async (
+  workspaceId,
+  projectId,
+  taskId,
+  commentId,
+  userId,
+  isWorkspaceElevated = false
+) => {
+  const { project, task } = await getActiveProjectAndTask(workspaceId, projectId, taskId);
 
   const comment = await getActiveComment(taskId, commentId);
 
-  assertCommentOwner(comment, userId);
+  assertCanDeleteComment(comment, project, userId, isWorkspaceElevated);
+
+  // Record whether the deletion was performed by the author or a moderator.
+  const isModerated = comment.author.toString() !== userId.toString();
 
   comment.isDeleted = true;
   comment.deletedAt = new Date();
@@ -184,6 +223,10 @@ export const deleteTaskComment = async (workspaceId, projectId, taskId, commentI
     metadata: {
       taskId: task._id,
       commentId: comment._id,
+      ...(isModerated && {
+        authorId: comment.author,
+        moderated: true,
+      }),
     },
   });
 

@@ -29,6 +29,12 @@ export const PROJECT_PERMISSIONS = Object.freeze({
   UPDATE_COMMENT: 'comment:update',
   DELETE_COMMENT: 'comment:delete',
 
+  /*
+   * Elevated capability: modify (delete) comments authored by
+   * other project members. Never granted to MEMBER or VIEWER.
+   */
+  MODERATE_COMMENT: 'comment:moderate',
+
   // Labels
   CREATE_LABEL: 'label:create',
   UPDATE_LABEL: 'label:update',
