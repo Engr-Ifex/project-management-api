@@ -3,6 +3,7 @@ import { Router } from 'express';
 import authenticate from '../middlewares/authenticate.middleware.js';
 import validate from '../middlewares/validate.middleware.js';
 import { requireWorkspaceMember } from '../middlewares/workspace.middleware.js';
+import requireProjectPermission from '../middlewares/requireProjectPermission.middleware.js';
 
 import * as taskCommentController from '../controllers/taskComment.controller.js';
 
@@ -20,6 +21,7 @@ router.post(
   authenticate,
   validate(createTaskCommentSchema),
   requireWorkspaceMember,
+  requireProjectPermission('comment:create'),
   taskCommentController.createTaskComment
 );
 
@@ -28,7 +30,17 @@ router.get(
   authenticate,
   validate(getTaskCommentsSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   taskCommentController.getTaskComments
+);
+
+router.get(
+  '/:workspaceId/projects/:projectId/tasks/:taskId/comments/:commentId',
+  authenticate,
+  validate(taskCommentIdSchema),
+  requireWorkspaceMember,
+  requireProjectPermission('project:view'),
+  taskCommentController.getTaskCommentById
 );
 
 router.patch(
@@ -36,6 +48,7 @@ router.patch(
   authenticate,
   validate(updateTaskCommentSchema),
   requireWorkspaceMember,
+  requireProjectPermission('comment:update'),
   taskCommentController.updateTaskComment
 );
 
@@ -44,6 +57,7 @@ router.delete(
   authenticate,
   validate(taskCommentIdSchema),
   requireWorkspaceMember,
+  requireProjectPermission('comment:delete'),
   taskCommentController.deleteTaskComment
 );
 

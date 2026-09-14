@@ -4,8 +4,20 @@ import Task from '../models/Task.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
 
-export const createTaskComment = async (workspaceId, projectId, taskId, userId, content) => {
-  // 1. Check project
+/*
+ * Author fields that are safe to expose.
+ * `password` is `select: false` on the User model and is never returned.
+ */
+const AUTHOR_FIELDS = 'name email avatar';
+
+/**
+ * Load an active project inside a workspace together with an active task
+ * that belongs to it. Throws a 404 when either resource cannot be found.
+ *
+ * This guarantees a comment can never be attached to, or read from, a task
+ * that does not belong to the project/workspace in the URL.
+ */
+const getActiveProjectAndTask = async (workspaceId, projectId, taskId) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -16,7 +28,6 @@ export const createTaskComment = async (workspaceId, projectId, taskId, userId, 
     throw new ApiError(404, 'Project not found');
   }
 
-  // 2. Check task
   const task = await Task.findOne({
     _id: taskId,
     project: projectId,
@@ -27,23 +38,51 @@ export const createTaskComment = async (workspaceId, projectId, taskId, userId, 
     throw new ApiError(404, 'Task not found');
   }
 
-  // 3. Check project membership
-  const isProjectMember = project.members.some(
-    (member) => member.user.toString() === userId.toString()
-  );
+  return { project, task };
+};
 
-  if (!isProjectMember) {
-    throw new ApiError(403, 'You must be a project member to comment on this task');
+/**
+ * Load a single non-deleted comment that belongs to the given task.
+ * Soft-deleted comments are treated as not found so their content is
+ * never exposed.
+ */
+const getActiveComment = async (taskId, commentId) => {
+  const comment = await TaskComment.findOne({
+    _id: commentId,
+    task: taskId,
+    isDeleted: false,
+  });
+
+  if (!comment) {
+    throw new ApiError(404, 'Comment not found');
   }
 
-  // 4. Create comment
+  return comment;
+};
+
+/**
+ * Enforce object-level ownership: only the comment author may modify it.
+ *
+ * Elevated project roles are still gated by `requireProjectPermission`
+ * at the route level, but the architecture does not define an explicit
+ * "moderate other users' comments" capability, so ownership is required.
+ */
+const assertCommentOwner = (comment, userId) => {
+  if (comment.author.toString() !== userId.toString()) {
+    throw new ApiError(403, 'You can only modify your own comments');
+  }
+};
+
+export const createTaskComment = async (workspaceId, projectId, taskId, userId, content) => {
+  const { task } = await getActiveProjectAndTask(workspaceId, projectId, taskId);
+
   const comment = await TaskComment.create({
     task: taskId,
-    user: userId,
+    project: projectId,
+    author: userId,
     content,
   });
 
-  // 5. Log activity
   await createProjectActivity({
     workspaceId,
     projectId,
@@ -51,48 +90,42 @@ export const createTaskComment = async (workspaceId, projectId, taskId, userId, 
     action: 'task_comment_added',
     metadata: {
       taskId: task._id,
-      action: 'comment_added',
       commentId: comment._id,
     },
   });
 
-  // 6. Populate user
-  await comment.populate({
-    path: 'user',
-    select: 'name email avatar',
-  });
+  await comment.populate('author', AUTHOR_FIELDS);
 
   return comment;
 };
 
 export const getTaskComments = async (workspaceId, projectId, taskId) => {
-  const project = await Project.findOne({
-    _id: projectId,
-    workspace: workspaceId,
-    isArchived: false,
-  });
-
-  if (!project) {
-    throw new ApiError(404, 'Project not found');
-  }
-
-  const task = await Task.findOne({
-    _id: taskId,
-    project: projectId,
-    isArchived: false,
-  });
-
-  if (!task) {
-    throw new ApiError(404, 'Task not found');
-  }
+  await getActiveProjectAndTask(workspaceId, projectId, taskId);
 
   const comments = await TaskComment.find({
     task: taskId,
+    isDeleted: false,
   })
-    .populate('user', 'name email avatar')
+    .populate('author', AUTHOR_FIELDS)
     .sort({ createdAt: 1 });
 
   return comments;
+};
+
+export const getTaskCommentById = async (workspaceId, projectId, taskId, commentId) => {
+  await getActiveProjectAndTask(workspaceId, projectId, taskId);
+
+  const comment = await TaskComment.findOne({
+    _id: commentId,
+    task: taskId,
+    isDeleted: false,
+  }).populate('author', AUTHOR_FIELDS);
+
+  if (!comment) {
+    throw new ApiError(404, 'Comment not found');
+  }
+
+  return comment;
 };
 
 export const updateTaskComment = async (
@@ -103,40 +136,14 @@ export const updateTaskComment = async (
   userId,
   content
 ) => {
-  const project = await Project.findOne({
-    _id: projectId,
-    workspace: workspaceId,
-    isArchived: false,
-  });
+  const { task } = await getActiveProjectAndTask(workspaceId, projectId, taskId);
 
-  if (!project) {
-    throw new ApiError(404, 'Project not found');
-  }
+  const comment = await getActiveComment(taskId, commentId);
 
-  const task = await Task.findOne({
-    _id: taskId,
-    project: projectId,
-    isArchived: false,
-  });
-
-  if (!task) {
-    throw new ApiError(404, 'Task not found');
-  }
-
-  const comment = await TaskComment.findOne({
-    _id: commentId,
-    task: taskId,
-  });
-
-  if (!comment) {
-    throw new ApiError(404, 'Comment not found');
-  }
-
-  if (comment.user.toString() !== userId.toString()) {
-    throw new ApiError(403, 'You can only edit your own comments');
-  }
+  assertCommentOwner(comment, userId);
 
   comment.content = content;
+  comment.editedAt = new Date();
 
   await comment.save();
 
@@ -144,57 +151,30 @@ export const updateTaskComment = async (
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'task_comment_updated',
     metadata: {
       taskId: task._id,
-      action: 'comment_updated',
       commentId: comment._id,
     },
   });
 
-  await comment.populate({
-    path: 'user',
-    select: 'name email avatar',
-  });
+  await comment.populate('author', AUTHOR_FIELDS);
 
   return comment;
 };
 
 export const deleteTaskComment = async (workspaceId, projectId, taskId, commentId, userId) => {
-  const project = await Project.findOne({
-    _id: projectId,
-    workspace: workspaceId,
-    isArchived: false,
-  });
+  const { task } = await getActiveProjectAndTask(workspaceId, projectId, taskId);
 
-  if (!project) {
-    throw new ApiError(404, 'Project not found');
-  }
+  const comment = await getActiveComment(taskId, commentId);
 
-  const task = await Task.findOne({
-    _id: taskId,
-    project: projectId,
-    isArchived: false,
-  });
+  assertCommentOwner(comment, userId);
 
-  if (!task) {
-    throw new ApiError(404, 'Task not found');
-  }
+  comment.isDeleted = true;
+  comment.deletedAt = new Date();
+  comment.deletedBy = userId;
 
-  const comment = await TaskComment.findOne({
-    _id: commentId,
-    task: taskId,
-  });
-
-  if (!comment) {
-    throw new ApiError(404, 'Comment not found');
-  }
-
-  if (comment.user.toString() !== userId.toString()) {
-    throw new ApiError(403, 'You can only delete your own comments');
-  }
-
-  await comment.deleteOne();
+  await comment.save();
 
   await createProjectActivity({
     workspaceId,
@@ -203,8 +183,7 @@ export const deleteTaskComment = async (workspaceId, projectId, taskId, commentI
     action: 'task_comment_deleted',
     metadata: {
       taskId: task._id,
-      action: 'comment_deleted',
-      commentId,
+      commentId: comment._id,
     },
   });
 

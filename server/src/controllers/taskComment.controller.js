@@ -7,7 +7,7 @@ export const createTaskComment = asyncHandler(async (req, res) => {
     req.params.workspaceId,
     req.params.projectId,
     req.params.taskId,
-    req.user.id,
+    req.user._id,
     req.body.content
   );
 
@@ -26,13 +26,24 @@ export const getTaskComments = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, 'Comments retrieved successfully', { comments }));
 });
 
+export const getTaskCommentById = asyncHandler(async (req, res) => {
+  const comment = await taskCommentService.getTaskCommentById(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.params.taskId,
+    req.params.commentId
+  );
+
+  return res.status(200).json(new ApiResponse(200, 'Comment retrieved successfully', { comment }));
+});
+
 export const updateTaskComment = asyncHandler(async (req, res) => {
   const comment = await taskCommentService.updateTaskComment(
     req.params.workspaceId,
     req.params.projectId,
     req.params.taskId,
     req.params.commentId,
-    req.user.id,
+    req.user._id,
     req.body.content
   );
 
@@ -45,7 +56,7 @@ export const deleteTaskComment = asyncHandler(async (req, res) => {
     req.params.projectId,
     req.params.taskId,
     req.params.commentId,
-    req.user.id
+    req.user._id
   );
 
   return res.status(200).json(new ApiResponse(200, 'Comment deleted successfully'));
