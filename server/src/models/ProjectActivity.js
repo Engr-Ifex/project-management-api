@@ -51,6 +51,13 @@ const projectActivitySchema = new mongoose.Schema(
         'task_comment_added',
         'task_comment_updated',
         'task_comment_deleted',
+
+        // Label actions
+        'label_created',
+        'label_updated',
+        'label_deleted',
+        'label_assigned',
+        'label_removed',
       ],
     },
 

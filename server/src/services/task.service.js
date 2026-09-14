@@ -66,6 +66,10 @@ export const createTask = async (workspaceId, projectId, userId, taskData) => {
       path: 'assignee',
       select: 'name email avatar',
     },
+    {
+      path: 'labels',
+      select: 'name color',
+    },
   ]);
 
   return task;
@@ -88,6 +92,7 @@ export const getProjectTasks = async (workspaceId, projectId) => {
   })
     .populate('createdBy', 'name email avatar')
     .populate('assignee', 'name email avatar')
+    .populate('labels', 'name color')
     .sort({ position: 1, createdAt: 1 });
 
   return tasks;
@@ -110,7 +115,8 @@ export const getTaskById = async (workspaceId, projectId, taskId) => {
     isArchived: false,
   })
     .populate('createdBy', 'name email avatar')
-    .populate('assignee', 'name email avatar');
+    .populate('assignee', 'name email avatar')
+    .populate('labels', 'name color');
 
   if (!task) {
     throw new ApiError(404, 'Task not found');
@@ -166,6 +172,10 @@ export const updateTask = async (workspaceId, projectId, taskId, updateData, use
       path: 'assignee',
       select: 'name email avatar',
     },
+    {
+      path: 'labels',
+      select: 'name color',
+    },
   ]);
 
   return task;
@@ -200,6 +210,7 @@ export const archiveTask = async (workspaceId, projectId, taskId, userId) => {
   )
     .populate('createdBy', 'name email avatar')
     .populate('assignee', 'name email avatar')
+    .populate('labels', 'name color')
     .populate('archivedBy', 'name email avatar');
 
   if (!task) {
@@ -248,7 +259,8 @@ export const restoreTask = async (workspaceId, projectId, taskId, userId) => {
     }
   )
     .populate('createdBy', 'name email avatar')
-    .populate('assignee', 'name email avatar');
+    .populate('assignee', 'name email avatar')
+    .populate('labels', 'name color');
 
   if (!task) {
     throw new ApiError(404, 'Archived task not found');
@@ -320,6 +332,10 @@ export const updateTaskStatus = async (workspaceId, projectId, taskId, status, u
       path: 'assignee',
       select: 'name email avatar',
     },
+    {
+      path: 'labels',
+      select: 'name color',
+    },
   ]);
 
   return task;
@@ -376,6 +392,10 @@ export const updateTaskPriority = async (workspaceId, projectId, taskId, priorit
     {
       path: 'assignee',
       select: 'name email avatar',
+    },
+    {
+      path: 'labels',
+      select: 'name color',
     },
   ]);
 
@@ -469,6 +489,10 @@ export const assignTask = async (workspaceId, projectId, taskId, assignee, userI
       path: 'assignee',
       select: 'name email avatar',
     },
+    {
+      path: 'labels',
+      select: 'name color',
+    },
   ]);
 
   return task;
@@ -541,6 +565,10 @@ export const updateTaskDueDate = async (workspaceId, projectId, taskId, dueDate,
       path: 'assignee',
       select: 'name email avatar',
     },
+    {
+      path: 'labels',
+      select: 'name color',
+    },
   ]);
 
   return task;
@@ -597,6 +625,7 @@ export const updateTaskStartDate = async (workspaceId, projectId, taskId, startD
   return task.populate([
     { path: 'createdBy', select: 'name email avatar' },
     { path: 'assignee', select: 'name email avatar' },
+    { path: 'labels', select: 'name color' },
   ]);
 };
 

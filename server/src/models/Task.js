@@ -66,6 +66,21 @@ const taskSchema = new mongoose.Schema(
       default: [],
     },
 
+    /*
+     * Labels are referenced, never duplicated.
+     * A label belongs to a project and may be attached to many tasks
+     * within that project.
+     */
+    labels: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Label',
+        },
+      ],
+      default: [],
+    },
+
     status: {
       type: String,
       enum: ['todo', 'in_progress', 'in_review', 'completed', 'cancelled'],
@@ -134,6 +149,12 @@ taskSchema.index({
 taskSchema.index({
   project: 1,
   priority: 1,
+});
+
+// Tasks carrying a given label within a project.
+taskSchema.index({
+  project: 1,
+  labels: 1,
 });
 
 const Task = mongoose.model('Task', taskSchema);
