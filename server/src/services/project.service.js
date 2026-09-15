@@ -2,6 +2,7 @@ import Project from '../models/Project.js';
 import Workspace from '../models/Workspace.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
+import { notifyProjectMemberAdded, notifyProjectRoleChanged } from './notification.service.js';
 import PROJECT_ROLES from '../constants/projectRoles.js';
 
 export const createProject = async (workspaceId, userId, projectData) => {
@@ -251,6 +252,15 @@ export const addProjectMember = async (
     },
   });
 
+  // Notify the newly added member (unless they added themselves).
+  await notifyProjectMemberAdded({
+    workspaceId,
+    projectId,
+    project,
+    actorId: performedBy,
+    recipientId: userId,
+  });
+
   await project.populate([
     {
       path: 'createdBy',
@@ -364,6 +374,16 @@ export const changeProjectMemberRole = async (
       memberId: userId,
       role: newRole,
     },
+  });
+
+  // Notify the affected member (unless they changed their own role).
+  await notifyProjectRoleChanged({
+    workspaceId,
+    projectId,
+    project,
+    actorId: performedBy,
+    recipientId: userId,
+    role: newRole,
   });
 
   await project.populate([

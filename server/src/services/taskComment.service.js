@@ -6,6 +6,7 @@ import { createProjectActivity } from './projectActivity.service.js';
 
 import PROJECT_PERMISSIONS from '../constants/projectPermission.js';
 import { hasProjectPermission } from '../constants/projectRolePermissions.js';
+import { notifyTaskComment } from './notification.service.js';
 
 /*
  * Author fields that are safe to expose.
@@ -124,6 +125,34 @@ export const createTaskComment = async (workspaceId, projectId, taskId, userId, 
   });
 
   await comment.populate('author', AUTHOR_FIELDS);
+
+  /*
+   * Notify the users already involved with the task (assignee and creator).
+   * The commenter is never notified about their own comment.
+   */
+  const recipients = new Set();
+
+  if (task.assignee) {
+    recipients.add(task.assignee.toString());
+  }
+
+  if (task.createdBy) {
+    recipients.add(task.createdBy.toString());
+  }
+
+  recipients.delete(userId.toString());
+
+  for (const recipientId of recipients) {
+    await notifyTaskComment({
+      workspaceId,
+      projectId,
+      task,
+      commentId: comment._id,
+      actorId: userId,
+      recipientId,
+      actorName: comment.author?.name,
+    });
+  }
 
   return comment;
 };

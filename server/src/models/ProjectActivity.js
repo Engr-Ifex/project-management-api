@@ -1,28 +1,38 @@
 import mongoose from 'mongoose';
 
+/*
+ * Audit records are append-only. Marking the fields immutable means Mongoose
+ * will not persist modifications to an already-created record, so no code
+ * path (and no future service) can rewrite audit history.
+ */
+const auditField = (definition) => ({
+  ...definition,
+  immutable: true,
+});
+
 const projectActivitySchema = new mongoose.Schema(
   {
-    workspace: {
+    workspace: auditField({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Workspace',
       required: true,
       index: true,
-    },
+    }),
 
-    project: {
+    project: auditField({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project',
       required: true,
       index: true,
-    },
+    }),
 
-    user: {
+    user: auditField({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-    },
+    }),
 
-    action: {
+    action: auditField({
       type: String,
       required: true,
       enum: [
@@ -47,6 +57,11 @@ const projectActivitySchema = new mongoose.Schema(
         'task_reassigned',
         'task_unassigned',
 
+        // Subtask actions
+        'subtask_created',
+        'subtask_updated',
+        'subtask_deleted',
+
         // Task comment actions
         'task_comment_added',
         'task_comment_updated',
@@ -59,12 +74,19 @@ const projectActivitySchema = new mongoose.Schema(
         'label_assigned',
         'label_removed',
       ],
-    },
+    }),
 
-    metadata: {
+    /*
+     * Structured metadata convention:
+     *   - entity ids are camelCase: taskId, subtaskId, commentId, labelId, memberId
+     *   - changed field names go in `fields` (array) or `field` (single)
+     *   - value transitions go in `from` / `to`
+     *   - human readable names are optional extras (taskTitle, name)
+     */
+    metadata: auditField({
       type: mongoose.Schema.Types.Mixed,
       default: {},
-    },
+    }),
   },
   {
     timestamps: true,
@@ -79,6 +101,13 @@ projectActivitySchema.index({
 projectActivitySchema.index({
   project: 1,
   'metadata.taskId': 1,
+  createdAt: -1,
+});
+
+// Actor based lookups ("what did this user do in this project").
+projectActivitySchema.index({
+  project: 1,
+  user: 1,
   createdAt: -1,
 });
 

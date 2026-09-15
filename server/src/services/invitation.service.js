@@ -4,6 +4,7 @@ import Invitation from '../models/Invitation.js';
 import User from '../models/User.js';
 import Workspace from '../models/Workspace.js';
 import ApiError from '../utils/ApiError.js';
+import { notifyWorkspaceInvitation } from './notification.service.js';
 
 export const createInvitation = async (workspace, userId, { email, role }) => {
   const normalizedEmail = email.toLowerCase().trim();
@@ -48,6 +49,20 @@ export const createInvitation = async (workspace, userId, { email, role }) => {
     token,
     expiresAt,
   });
+
+  /*
+   * If the invitee already has an account, notify them in-app as well.
+   * Invitees without an account can only be reached by the invitation email.
+   */
+  if (existingUser) {
+    await notifyWorkspaceInvitation({
+      workspaceId: workspace._id,
+      actorId: userId,
+      recipientId: existingUser._id,
+      workspaceName: workspace.name,
+      role,
+    });
+  }
 
   return invitation;
 };

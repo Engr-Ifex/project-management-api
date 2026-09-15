@@ -18,7 +18,7 @@ import {
   changeProjectMemberRoleSchema,
 } from '../validators/project.validator.js';
 
-import { taskIdSchema } from '../validators/task.validator.js';
+import { projectActivitiesSchema, taskActivitiesSchema } from '../validators/activity.validator.js';
 
 import projectActivityController from '../controllers/projectActivity.controller.js';
 
@@ -107,16 +107,18 @@ router.delete(
 router.get(
   '/:workspaceId/projects/:projectId/activities',
   authenticate,
-  validate(projectIdSchema),
+  validate(projectActivitiesSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   projectActivityController.getProjectActivities
 );
 
 router.get(
   '/:workspaceId/projects/:projectId/tasks/:taskId/activities',
   authenticate,
-  validate(taskIdSchema),
+  validate(taskActivitiesSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   projectActivityController.getTaskActivities
 );
 

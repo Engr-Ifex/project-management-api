@@ -2,6 +2,7 @@ import Task from '../models/Task.js';
 import Project from '../models/Project.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
+import { notifyTaskAssigned } from './notification.service.js';
 
 export const createTask = async (workspaceId, projectId, userId, taskData) => {
   const project = await Project.findOne({
@@ -479,7 +480,19 @@ export const assignTask = async (workspaceId, projectId, taskId, assignee, userI
     },
   });
 
-  // 9. Populate response
+  // 9. Notify the new assignee (never the actor about their own action)
+  if (newAssignee) {
+    await notifyTaskAssigned({
+      workspaceId,
+      projectId,
+      task,
+      actorId: userId,
+      recipientId: newAssignee,
+      isReassignment: Boolean(oldAssignee),
+    });
+  }
+
+  // 10. Populate response
   await task.populate([
     {
       path: 'createdBy',
@@ -668,10 +681,10 @@ export const createSubtask = async (workspaceId, projectId, taskId, userId, titl
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'subtask_created',
     metadata: {
       taskId: task._id,
-      field: 'subtask',
+      subtaskId: task.subtasks[task.subtasks.length - 1]._id,
       subtaskTitle: title,
     },
   });
@@ -754,11 +767,11 @@ export const updateSubtask = async (workspaceId, projectId, taskId, subtaskId, u
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'subtask_updated',
     metadata: {
       taskId: task._id,
-      field: 'subtask',
       subtaskId: subtask._id,
+      fields: Object.keys(data),
     },
   });
 
@@ -808,10 +821,9 @@ export const deleteSubtask = async (workspaceId, projectId, taskId, subtaskId, u
     workspaceId,
     projectId,
     userId,
-    action: 'task_updated',
+    action: 'subtask_deleted',
     metadata: {
       taskId: task._id,
-      field: 'subtask_deleted',
       subtaskId,
     },
   });

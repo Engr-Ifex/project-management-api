@@ -7,6 +7,7 @@ import projectRoutes from './project.routes.js';
 import taskRoutes from './task.routes.js';
 import taskCommentRoutes from './taskComment.routes.js';
 import labelRoutes from './label.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/workspaces', projectRoutes);
 router.use('/workspaces', taskRoutes);
 router.use('/workspaces', taskCommentRoutes);
 router.use('/workspaces', labelRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

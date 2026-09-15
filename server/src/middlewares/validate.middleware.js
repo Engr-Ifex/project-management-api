@@ -25,8 +25,14 @@ const validate = (schema) => {
       Object.assign(req.params, result.data.params);
     }
 
+    /*
+     * Express 5 exposes `req.query` through a getter that re-parses the URL
+     * on every access, so mutating it has no effect. The parsed and coerced
+     * query is therefore exposed on `req.validatedQuery` instead, and
+     * controllers read from there.
+     */
     if (result.data.query) {
-      Object.assign(req.query, result.data.query);
+      req.validatedQuery = result.data.query;
     }
 
     next();
