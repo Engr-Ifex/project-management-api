@@ -54,6 +54,16 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    /*
+     * When the password last changed. Used to reject access tokens that were
+     * issued before a password change, since stateless JWTs cannot otherwise
+     * be revoked. Null for accounts that have never changed their password.
+     */
+    passwordChangedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -64,6 +74,15 @@ const userSchema = new mongoose.Schema(
       transform(doc, ret) {
         ret.id = ret._id;
         delete ret._id;
+
+        /*
+         * Defence in depth. `password` is `select: false`, but a query that
+         * explicitly asks for it (login, change-password) returns a document
+         * whose hash would otherwise be serialised if it were ever sent
+         * directly instead of through `sanitizeUser`.
+         */
+        delete ret.password;
+
         return ret;
       },
     },
@@ -74,6 +93,15 @@ userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
 
   this.password = await bcrypt.hash(this.password, Number(env.bcryptSaltRounds));
+
+  /*
+   * Stamp the change time so tokens issued earlier stop being accepted.
+   * Skipped on creation: a brand-new account should not invalidate the token
+   * it is about to receive.
+   */
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date();
+  }
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {

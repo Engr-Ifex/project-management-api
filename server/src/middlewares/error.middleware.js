@@ -45,6 +45,29 @@ const errorHandler = (err, req, res, next) => {
   }
 
   /*
+   * JSON Web Token errors.
+   *
+   * `jwt.verify` throws for a malformed token, a bad signature, an expired
+   * token and a not-yet-valid token. None of those carry a statusCode, so
+   * before this mapping they surfaced as HTTP 500 — an unauthenticated client
+   * could not distinguish "your session expired, please log in again" from a
+   * server fault, and every expired token produced a 5xx in the logs.
+   *
+   * All of them are authentication failures: 401. The library's own message is
+   * replaced so the response never describes why verification failed.
+   */
+  if (
+    err.name === 'JsonWebTokenError' ||
+    err.name === 'TokenExpiredError' ||
+    err.name === 'NotBeforeError'
+  ) {
+    statusCode = 401;
+    message =
+      err.name === 'TokenExpiredError' ? 'Access token has expired' : 'Invalid access token';
+    errors = [];
+  }
+
+  /*
    * MongoDB duplicate key error (unique index violation).
    *
    * The unique indexes on the models are the real guarantee; service-level
