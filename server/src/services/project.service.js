@@ -5,6 +5,20 @@ import { createProjectActivity } from './projectActivity.service.js';
 import { notifyProjectMemberAdded, notifyProjectRoleChanged } from './notification.service.js';
 import PROJECT_ROLES from '../constants/projectRoles.js';
 
+import {
+  buildDateRange,
+  buildSearchFilter,
+  buildSort,
+  findPaginated,
+  mergeFilters,
+} from '../utils/query.js';
+
+import {
+  PROJECT_DEFAULT_SORT,
+  PROJECT_SEARCH_FIELDS,
+  PROJECT_SORT_FIELDS,
+} from '../constants/query.js';
+
 export const createProject = async (workspaceId, userId, projectData) => {
   const project = await Project.create({
     workspace: workspaceId,
@@ -28,16 +42,36 @@ export const createProject = async (workspaceId, userId, projectData) => {
   return project;
 };
 
-export const getWorkspaceProjects = async (workspaceId) => {
-  const projects = await Project.find({
-    workspace: workspaceId,
-    isArchived: false,
-  })
-    .populate('createdBy', 'name email')
-    .populate('members.user', 'name email avatar')
-    .sort({ createdAt: -1 });
+export const getWorkspaceProjects = async (workspaceId, query = {}) => {
+  const deadlineRange = buildDateRange(query.deadlineFrom, query.deadlineTo);
 
-  return projects;
+  const filter = mergeFilters(
+    {
+      workspace: workspaceId,
+      /*
+       * Archived projects stay excluded unless explicitly requested, which is
+       * the behaviour this endpoint has always had.
+       */
+      isArchived: query.isArchived ?? false,
+    },
+    query.status ? { status: query.status } : null,
+    deadlineRange ? { deadline: deadlineRange } : null,
+    buildSearchFilter(query.search, PROJECT_SEARCH_FIELDS)
+  );
+
+  const sort = buildSort(query, PROJECT_SORT_FIELDS, PROJECT_DEFAULT_SORT);
+
+  const { items, pagination } = await findPaginated(Project, {
+    filter,
+    sort,
+    query,
+    populate: [
+      { path: 'createdBy', select: 'name email' },
+      { path: 'members.user', select: 'name email avatar' },
+    ],
+  });
+
+  return { projects: items, pagination };
 };
 
 export const getProjectById = async (workspaceId, projectId) => {

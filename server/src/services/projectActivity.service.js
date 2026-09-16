@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
 import ProjectActivity from '../models/ProjectActivity.js';
 import ApiError from '../utils/ApiError.js';
-import { buildPagination, paginationMeta } from '../utils/pagination.js';
+
+import { buildSort, findPaginated, mergeFilters } from '../utils/query.js';
+import { ACTIVITY_DEFAULT_SORT, ACTIVITY_SORT_FIELDS } from '../constants/query.js';
 
 const ACTOR_FIELDS = 'name email avatar';
 
@@ -27,25 +29,26 @@ export const createProjectActivity = async ({
  * Paginated project audit trail, newest first.
  */
 export const getProjectActivities = async (workspaceId, projectId, query = {}) => {
-  const { page, limit, skip } = buildPagination(query);
+  const filter = mergeFilters(
+    {
+      workspace: workspaceId,
+      project: projectId,
+    },
+    query.action ? { action: query.action } : null
+  );
 
-  const filter = {
-    workspace: workspaceId,
-    project: projectId,
-  };
+  const sort = buildSort(query, ACTIVITY_SORT_FIELDS, ACTIVITY_DEFAULT_SORT);
 
-  const [activities, total] = await Promise.all([
-    ProjectActivity.find(filter)
-      .populate('user', ACTOR_FIELDS)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    ProjectActivity.countDocuments(filter),
-  ]);
+  const { items, pagination } = await findPaginated(ProjectActivity, {
+    filter,
+    sort,
+    query,
+    populate: { path: 'user', select: ACTOR_FIELDS },
+  });
 
   return {
-    activities,
-    pagination: paginationMeta({ page, limit, total }),
+    activities: items,
+    pagination,
   };
 };
 
@@ -57,25 +60,26 @@ export const getTaskActivities = async (workspaceId, projectId, taskId, query = 
     throw new ApiError(400, 'Invalid task ID');
   }
 
-  const { page, limit, skip } = buildPagination(query);
+  const filter = mergeFilters(
+    {
+      workspace: workspaceId,
+      project: projectId,
+      'metadata.taskId': new mongoose.Types.ObjectId(taskId),
+    },
+    query.action ? { action: query.action } : null
+  );
 
-  const filter = {
-    workspace: workspaceId,
-    project: projectId,
-    'metadata.taskId': new mongoose.Types.ObjectId(taskId),
-  };
+  const sort = buildSort(query, ACTIVITY_SORT_FIELDS, ACTIVITY_DEFAULT_SORT);
 
-  const [activities, total] = await Promise.all([
-    ProjectActivity.find(filter)
-      .populate('user', ACTOR_FIELDS)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    ProjectActivity.countDocuments(filter),
-  ]);
+  const { items, pagination } = await findPaginated(ProjectActivity, {
+    filter,
+    sort,
+    query,
+    populate: { path: 'user', select: ACTOR_FIELDS },
+  });
 
   return {
-    activities,
-    pagination: paginationMeta({ page, limit, total }),
+    activities: items,
+    pagination,
   };
 };

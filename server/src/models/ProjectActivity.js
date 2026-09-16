@@ -115,6 +115,13 @@ projectActivitySchema.index({
   createdAt: -1,
 });
 
+// Action filtering on the audit feed (`?action=task_created`).
+projectActivitySchema.index({
+  project: 1,
+  action: 1,
+  createdAt: -1,
+});
+
 const ProjectActivity = mongoose.model('ProjectActivity', projectActivitySchema);
 
 export default ProjectActivity;

@@ -4,6 +4,10 @@ import Task from '../models/Task.js';
 import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
 
+import { buildSearchFilter, buildSort, findPaginated, mergeFilters } from '../utils/query.js';
+
+import { LABEL_DEFAULT_SORT, LABEL_SEARCH_FIELDS, LABEL_SORT_FIELDS } from '../constants/query.js';
+
 /*
  * Fields safe to expose when a label is populated onto a task.
  */
@@ -95,14 +99,19 @@ export const createLabel = async (workspaceId, projectId, userId, { name, color 
   return label;
 };
 
-export const getProjectLabels = async (workspaceId, projectId) => {
+export const getProjectLabels = async (workspaceId, projectId, query = {}) => {
   await getActiveProject(workspaceId, projectId);
 
-  const labels = await Label.find({
-    project: projectId,
-  }).sort({ createdAt: 1 });
+  const filter = mergeFilters(
+    { project: projectId },
+    buildSearchFilter(query.search, LABEL_SEARCH_FIELDS)
+  );
 
-  return labels;
+  const sort = buildSort(query, LABEL_SORT_FIELDS, LABEL_DEFAULT_SORT, 'asc');
+
+  const { items, pagination } = await findPaginated(Label, { filter, sort, query });
+
+  return { labels: items, pagination };
 };
 
 export const getLabelById = async (workspaceId, projectId, labelId) => {

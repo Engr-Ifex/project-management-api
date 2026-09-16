@@ -9,6 +9,14 @@ import { hasProjectPermission } from '../constants/projectRolePermissions.js';
 import { notifyTaskComment } from './notification.service.js';
 import { purgeAttachmentsForComment } from './attachment.service.js';
 
+import { buildSearchFilter, buildSort, findPaginated, mergeFilters } from '../utils/query.js';
+
+import {
+  COMMENT_DEFAULT_SORT,
+  COMMENT_SEARCH_FIELDS,
+  COMMENT_SORT_FIELDS,
+} from '../constants/query.js';
+
 /*
  * Author fields that are safe to expose.
  * `password` is `select: false` on the User model and is never returned.
@@ -158,17 +166,27 @@ export const createTaskComment = async (workspaceId, projectId, taskId, userId, 
   return comment;
 };
 
-export const getTaskComments = async (workspaceId, projectId, taskId) => {
+export const getTaskComments = async (workspaceId, projectId, taskId, query = {}) => {
   await getActiveProjectAndTask(workspaceId, projectId, taskId);
 
-  const comments = await TaskComment.find({
-    task: taskId,
-    isDeleted: false,
-  })
-    .populate('author', AUTHOR_FIELDS)
-    .sort({ createdAt: 1 });
+  const filter = mergeFilters(
+    {
+      task: taskId,
+      isDeleted: false,
+    },
+    buildSearchFilter(query.search, COMMENT_SEARCH_FIELDS)
+  );
 
-  return comments;
+  const sort = buildSort(query, COMMENT_SORT_FIELDS, COMMENT_DEFAULT_SORT, 'asc');
+
+  const { items, pagination } = await findPaginated(TaskComment, {
+    filter,
+    sort,
+    query,
+    populate: { path: 'author', select: AUTHOR_FIELDS },
+  });
+
+  return { comments: items, pagination };
 };
 
 export const getTaskCommentById = async (workspaceId, projectId, taskId, commentId) => {

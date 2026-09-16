@@ -13,13 +13,9 @@ export const createWorkspace = asyncHandler(async (req, res) => {
 });
 
 export const getUserWorkspaces = asyncHandler(async (req, res) => {
-  const workspaces = await workspaceService.getUserWorkspaces(req.user.id);
+  const result = await workspaceService.getUserWorkspaces(req.user.id, req.validatedQuery ?? {});
 
-  return res.status(200).json(
-    new ApiResponse(200, 'Workspaces retrieved successfully', {
-      workspaces,
-    })
-  );
+  return res.status(200).json(new ApiResponse(200, 'Workspaces retrieved successfully', result));
 });
 
 export const getWorkspaceById = asyncHandler(async (req, res) => {

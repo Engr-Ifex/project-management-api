@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { HEX_COLOR_REGEX, OBJECT_ID_REGEX } from '../constants/regex.js';
+import { LABEL_SORT_FIELDS } from '../constants/query.js';
+
+import { paginationQuery, searchQuery, sortQuery } from './query.validator.js';
 
 const objectId = (field) => z.string().trim().regex(OBJECT_ID_REGEX, `${field} must be a valid ID`);
 
@@ -53,7 +56,7 @@ export const projectLabelsSchema = z.object({
 
   params: projectParams,
 
-  query: z.object({}).optional(),
+  query: paginationQuery.merge(sortQuery(LABEL_SORT_FIELDS)).merge(searchQuery).optional(),
 });
 
 export const labelIdSchema = z.object({

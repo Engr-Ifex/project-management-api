@@ -17,6 +17,7 @@ import validate from '../middlewares/validate.middleware.js';
 import {
   createWorkspaceSchema,
   workspaceIdSchema,
+  workspaceListSchema,
   updateWorkspaceSchema,
 } from '../validators/workspace.validator.js';
 
@@ -31,7 +32,7 @@ router.post(
   workspaceController.createWorkspace
 );
 
-router.get('/', authenticate, workspaceController.getUserWorkspaces);
+router.get('/', authenticate, validate(workspaceListSchema), workspaceController.getUserWorkspaces);
 router.get(
   '/:workspaceId',
   authenticate,

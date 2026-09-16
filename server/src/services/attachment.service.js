@@ -4,8 +4,10 @@ import Task from '../models/Task.js';
 import TaskComment from '../models/TaskComment.js';
 
 import ApiError from '../utils/ApiError.js';
-import { buildPagination, paginationMeta } from '../utils/pagination.js';
 import { getSafeExtension, sanitizeOriginalFilename } from '../utils/filename.js';
+import { buildSort, findPaginated } from '../utils/query.js';
+
+import { ATTACHMENT_DEFAULT_SORT, ATTACHMENT_SORT_FIELDS } from '../constants/query.js';
 
 import { getStorageProvider, STORAGE_PROVIDERS } from '../storage/storageProvider.js';
 
@@ -285,20 +287,18 @@ export const uploadAttachment = async ({
  * ================================================================== */
 
 const listAttachments = async (filter, query = {}) => {
-  const { page, limit, skip } = buildPagination(query);
+  const sort = buildSort(query, ATTACHMENT_SORT_FIELDS, ATTACHMENT_DEFAULT_SORT);
 
-  const [attachments, total] = await Promise.all([
-    Attachment.find(filter)
-      .populate('uploader', UPLOADER_FIELDS)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    Attachment.countDocuments(filter),
-  ]);
+  const { items, pagination } = await findPaginated(Attachment, {
+    filter,
+    sort,
+    query,
+    populate: { path: 'uploader', select: UPLOADER_FIELDS },
+  });
 
   return {
-    attachments,
-    pagination: paginationMeta({ page, limit, total }),
+    attachments: items,
+    pagination,
   };
 };
 

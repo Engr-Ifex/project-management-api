@@ -2,7 +2,9 @@ import Notification from '../models/Notification.js';
 import Task from '../models/Task.js';
 import ApiError from '../utils/ApiError.js';
 import { NOTIFICATION_TYPES } from '../constants/notificationTypes.js';
-import { buildPagination, paginationMeta } from '../utils/pagination.js';
+
+import { buildSort, findPaginated } from '../utils/query.js';
+import { NOTIFICATION_DEFAULT_SORT, NOTIFICATION_SORT_FIELDS } from '../constants/query.js';
 
 const ACTOR_FIELDS = 'name email avatar';
 
@@ -232,26 +234,28 @@ export const createTaskDueSoonNotifications = async (
  * ------------------------------------------------------------------ */
 
 export const getUserNotifications = async (userId, query = {}) => {
-  const { page, limit, skip } = buildPagination(query);
-
   const filter = { recipient: userId };
 
   if (query.unread === true) {
     filter.isRead = false;
   }
 
-  const [notifications, total] = await Promise.all([
-    Notification.find(filter)
-      .populate('actor', ACTOR_FIELDS)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit),
-    Notification.countDocuments(filter),
-  ]);
+  if (query.type) {
+    filter.type = query.type;
+  }
+
+  const sort = buildSort(query, NOTIFICATION_SORT_FIELDS, NOTIFICATION_DEFAULT_SORT);
+
+  const { items, pagination } = await findPaginated(Notification, {
+    filter,
+    sort,
+    query,
+    populate: { path: 'actor', select: ACTOR_FIELDS },
+  });
 
   return {
-    notifications,
-    pagination: paginationMeta({ page, limit, total }),
+    notifications: items,
+    pagination,
   };
 };
 

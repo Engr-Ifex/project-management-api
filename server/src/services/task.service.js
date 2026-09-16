@@ -4,6 +4,21 @@ import ApiError from '../utils/ApiError.js';
 import { createProjectActivity } from './projectActivity.service.js';
 import { notifyTaskAssigned } from './notification.service.js';
 
+import {
+  buildDateRange,
+  buildSearchFilter,
+  buildSort,
+  findPaginated,
+  mergeFilters,
+} from '../utils/query.js';
+
+import {
+  TASK_DEFAULT_ORDER,
+  TASK_DEFAULT_SORT,
+  TASK_SEARCH_FIELDS,
+  TASK_SORT_FIELDS,
+} from '../constants/query.js';
+
 export const createTask = async (workspaceId, projectId, userId, taskData) => {
   const project = await Project.findOne({
     _id: projectId,
@@ -76,7 +91,7 @@ export const createTask = async (workspaceId, projectId, userId, taskData) => {
   return task;
 };
 
-export const getProjectTasks = async (workspaceId, projectId) => {
+export const getProjectTasks = async (workspaceId, projectId, query = {}) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -87,16 +102,49 @@ export const getProjectTasks = async (workspaceId, projectId) => {
     throw new ApiError(404, 'Project not found');
   }
 
-  const tasks = await Task.find({
-    project: projectId,
-    isArchived: false,
-  })
-    .populate('createdBy', 'name email avatar')
-    .populate('assignee', 'name email avatar')
-    .populate('labels', 'name color')
-    .sort({ position: 1, createdAt: 1 });
+  const dueDateRange = buildDateRange(query.dueDateFrom, query.dueDateTo);
+  const startDateRange = buildDateRange(query.startDateFrom, query.startDateTo);
 
-  return tasks;
+  /*
+   * `unassigned` and `assignee` are mutually exclusive (the validator rejects
+   * sending both). A null match also covers documents with no assignee field.
+   */
+  const assigneeClause = query.unassigned
+    ? { assignee: null }
+    : query.assignee
+      ? { assignee: query.assignee }
+      : null;
+
+  const filter = mergeFilters(
+    {
+      project: projectId,
+      // Archived tasks stay excluded unless explicitly requested.
+      isArchived: query.isArchived ?? false,
+    },
+    query.status ? { status: query.status } : null,
+    query.priority ? { priority: query.priority } : null,
+    assigneeClause,
+    dueDateRange ? { dueDate: dueDateRange } : null,
+    startDateRange ? { startDate: startDateRange } : null,
+    // Tasks carrying any of the requested labels.
+    query.labels ? { labels: { $in: query.labels } } : null,
+    buildSearchFilter(query.search, TASK_SEARCH_FIELDS)
+  );
+
+  const sort = buildSort(query, TASK_SORT_FIELDS, TASK_DEFAULT_SORT, TASK_DEFAULT_ORDER);
+
+  const { items, pagination } = await findPaginated(Task, {
+    filter,
+    sort,
+    query,
+    populate: [
+      { path: 'createdBy', select: 'name email avatar' },
+      { path: 'assignee', select: 'name email avatar' },
+      { path: 'labels', select: 'name color' },
+    ],
+  });
+
+  return { tasks: items, pagination };
 };
 
 export const getTaskById = async (workspaceId, projectId, taskId) => {

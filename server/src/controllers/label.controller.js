@@ -14,9 +14,13 @@ export const createLabel = asyncHandler(async (req, res) => {
 });
 
 export const getProjectLabels = asyncHandler(async (req, res) => {
-  const labels = await labelService.getProjectLabels(req.params.workspaceId, req.params.projectId);
+  const result = await labelService.getProjectLabels(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.validatedQuery ?? {}
+  );
 
-  return res.status(200).json(new ApiResponse(200, 'Labels retrieved successfully', { labels }));
+  return res.status(200).json(new ApiResponse(200, 'Labels retrieved successfully', result));
 });
 
 export const getLabelById = asyncHandler(async (req, res) => {

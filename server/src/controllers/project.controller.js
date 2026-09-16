@@ -17,13 +17,12 @@ export const createProject = asyncHandler(async (req, res) => {
 });
 
 export const getWorkspaceProjects = asyncHandler(async (req, res) => {
-  const projects = await projectService.getWorkspaceProjects(req.params.workspaceId);
-
-  return res.status(200).json(
-    new ApiResponse(200, 'Projects retrieved successfully', {
-      projects,
-    })
+  const result = await projectService.getWorkspaceProjects(
+    req.params.workspaceId,
+    req.validatedQuery ?? {}
   );
+
+  return res.status(200).json(new ApiResponse(200, 'Projects retrieved successfully', result));
 });
 
 export const getProjectById = asyncHandler(async (req, res) => {

@@ -109,6 +109,23 @@ projectSchema.index({
   status: 1,
 });
 
+/*
+ * Default project listing order (newest first) within a workspace, and the
+ * `sortBy=createdAt` option. The workspace+isArchived index narrows the set
+ * but cannot supply the order.
+ */
+projectSchema.index({
+  workspace: 1,
+  isArchived: 1,
+  createdAt: -1,
+});
+
+// Deadline range filtering (`deadlineFrom` / `deadlineTo`).
+projectSchema.index({
+  workspace: 1,
+  deadline: 1,
+});
+
 const Project = mongoose.model('Project', projectSchema);
 
 export default Project;

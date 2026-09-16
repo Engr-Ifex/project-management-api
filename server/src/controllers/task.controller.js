@@ -18,13 +18,13 @@ export const createTask = asyncHandler(async (req, res) => {
 });
 
 export const getProjectTasks = asyncHandler(async (req, res) => {
-  const tasks = await taskService.getProjectTasks(req.params.workspaceId, req.params.projectId);
-
-  return res.status(200).json(
-    new ApiResponse(200, 'Tasks retrieved successfully', {
-      tasks,
-    })
+  const result = await taskService.getProjectTasks(
+    req.params.workspaceId,
+    req.params.projectId,
+    req.validatedQuery ?? {}
   );
+
+  return res.status(200).json(new ApiResponse(200, 'Tasks retrieved successfully', result));
 });
 
 export const getTaskById = asyncHandler(async (req, res) => {

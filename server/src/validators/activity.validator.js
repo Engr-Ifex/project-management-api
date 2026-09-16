@@ -1,17 +1,28 @@
 import { z } from 'zod';
+
 import { OBJECT_ID_REGEX } from '../constants/regex.js';
+import { ACTIVITY_SORT_FIELDS } from '../constants/query.js';
+
+import ProjectActivity from '../models/ProjectActivity.js';
+
+import { paginationQuery, sortQuery } from './query.validator.js';
 
 const objectId = (field) => z.string().trim().regex(OBJECT_ID_REGEX, `${field} must be a valid ID`);
 
-const paginationFields = {
-  page: z.coerce.number().int().min(1, 'Page must be at least 1').optional(),
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1, 'Limit must be at least 1')
-    .max(100, 'Limit cannot exceed 100')
-    .optional(),
-};
+/*
+ * The action filter is built from the model's own enum, so the accepted values
+ * cannot drift away from the actions the API is able to record.
+ */
+const ACTIVITY_ACTIONS = ProjectActivity.schema.path('action').enumValues;
+
+const activityQuery = paginationQuery
+  .merge(sortQuery(ACTIVITY_SORT_FIELDS))
+  .extend({
+    action: z
+      .enum([...ACTIVITY_ACTIONS], { message: 'action is not a recognised activity action' })
+      .optional(),
+  })
+  .optional();
 
 export const projectActivitiesSchema = z.object({
   body: z.object({}).optional(),
@@ -21,7 +32,7 @@ export const projectActivitiesSchema = z.object({
     projectId: objectId('Project ID'),
   }),
 
-  query: z.object({ ...paginationFields }),
+  query: activityQuery,
 });
 
 export const taskActivitiesSchema = z.object({
@@ -33,5 +44,5 @@ export const taskActivitiesSchema = z.object({
     taskId: objectId('Task ID'),
   }),
 
-  query: z.object({ ...paginationFields }),
+  query: activityQuery,
 });

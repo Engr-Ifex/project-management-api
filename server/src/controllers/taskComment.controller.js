@@ -18,15 +18,14 @@ export const createTaskComment = asyncHandler(async (req, res) => {
 });
 
 export const getTaskComments = asyncHandler(async (req, res) => {
-  const comments = await taskCommentService.getTaskComments(
+  const result = await taskCommentService.getTaskComments(
     req.params.workspaceId,
     req.params.projectId,
-    req.params.taskId
+    req.params.taskId,
+    req.validatedQuery ?? {}
   );
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, 'Comments retrieved successfully', { comments }));
+  return res.status(200).json(new ApiResponse(200, 'Comments retrieved successfully', result));
 });
 
 export const getTaskCommentById = asyncHandler(async (req, res) => {

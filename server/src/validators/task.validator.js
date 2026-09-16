@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+import { OBJECT_ID_LIST_REGEX } from '../constants/regex.js';
+import { TASK_SORT_FIELDS } from '../constants/query.js';
+
+import {
+  booleanQuery,
+  dateQuery,
+  objectIdQuery,
+  paginationQuery,
+  searchQuery,
+  sortQuery,
+} from './query.validator.js';
+
 const taskStatus = ['todo', 'in_progress', 'in_review', 'completed', 'cancelled'];
 
 const taskPriority = ['low', 'medium', 'high', 'urgent'];
@@ -161,6 +173,56 @@ export const taskDueDateSchema = z.object({
   query: z.object({}).optional(),
 });
 
+/*
+ * Task list query.
+ *
+ * Every filter is an explicit, validated primitive. `labels` is validated as a
+ * whole comma-separated list so the value stays a plain string, and the
+ * cross-field rules below reject contradictory combinations up front instead of
+ * silently returning an empty page.
+ */
+const projectTasksQuery = paginationQuery
+  .merge(sortQuery(TASK_SORT_FIELDS))
+  .merge(searchQuery)
+  .extend({
+    status: z.enum(taskStatus).optional(),
+
+    priority: z.enum(taskPriority).optional(),
+
+    assignee: objectIdQuery('assignee').optional(),
+
+    unassigned: booleanQuery('unassigned').optional(),
+
+    // Defaults to false in the service, matching the original behaviour.
+    isArchived: booleanQuery('isArchived').optional(),
+
+    labels: z
+      .string()
+      .trim()
+      .regex(OBJECT_ID_LIST_REGEX, 'labels must be a comma-separated list of valid IDs')
+      .transform((value) => value.split(',').map((id) => id.trim()))
+      .optional(),
+
+    dueDateFrom: dateQuery('dueDateFrom').optional(),
+    dueDateTo: dateQuery('dueDateTo').optional(),
+
+    startDateFrom: dateQuery('startDateFrom').optional(),
+    startDateTo: dateQuery('startDateTo').optional(),
+  })
+  .refine((query) => !(query.assignee && query.unassigned), {
+    message: 'assignee and unassigned cannot be used together',
+  })
+  .refine(
+    (query) => !(query.dueDateFrom && query.dueDateTo && query.dueDateFrom > query.dueDateTo),
+    { message: 'dueDateFrom cannot be later than dueDateTo' }
+  )
+  .refine(
+    (query) =>
+      !(query.startDateFrom && query.startDateTo && query.startDateFrom > query.startDateTo),
+    { message: 'startDateFrom cannot be later than startDateTo' }
+  )
+  .optional();
+
 export const projectTasksSchema = z.object({
   body: z.object({}).optional(),
 
@@ -170,7 +232,7 @@ export const projectTasksSchema = z.object({
     projectId: z.string().min(1, 'Project ID is required'),
   }),
 
-  query: z.object({}).optional(),
+  query: projectTasksQuery,
 });
 
 export const reorderTaskSchema = z.object({

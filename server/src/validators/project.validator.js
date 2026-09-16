@@ -1,5 +1,14 @@
 import { z } from 'zod';
 import PROJECT_ROLES from '../constants/projectRoles.js';
+import { PROJECT_SORT_FIELDS } from '../constants/query.js';
+
+import {
+  booleanQuery,
+  dateQuery,
+  paginationQuery,
+  searchQuery,
+  sortQuery,
+} from './query.validator.js';
 
 const projectStatus = ['planning', 'active', 'on_hold', 'completed', 'cancelled'];
 
@@ -122,6 +131,29 @@ export const removeProjectMemberSchema = z.object({
   query: z.object({}).optional(),
 });
 
+/*
+ * Project list query.
+ *
+ * `isArchived` defaults to false in the service so the original behaviour
+ * (only live projects) is preserved when the parameter is omitted.
+ */
+const workspaceProjectsQuery = paginationQuery
+  .merge(sortQuery(PROJECT_SORT_FIELDS))
+  .merge(searchQuery)
+  .extend({
+    status: z.enum(projectStatus, 'Invalid project status').optional(),
+
+    isArchived: booleanQuery('isArchived').optional(),
+
+    deadlineFrom: dateQuery('deadlineFrom').optional(),
+    deadlineTo: dateQuery('deadlineTo').optional(),
+  })
+  .refine(
+    (query) => !(query.deadlineFrom && query.deadlineTo && query.deadlineFrom > query.deadlineTo),
+    { message: 'deadlineFrom cannot be later than deadlineTo' }
+  )
+  .optional();
+
 export const workspaceProjectsSchema = z.object({
   body: z.object({}).optional(),
 
@@ -129,7 +161,7 @@ export const workspaceProjectsSchema = z.object({
     workspaceId: z.string().min(1, 'Workspace ID is required'),
   }),
 
-  query: z.object({}).optional(),
+  query: workspaceProjectsQuery,
 });
 
 export const changeProjectMemberRoleSchema = z.object({

@@ -1,6 +1,14 @@
 import Workspace from '../models/Workspace.js';
 import ApiError from '../utils/ApiError.js';
 
+import { buildSearchFilter, buildSort, findPaginated, mergeFilters } from '../utils/query.js';
+
+import {
+  WORKSPACE_DEFAULT_SORT,
+  WORKSPACE_SEARCH_FIELDS,
+  WORKSPACE_SORT_FIELDS,
+} from '../constants/query.js';
+
 export const createWorkspace = async (userId, workspaceData) => {
   const { name, description } = workspaceData;
 
@@ -20,10 +28,25 @@ export const createWorkspace = async (userId, workspaceData) => {
   return workspace;
 };
 
-export const getUserWorkspaces = async (userId) => {
-  const workspaces = await Workspace.findActiveByMember(userId);
+export const getUserWorkspaces = async (userId, query = {}) => {
+  /*
+   * Same scope the model's `findActiveByMember` helper applies: workspaces the
+   * caller belongs to, excluding archived ones. Written out explicitly here
+   * because the filter is combined with the optional search clause.
+   */
+  const filter = mergeFilters(
+    {
+      'members.user': userId,
+      isArchived: false,
+    },
+    buildSearchFilter(query.search, WORKSPACE_SEARCH_FIELDS)
+  );
 
-  return workspaces;
+  const sort = buildSort(query, WORKSPACE_SORT_FIELDS, WORKSPACE_DEFAULT_SORT);
+
+  const { items, pagination } = await findPaginated(Workspace, { filter, sort, query });
+
+  return { workspaces: items, pagination };
 };
 
 export const getWorkspaceById = async (workspace) => {

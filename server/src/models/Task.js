@@ -172,6 +172,29 @@ taskSchema.index({
 });
 
 /*
+ * Newest-first task listing within a project. The default sort stays
+ * `position`, but a client can ask for `sortBy=createdAt`, which the
+ * position-ordered index cannot serve.
+ */
+taskSchema.index({
+  project: 1,
+  isArchived: 1,
+  createdAt: -1,
+});
+
+// Filtering a project's tasks by assignee (`?assignee=<id>`).
+taskSchema.index({
+  project: 1,
+  assignee: 1,
+});
+
+// Due-date range filtering (`dueDateFrom` / `dueDateTo`) and due-date sorting.
+taskSchema.index({
+  project: 1,
+  dueDate: 1,
+});
+
+/*
  * "My tasks" lookups: every task assigned to a user, optionally narrowed to
  * live ones. The dashboard's user-focused statistics match on exactly this
  * pair, and without the index they would scan the whole tasks collection —

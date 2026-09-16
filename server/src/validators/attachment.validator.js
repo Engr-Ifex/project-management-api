@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 import { OBJECT_ID_REGEX } from '../constants/regex.js';
 import { ATTACHMENT_SCOPES } from '../constants/attachment.js';
+import { ATTACHMENT_SORT_FIELDS } from '../constants/query.js';
+
+import { paginationQuery, sortQuery } from './query.validator.js';
 
 const objectId = (field) => z.string().trim().regex(OBJECT_ID_REGEX, `${field} must be a valid ID`);
 
@@ -27,9 +30,7 @@ const emptyBody = z.object({}).optional();
 
 const emptyQuery = z.object({}).optional();
 
-const listQuery = z.object({
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().max(100).optional(),
+const listQuery = paginationQuery.merge(sortQuery(ATTACHMENT_SORT_FIELDS)).extend({
   scope: z.enum(Object.values(ATTACHMENT_SCOPES)).optional(),
 });
 

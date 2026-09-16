@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import { OBJECT_ID_REGEX } from '../constants/regex.js';
+import { COMMENT_SORT_FIELDS } from '../constants/query.js';
+
+import { paginationQuery, searchQuery, sortQuery } from './query.validator.js';
 
 const objectId = (field) => z.string().trim().regex(OBJECT_ID_REGEX, `${field} must be a valid ID`);
 
@@ -52,5 +55,5 @@ export const getTaskCommentsSchema = z.object({
 
   params: taskCommentParams,
 
-  query: z.object({}).optional(),
+  query: paginationQuery.merge(sortQuery(COMMENT_SORT_FIELDS)).merge(searchQuery).optional(),
 });

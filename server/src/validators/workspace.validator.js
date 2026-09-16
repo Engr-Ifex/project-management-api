@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+import { WORKSPACE_SORT_FIELDS } from '../constants/query.js';
+
+import { paginationQuery, searchQuery, sortQuery } from './query.validator.js';
+
+/*
+ * Workspace list query for the caller's own workspaces.
+ */
+export const workspaceListSchema = z.object({
+  body: z.object({}).optional(),
+
+  params: z.object({}),
+
+  query: paginationQuery.merge(sortQuery(WORKSPACE_SORT_FIELDS)).merge(searchQuery).optional(),
+});
+
 export const createWorkspaceSchema = z.object({
   body: z
     .object({
