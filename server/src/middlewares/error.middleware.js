@@ -17,6 +17,34 @@ const errorHandler = (err, req, res, next) => {
   }
 
   /*
+   * Mongoose ValidationError.
+   *
+   * Thrown by `save()` / `create()` when a document breaks a schema rule
+   * (required, minlength, maxlength, enum, match, custom validators). The
+   * request payload is at fault, not the server, so this belongs at 400
+   * instead of surfacing as an opaque 500.
+   *
+   * `err.errors` is an object keyed by path rather than the array shape the
+   * API returns, so it is normalised here. The generic message mirrors the
+   * Zod path in validate.middleware.js, with the per-field detail carried in
+   * `errors` so both validation sources look identical to clients.
+   *
+   * The object key is used rather than `issue.path` because for a nested
+   * subdocument the key is the fully-qualified path (`storage.key`) while
+   * `issue.path` only holds the leaf (`key`).
+   */
+  if (err.name === 'ValidationError') {
+    const fieldErrors = Object.entries(err.errors ?? {}).map(([field, issue]) => ({
+      field: field || issue.path,
+      message: issue.message,
+    }));
+
+    statusCode = 400;
+    message = 'Validation failed';
+    errors = fieldErrors;
+  }
+
+  /*
    * MongoDB duplicate key error (unique index violation).
    *
    * The unique indexes on the models are the real guarantee; service-level
@@ -31,6 +59,31 @@ const errorHandler = (err, req, res, next) => {
       ? `A record with this ${field} already exists`
       : 'A record with these values already exists';
     errors = field ? [{ field, message }] : [];
+  }
+
+  /*
+   * Multer upload errors.
+   *
+   * Multer signals size/count/field violations through `MulterError`. Without
+   * this mapping an oversized upload would surface as an opaque 500; it is a
+   * client input problem and belongs at 400. Rejections thrown by the file
+   * filters are already ApiErrors and are handled by the statusCode branch
+   * above, so only genuine MulterError instances are translated here.
+   */
+  if (err.name === 'MulterError') {
+    const messages = {
+      LIMIT_FILE_SIZE: 'Uploaded file exceeds the maximum allowed size',
+      LIMIT_FILE_COUNT: 'Too many files uploaded',
+      LIMIT_UNEXPECTED_FILE: `Unexpected file field "${err.field}"`,
+      LIMIT_PART_COUNT: 'Too many parts in the upload',
+      LIMIT_FIELD_KEY: 'Upload field name is too long',
+      LIMIT_FIELD_VALUE: 'Upload field value is too long',
+      LIMIT_FIELD_COUNT: 'Too many upload fields',
+    };
+
+    statusCode = 400;
+    message = messages[err.code] || 'File upload failed';
+    errors = [{ field: err.field || 'file', message }];
   }
 
   res.status(statusCode).json({

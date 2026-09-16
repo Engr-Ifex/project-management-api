@@ -62,3 +62,10 @@ Thumbs.db
 # ===================================
 *.pid
 *.seed
+
+# ===================================
+# Uploaded Attachments
+# ===================================
+# Private user uploads: never commit the binaries. The directory itself is
+# created on demand by the local storage provider.
+src/uploads/attachments/

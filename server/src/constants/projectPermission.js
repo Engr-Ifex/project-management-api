@@ -40,6 +40,16 @@ export const PROJECT_PERMISSIONS = Object.freeze({
   UPDATE_LABEL: 'label:update',
   DELETE_LABEL: 'label:delete',
   ASSIGN_LABEL: 'label:assign',
+
+  // Attachments
+  CREATE_ATTACHMENT: 'attachment:create',
+  DELETE_ATTACHMENT: 'attachment:delete',
+
+  /*
+   * Elevated capability: delete attachments uploaded by other project
+   * members. Never granted to MEMBER or VIEWER.
+   */
+  MODERATE_ATTACHMENT: 'attachment:moderate',
 });
 
 export default PROJECT_PERMISSIONS;

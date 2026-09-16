@@ -73,12 +73,16 @@ const projectActivitySchema = new mongoose.Schema(
         'label_deleted',
         'label_assigned',
         'label_removed',
+
+        // Attachment actions
+        'attachment_uploaded',
+        'attachment_deleted',
       ],
     }),
 
     /*
      * Structured metadata convention:
-     *   - entity ids are camelCase: taskId, subtaskId, commentId, labelId, memberId
+     *   - entity ids are camelCase: taskId, subtaskId, commentId, labelId, memberId, attachmentId
      *   - changed field names go in `fields` (array) or `field` (single)
      *   - value transitions go in `from` / `to`
      *   - human readable names are optional extras (taskTitle, name)

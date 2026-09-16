@@ -25,6 +25,7 @@ export const createTaskSchema = z.object({
 
     dueDate: z.string().datetime().optional().nullable(),
 
+    // Whole minutes. `0` is valid and means no estimate recorded yet.
     estimatedTime: z
       .number()
       .int()
@@ -64,6 +65,7 @@ export const updateTaskSchema = z.object({
 
       dueDate: z.string().datetime().nullable().optional(),
 
+      // Whole minutes; identical rule to task creation.
       estimatedTime: z.number().int().min(0, 'Estimated time cannot be negative').optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {

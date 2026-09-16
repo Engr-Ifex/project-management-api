@@ -102,10 +102,24 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    /*
+     * Estimated effort, always expressed as a whole number of minutes.
+     *
+     * The unit is fixed by contract rather than stored per task, so every
+     * consumer — API responses and dashboard totals alike — can interpret the
+     * value without an extra lookup. `0` means "no estimate recorded yet".
+     *
+     * The integer check mirrors the Zod rules on the create/update schemas so
+     * the contract holds even for a write that bypasses request validation.
+     */
     estimatedTime: {
       type: Number,
       default: 0,
       min: [0, 'Estimated time cannot be negative'],
+      validate: {
+        validator: Number.isInteger,
+        message: 'Estimated time must be a whole number of minutes',
+      },
     },
 
     position: {
@@ -155,6 +169,17 @@ taskSchema.index({
 taskSchema.index({
   project: 1,
   labels: 1,
+});
+
+/*
+ * "My tasks" lookups: every task assigned to a user, optionally narrowed to
+ * live ones. The dashboard's user-focused statistics match on exactly this
+ * pair, and without the index they would scan the whole tasks collection —
+ * which grows with every task in the system, not just the caller's.
+ */
+taskSchema.index({
+  assignee: 1,
+  isArchived: 1,
 });
 
 const Task = mongoose.model('Task', taskSchema);

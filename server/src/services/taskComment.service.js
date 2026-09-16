@@ -7,6 +7,7 @@ import { createProjectActivity } from './projectActivity.service.js';
 import PROJECT_PERMISSIONS from '../constants/projectPermission.js';
 import { hasProjectPermission } from '../constants/projectRolePermissions.js';
 import { notifyTaskComment } from './notification.service.js';
+import { purgeAttachmentsForComment } from './attachment.service.js';
 
 /*
  * Author fields that are safe to expose.
@@ -258,6 +259,13 @@ export const deleteTaskComment = async (
       }),
     },
   });
+
+  /*
+   * A deleted comment must not leave its attachments behind. They would be
+   * unreachable through the API (downloads re-check the parent comment) yet
+   * still occupy storage, so they are purged here.
+   */
+  await purgeAttachmentsForComment(projectId, comment._id);
 
   return true;
 };
