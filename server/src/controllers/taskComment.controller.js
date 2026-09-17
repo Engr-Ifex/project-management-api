@@ -2,8 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as taskCommentService from '../services/taskComment.service.js';
 
-import { hasPermission } from '../constants/rolePermissions.js';
-import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
+import { hasProjectOverride } from '../constants/rolePermissions.js';
 
 export const createTaskComment = asyncHandler(async (req, res) => {
   const comment = await taskCommentService.createTaskComment(
@@ -58,10 +57,7 @@ export const deleteTaskComment = asyncHandler(async (req, res) => {
    * workspace (same rule applied by requireProjectPermission). They are the
    * only callers besides the author allowed to delete a comment.
    */
-  const isWorkspaceElevated = hasPermission(
-    req.workspaceMember.role,
-    WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE
-  );
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
 
   await taskCommentService.deleteTaskComment(
     req.params.workspaceId,

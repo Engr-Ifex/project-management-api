@@ -2,8 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import * as attachmentService from '../services/attachment.service.js';
 
-import { hasPermission } from '../constants/rolePermissions.js';
-import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
+import { hasProjectOverride } from '../constants/rolePermissions.js';
 
 /**
  * Build an RFC 6266 / RFC 5987 compliant Content-Disposition value.
@@ -135,10 +134,7 @@ export const deleteAttachment = asyncHandler(async (req, res) => {
    * workspace (same rule applied by requireProjectPermission). They are the
    * only callers besides the uploader allowed to delete an attachment.
    */
-  const isWorkspaceElevated = hasPermission(
-    req.workspaceMember.role,
-    WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE
-  );
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
 
   await attachmentService.deleteAttachment(
     req.params.workspaceId,

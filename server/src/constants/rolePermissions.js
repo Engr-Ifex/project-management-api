@@ -57,3 +57,22 @@ export const hasEqualOrHigherRole = (requesterRole, targetRole) => {
 export const isValidWorkspaceRole = (role) => {
   return Object.values(WORKSPACE_ROLES).includes(role);
 };
+
+/**
+ * Does a workspace role carry project-level override authority?
+ *
+ * This is the single definition of "workspace elevated" for project purposes,
+ * and the one place the policy is expressed.
+ *
+ * It was previously written out three times — in `requireProjectPermission`,
+ * and again in the task-comment and attachment controllers — which is how the
+ * middleware and the task service drifted into disagreeing about whether a
+ * workspace admin may act on a project they are not a member of.
+ *
+ * The capability is deliberately borrowed from `UPDATE_WORKSPACE` rather than
+ * declared as a separate constant: only workspace OWNER and ADMIN hold it, and
+ * reusing it keeps the two role tables from drifting apart.
+ */
+export const hasProjectOverride = (workspaceRole) => {
+  return hasPermission(workspaceRole, WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE);
+};

@@ -5,8 +5,7 @@ import { hasProjectPermission } from '../constants/projectRolePermissions.js';
 
 import PROJECT_ROLES from '../constants/projectRoles.js';
 
-import { hasPermission } from '../constants/rolePermissions.js';
-import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
+import { hasProjectOverride } from '../constants/rolePermissions.js';
 
 const requireProjectPermission = (permission) => {
   return async (req, res, next) => {
@@ -30,17 +29,14 @@ const requireProjectPermission = (permission) => {
       const userId = req.user._id;
 
       /*
-       * Workspace owner/admin override
+       * Workspace owner/admin override.
        *
-       * Workspace owners and admins have elevated
-       * authority over projects inside their workspace.
+       * Workspace owners and admins hold authority over every project inside
+       * their workspace, so they pass without a project role. The decision is
+       * defined once in `hasProjectOverride` and applied here and in the
+       * services that need it, so the two cannot drift apart.
        */
-      const isWorkspaceOwnerOrAdmin = hasPermission(
-        req.workspaceMember.role,
-        WORKSPACE_PERMISSIONS.UPDATE_WORKSPACE
-      );
-
-      if (isWorkspaceOwnerOrAdmin) {
+      if (hasProjectOverride(req.workspaceMember.role)) {
         return next();
       }
 

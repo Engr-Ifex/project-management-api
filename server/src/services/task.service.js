@@ -19,7 +19,13 @@ import {
   TASK_SORT_FIELDS,
 } from '../constants/query.js';
 
-export const createTask = async (workspaceId, projectId, userId, taskData) => {
+export const createTask = async (
+  workspaceId,
+  projectId,
+  userId,
+  taskData,
+  isWorkspaceElevated = false
+) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -34,7 +40,8 @@ export const createTask = async (workspaceId, projectId, userId, taskData) => {
     (member) => member.user.toString() === userId.toString()
   );
 
-  if (!isProjectMember) {
+  // A workspace owner/admin may act without project membership (Policy A).
+  if (!isProjectMember && !isWorkspaceElevated) {
     throw new ApiError(403, 'You must be a project member to create a task');
   }
 
@@ -690,7 +697,14 @@ export const updateTaskStartDate = async (workspaceId, projectId, taskId, startD
   ]);
 };
 
-export const createSubtask = async (workspaceId, projectId, taskId, userId, title) => {
+export const createSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  userId,
+  title,
+  isWorkspaceElevated = false
+) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -705,7 +719,8 @@ export const createSubtask = async (workspaceId, projectId, taskId, userId, titl
     (member) => member.user.toString() === userId.toString()
   );
 
-  if (!isProjectMember) {
+  // A workspace owner/admin may act without project membership (Policy A).
+  if (!isProjectMember && !isWorkspaceElevated) {
     throw new ApiError(403, 'You must be a project member');
   }
 
@@ -764,7 +779,15 @@ export const getSubtasks = async (workspaceId, projectId, taskId) => {
   return task.subtasks;
 };
 
-export const updateSubtask = async (workspaceId, projectId, taskId, subtaskId, userId, data) => {
+export const updateSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  subtaskId,
+  userId,
+  data,
+  isWorkspaceElevated = false
+) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -779,7 +802,8 @@ export const updateSubtask = async (workspaceId, projectId, taskId, subtaskId, u
     (member) => member.user.toString() === userId.toString()
   );
 
-  if (!isProjectMember) {
+  // A workspace owner/admin may act without project membership (Policy A).
+  if (!isProjectMember && !isWorkspaceElevated) {
     throw new ApiError(403, 'You must be a project member');
   }
 
@@ -826,7 +850,14 @@ export const updateSubtask = async (workspaceId, projectId, taskId, subtaskId, u
   return subtask;
 };
 
-export const deleteSubtask = async (workspaceId, projectId, taskId, subtaskId, userId) => {
+export const deleteSubtask = async (
+  workspaceId,
+  projectId,
+  taskId,
+  subtaskId,
+  userId,
+  isWorkspaceElevated = false
+) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -841,7 +872,8 @@ export const deleteSubtask = async (workspaceId, projectId, taskId, subtaskId, u
     (member) => member.user.toString() === userId.toString()
   );
 
-  if (!isProjectMember) {
+  // A workspace owner/admin may act without project membership (Policy A).
+  if (!isProjectMember && !isWorkspaceElevated) {
     throw new ApiError(403, 'You must be a project member');
   }
 

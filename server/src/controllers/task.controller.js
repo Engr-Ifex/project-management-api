@@ -1,13 +1,22 @@
 import * as taskService from '../services/task.service.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
+import { hasProjectOverride } from '../constants/rolePermissions.js';
 
 export const createTask = asyncHandler(async (req, res) => {
+  /*
+   * A workspace owner/admin holds authority over every project in their
+   * workspace, so project membership is not required of them. The rule itself
+   * lives in `hasProjectOverride`, shared with `requireProjectPermission`.
+   */
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
+
   const task = await taskService.createTask(
     req.params.workspaceId,
     req.params.projectId,
     req.user.id,
-    req.body
+    req.body,
+    isWorkspaceElevated
   );
 
   return res.status(201).json(
@@ -158,12 +167,15 @@ export const updateTaskStartDate = asyncHandler(async (req, res) => {
 });
 
 export const createSubtask = asyncHandler(async (req, res) => {
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
+
   const subtask = await taskService.createSubtask(
     req.params.workspaceId,
     req.params.projectId,
     req.params.taskId,
     req.user._id,
-    req.body.title
+    req.body.title,
+    isWorkspaceElevated
   );
 
   return res.status(201).json(new ApiResponse(201, 'Subtask created successfully', { subtask }));
@@ -182,25 +194,31 @@ export const getSubtasks = asyncHandler(async (req, res) => {
 });
 
 export const updateSubtask = asyncHandler(async (req, res) => {
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
+
   const subtask = await taskService.updateSubtask(
     req.params.workspaceId,
     req.params.projectId,
     req.params.taskId,
     req.params.subtaskId,
     req.user._id,
-    req.body
+    req.body,
+    isWorkspaceElevated
   );
 
   return res.status(200).json(new ApiResponse(200, 'Subtask updated successfully', { subtask }));
 });
 
 export const deleteSubtask = asyncHandler(async (req, res) => {
+  const isWorkspaceElevated = hasProjectOverride(req.workspaceMember.role);
+
   await taskService.deleteSubtask(
     req.params.workspaceId,
     req.params.projectId,
     req.params.taskId,
     req.params.subtaskId,
-    req.user._id
+    req.user._id,
+    isWorkspaceElevated
   );
 
   return res.status(200).json(new ApiResponse(200, 'Subtask deleted successfully'));

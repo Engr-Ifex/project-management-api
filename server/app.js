@@ -105,15 +105,21 @@ app.use('/uploads', (req, res, next) => {
 /*
  * Broad API rate limit. Static assets are mounted above this so serving an
  * avatar never consumes a caller's request budget.
+ *
+ * Skipped under NODE_ENV=test: the whole suite runs from one address, so the
+ * limiter would throttle the tests rather than an attacker. The limiter itself
+ * is covered by dedicated tests that mount their own instance.
  */
-app.use(
-  '/api',
-  createRateLimiter({
-    windowMs: env.rateLimitWindowMs,
-    max: env.rateLimitMax,
-    message: 'Too many requests, please try again later.',
-  })
-);
+if (!env.isTest) {
+  app.use(
+    '/api',
+    createRateLimiter({
+      windowMs: env.rateLimitWindowMs,
+      max: env.rateLimitMax,
+      message: 'Too many requests, please try again later.',
+    })
+  );
+}
 
 // Routes
 app.use('/api/v1', indexRoutes);

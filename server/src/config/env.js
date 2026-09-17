@@ -40,6 +40,7 @@ const env = {
   port: parseNumber(process.env.PORT, 5000),
   nodeEnv,
   isProduction: nodeEnv === 'production',
+  isTest: nodeEnv === 'test',
 
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
   jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',

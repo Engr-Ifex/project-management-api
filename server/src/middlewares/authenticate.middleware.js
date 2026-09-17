@@ -52,13 +52,19 @@ const authenticate = asyncHandler(async (req, res, next) => {
    * already-issued token valid until it expired. Comparing the token's
    * issued-at claim against the recorded change time closes that window.
    *
+   * `iat` is recorded in whole seconds, so a token minted in the same second
+   * as the change can legitimately appear older than it. The one-second
+   * tolerance below removes that false rejection without meaningfully widening
+   * the window.
+   *
    * Accounts that have never changed their password have no timestamp and are
    * unaffected.
    */
   if (user.passwordChangedAt && decoded.iat) {
+    const ISSUED_AT_RESOLUTION_MS = 1000;
     const issuedAt = decoded.iat * 1000;
 
-    if (issuedAt < user.passwordChangedAt.getTime()) {
+    if (issuedAt < user.passwordChangedAt.getTime() - ISSUED_AT_RESOLUTION_MS) {
       throw new ApiError(401, 'Session expired, please log in again');
     }
   }
