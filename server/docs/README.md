@@ -267,26 +267,34 @@ docs/ENVIRONMENT.md
 
 # API Overview
 
-The API follows RESTful principles.
-
-Example endpoints:
+The API follows RESTful principles. All routes are versioned under `/api/v1`:
 
 ```
-POST   /api/auth/register
-POST   /api/auth/login
+POST   /api/v1/auth/register
+POST   /api/v1/auth/login
 
-GET    /api/projects
-POST   /api/projects
+POST   /api/v1/workspaces
+GET    /api/v1/workspaces
 
-GET    /api/tasks
-POST   /api/tasks
+POST   /api/v1/workspaces/:workspaceId/projects
+GET    /api/v1/workspaces/:workspaceId/projects
+
+GET    /api/v1/workspaces/:workspaceId/projects/:projectId/tasks
+POST   /api/v1/workspaces/:workspaceId/projects/:projectId/tasks
 ```
+
+Projects and tasks are always nested under a workspace, so there is no
+top-level `/projects` or `/tasks` collection.
 
 Complete documentation can be found in:
 
 ```
-docs/API.md
+docs/API.md          full guide: auth, roles, permissions, every endpoint
+docs/openapi.json    machine-readable OpenAPI 3.1 contract
 ```
+
+`docs/openapi.json` is generated from the implementation and checked against the
+route table with `npm run docs:verify`, so it cannot drift from the code.
 
 ---
 

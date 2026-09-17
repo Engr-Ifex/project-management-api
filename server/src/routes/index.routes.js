@@ -10,6 +10,7 @@ import labelRoutes from './label.routes.js';
 import attachmentRoutes from './attachment.routes.js';
 import dashboardRoutes from './dashboard.routes.js';
 import notificationRoutes from './notification.routes.js';
+import docsRoutes from './docs.routes.js';
 
 const router = Router();
 
@@ -43,5 +44,8 @@ router.use('/workspaces', labelRoutes);
 router.use('/workspaces', attachmentRoutes);
 router.use('/workspaces', dashboardRoutes);
 router.use('/notifications', notificationRoutes);
+
+// OpenAPI document
+router.use('/', docsRoutes);
 
 export default router;
