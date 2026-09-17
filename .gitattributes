@@ -1,0 +1,32 @@
+# =============================================================================
+# Line endings.
+#
+# `.prettierrc` sets `endOfLine: "lf"`, so `npm run format:check` fails on any
+# file checked out with CRLF. Git's `core.autocrlf` setting is per-machine and
+# defaults to `true` on Windows, which rewrites every text file to CRLF on
+# checkout — so without this file, a Windows clone fails the format gate on
+# files that are correctly formatted in the repository.
+#
+# Declaring it here makes the line ending a property of the repository rather
+# than of each developer's git config.
+#
+# `text=auto` lets git decide what is text; binaries (images, archives) are
+# detected and left untouched.
+# =============================================================================
+
+* text=auto eol=lf
+
+# Explicitly binary — never normalised.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Windows-only scripts must keep CRLF to run under cmd.exe and PowerShell.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
