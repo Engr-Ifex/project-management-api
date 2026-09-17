@@ -4,6 +4,10 @@
   "type": "module",
   "description": "A RESTful Project Management API built with Node.js, Express, MongoDB, and Mongoose, designed to practice professional backend development concepts including authentication, authorization, project and task management, validation, security, and scalable API architecture.",
   "main": "server.js",
+  "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "test": "node --test --test-concurrency=1 \"tests/*.test.js\"",
     "test:watch": "node --test --watch --test-concurrency=1 \"tests/*.test.js\"",
@@ -11,8 +15,12 @@
     "docs:generate": "node scripts/generate-openapi.js",
     "docs:verify": "node scripts/verify-docs.js",
     "routes": "node scripts/route-inventory.js",
+    "preflight": "node scripts/preflight.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
+    "start:prod": "node scripts/preflight.js && node server.js",
+    "migrate:task-comments": "node src/migrations/migrateTaskComments.js",
+    "migrate:project-member-roles": "node src/migrations/migrateProjectMemberRoles.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

@@ -46,7 +46,16 @@ this repository is the backend.
 - Fail-fast environment validation
 - Uploads restricted by MIME type **and** extension, stored privately
 - Standard success and error envelopes, consistent pagination
-- 243 automated tests, generated OpenAPI 3.1 documentation
+- 254 automated tests, generated OpenAPI 3.1 documentation
+
+**Production readiness**
+- Fail-fast environment validation plus a `preflight` readiness check
+- Structured JSON logging in production, with sensitive fields redacted
+- Graceful shutdown with a hard deadline, keep-alive handling and fatal-error traps
+- Separate liveness and readiness probes
+- Multi-stage Docker image running as a non-root user
+- Migrations that never run on startup and exit non-zero on failure
+- Zero known dependency vulnerabilities
 
 ---
 
@@ -103,9 +112,13 @@ Run from `server/`:
 |---|---|
 | `npm run dev` | Development server with nodemon |
 | `npm start` | Plain `node server.js` |
+| `npm run start:prod` | Production: preflight check, then start |
+| `npm run preflight` | Verify the environment is production-ready |
 | `npm test` | Full test suite |
 | `npm run test:watch` | Tests in watch mode |
 | `npm run test:coverage` | Tests with coverage |
+| `npm run migrate:task-comments` | Run a migration (see [DEPLOYMENT.md](server/docs/DEPLOYMENT.md#4-database-migrations)) |
+| `npm run migrate:project-member-roles` | Run a migration |
 | `npm run docs:generate` | Regenerate `docs/openapi.json` from the implementation |
 | `npm run docs:verify` | Fail if the docs and the routes disagree |
 | `npm run routes` | Print every route with its guard chain |
@@ -113,6 +126,27 @@ Run from `server/`:
 | `npm run lint:fix` | ESLint with autofix |
 | `npm run format` | Prettier write |
 | `npm run format:check` | Prettier check |
+
+### Production
+
+```bash
+npm run preflight      # checks secrets, CORS, proxy config — exits non-zero if not ready
+npm run start:prod     # preflight, then start
+```
+
+The app validates its own configuration at startup and refuses to boot on a
+fatal mistake. `preflight` additionally catches the things that are legal but
+wrong for production — a placeholder secret, an empty `CORS_ORIGINS`, a missing
+`TRUST_PROXY` — and reports all of them at once.
+
+### Docker
+
+```bash
+docker build -t project-management-api .
+docker compose up -d --build     # API + MongoDB, for a single host
+```
+
+See [docs/DEPLOYMENT.md](server/docs/DEPLOYMENT.md) for the full procedure.
 
 ---
 
@@ -123,32 +157,38 @@ project-management-api/
 ├── README.md
 └── server/
     ├── app.js                  Express app: middleware, routes, error handling
-    ├── server.js               Entry point: DB connection + listen
+    ├── server.js               Entry point: DB connection, timeouts, listen
+    ├── Dockerfile              Multi-stage production image (runs as non-root)
+    ├── docker-compose.yml      API + MongoDB for a single host
+    ├── .dockerignore           Keeps .env and node_modules out of the image
     ├── scripts/
+    │   ├── preflight.js          Production readiness check
     │   ├── route-inventory.js    Parses routes into a machine-readable list
     │   ├── generate-openapi.js   Builds docs/openapi.json
     │   ├── openapi-operations.js Per-endpoint summaries and grouping
     │   └── verify-docs.js        Asserts docs match the routes
     ├── docs/
     │   ├── API.md              Full API guide (the place to start)
+    │   ├── DEPLOYMENT.md       Architecture, deploy steps, checklist
     │   ├── openapi.json        Generated OpenAPI 3.1 contract
     │   └── …                   Architecture, database, security, roadmap
     ├── tests/
     │   ├── helpers/            DB setup, factories, in-process data layer
     │   └── *.test.js           One suite per resource
     └── src/
-        ├── config/             Environment loading and validation
+        ├── config/             Environment, database, filesystem paths
         ├── constants/          Roles, permissions, upload policy
         ├── controllers/        HTTP layer
         ├── middlewares/        Auth, authorization, validation, uploads, errors
+        ├── migrations/         One-off migrations (never run automatically)
         ├── models/             Mongoose schemas
         ├── routes/             Route definitions and guard chains
         ├── services/           Business logic and object-level authorization
-        ├── utils/              Response envelopes, pagination, query building
+        ├── storage/            Pluggable file storage provider
+        ├── utils/              Logger, response envelopes, shutdown, pagination
         ├── validators/         Zod schemas
         ├── database/           Connection helper
-        ├── migrations/         One-off data migrations
-        └── uploads/            Avatar store (public); attachments are private
+        └── uploads/            Avatars (public) and attachments (private)
 ```
 
 ---
@@ -192,9 +232,10 @@ cd server
 npm test
 ```
 
-243 tests across 42 suites, covering authentication, authorization, workspaces,
+254 tests across 45 suites, covering authentication, authorization, workspaces,
 projects, tasks, subtasks, comments, labels, notifications, activity,
-attachments, dashboards and query behaviour.
+attachments, dashboards, query behaviour, the health/readiness probes and the
+response envelope contract.
 
 The suite is built on `node:test`, `supertest` and `mongodb-memory-server`. It
 **never touches the application database**: the connection string is replaced
@@ -224,27 +265,55 @@ MONGODB_URI_TEST=mongodb://127.0.0.1:27017/pm-test npm test
 
 ---
 
-## Deployment notes
+## Deployment
+
+Full procedure, architecture diagram, checklist and known limitations:
+**[server/docs/DEPLOYMENT.md](server/docs/DEPLOYMENT.md)**.
+
+```bash
+# Container (API + MongoDB on one host)
+docker compose up -d --build
+
+# Or directly
+npm run preflight     # exits non-zero if the environment is not production-ready
+npm run start:prod
+```
+
+The essentials:
 
 1. **Rotate `JWT_ACCESS_SECRET`** to at least 32 characters
-   (`openssl rand -hex 32`). The app will not start in production otherwise.
+   (`openssl rand -hex 32`). The app will not start in production otherwise, or
+   if the value is still a placeholder.
 2. **Set `CORS_ORIGINS`** to your client origin(s), comma-separated. With it
    empty, production refuses all cross-origin browser requests.
 3. **Set `TRUST_PROXY`** to the number of proxy hops in front of the app.
    Rate limiting keys on `req.ip`, so without this every request appears to come
    from the proxy and one client can exhaust everyone's budget.
 4. **Serve over HTTPS.** Cookies become `Secure` automatically when
-   `NODE_ENV=production`.
-5. **Scale the rate limiter.** It counts in-process, so with N instances the
-   effective limit is multiplied. Use a shared store (e.g. Redis) if you run
-   more than one.
-6. **Persist the attachment store.** Uploaded files live outside the public
-   static path by design; mount a volume if you deploy in a container.
-7. **Health check:** `GET /api/v1/health`.
+   `NODE_ENV=production`, so without TLS no client can stay logged in.
+5. **Persist the upload volume.** It must be mounted at `/app/src/uploads`;
+   without it every deploy discards every avatar and attachment.
+6. **Run migrations as a one-off job**, never in the start command. They do not
+   run automatically.
+7. **Keep `SHUTDOWN_TIMEOUT_MS` below the platform's grace period**, or the
+   platform will SIGKILL before the graceful path finishes.
+8. **Health checks:**
+   - liveness → `GET /api/v1/health` (never touches the database)
+   - readiness → `GET /api/v1/health/ready` (pings it; 503 when unreachable)
 
-```bash
-NODE_ENV=production npm start
-```
+### Scaling
+
+The API is **stateless** — sessions live in a cookie, so any instance can serve
+any request and no sticky sessions are needed.
+
+Two things do not scale horizontally as-is:
+
+- **Rate limiting** counts per process, so N instances multiply the effective
+  limit. Move it to a shared store (Redis) before running more than one.
+- **Uploads** are written to local disk, so an upload served by instance A is
+  invisible to instance B. Move to object storage before running more than one.
+
+Both are explained in [Known limitations](server/docs/DEPLOYMENT.md#8-known-limitations).
 
 ---
 
@@ -252,4 +321,5 @@ NODE_ENV=production npm start
 
 Development proceeds in phases, documented in
 [server/docs/ROADMAP.md](server/docs/ROADMAP.md). Completed so far: core
-resources, validation, security hardening, testing and API documentation.
+resources, validation, security hardening, testing, API documentation and
+production preparation.

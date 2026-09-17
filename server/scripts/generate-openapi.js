@@ -2,16 +2,16 @@
  * Generates `docs/openapi.json` from the implementation.
  *
  * Sources of truth, none of which are duplicated here:
- *   - paths, methods and guards .... scripts/route-inventory.mjs (parses routes)
+ *   - paths, methods and guards .... scripts/route-inventory.js (parses routes)
  *   - request bodies / query ...... the route's own Zod validator, via
  *                                   `z.toJSONSchema` (Zod 4)
- *   - summaries and grouping ...... scripts/openapi-operations.mjs
+ *   - summaries and grouping ...... scripts/openapi-operations.js
  *   - resource shapes ............. hand-authored below, from the Mongoose models
  *
  * If a route has no entry in OPERATIONS the build fails, so an endpoint cannot
  * be added without being documented.
  *
- *   node scripts/generate-openapi.mjs
+ *   node scripts/generate-openapi.js
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,6 +24,33 @@ import { OPERATIONS, TAGS } from './openapi-operations.js';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
 const OUTPUT = path.join(root, 'docs', 'openapi.json');
+
+/*
+ * Format the document the same way `npm run format:check` expects it.
+ *
+ * `JSON.stringify` puts every array element on its own line. Prettier collapses
+ * the ones that fit, so writing the raw stringify leaves the artefact
+ * inconsistent with the format gate — which then fails on the next
+ * `npm run docs:generate` for a reason that has nothing to do with the code.
+ * Formatting here keeps the generator and the gate in agreement.
+ *
+ * Prettier is a devDependency. The production image ships `scripts/` (the
+ * preflight runs from there) but installs with `--omit=dev`, so the import is
+ * optional: without Prettier the document is still valid and still correct,
+ * only less tidy.
+ */
+const formatDocument = async (text) => {
+  try {
+    const prettier = await import('prettier');
+    const config = (await prettier.resolveConfig(OUTPUT)) ?? {};
+
+    return await prettier.format(text, { ...config, parser: 'json' });
+  } catch {
+    console.warn('Prettier unavailable — writing unformatted JSON.');
+
+    return text;
+  }
+};
 
 const ref = (name) => ({ $ref: `#/components/schemas/${name}` });
 const arrayOf = (name) => ({ type: 'array', items: ref(name) });
@@ -376,9 +403,33 @@ const DATA_SHAPES = {
   notifications: { notifications: arrayOf('Notification'), pagination: ref('Pagination') },
   count: { count: integer() },
   activities: { activities: arrayOf('ProjectActivity'), pagination: ref('Pagination') },
+  apiIndex: { version: str(), documentation: str() },
+  health: {
+    status: { type: 'string', enum: ['ok'] },
+    uptimeSeconds: integer(),
+    environment: { type: 'string', enum: ['development', 'test', 'production'] },
+    version: str(),
+  },
+  healthReady: {
+    status: { type: 'string', enum: ['ready', 'not_ready'] },
+    checks: {
+      type: 'object',
+      properties: {
+        database: {
+          type: 'object',
+          properties: {
+            status: { type: 'string', enum: ['up', 'down'] },
+            latencyMs: integer({ description: 'Present when the database is up.' }),
+            reason: str({ description: 'Present when the database is down.' }),
+          },
+        },
+      },
+    },
+  },
   dashboard: null, // replaced per operation below
   message: null,
   binary: null,
+  openapi: null,
 };
 
 // The two dashboard endpoints return different payloads.
@@ -640,6 +691,19 @@ const buildOperations = async (inventory, validators) => {
       };
     }
 
+    /*
+     * The readiness probe is the one endpoint that answers 503 as a normal
+     * outcome, so the same envelope is documented under both status codes.
+     */
+    if (returns === 'healthReady') {
+      operation.responses['503'] = {
+        description:
+          'The instance is not ready to receive traffic: the database is unreachable. ' +
+          'It is still alive — use GET /api/v1/health for liveness.',
+        content: { 'application/json': { schema: ref('healthReadyResponse') } },
+      };
+    }
+
     // POST /auth/* also set the session cookie.
     if (route.path.startsWith('/api/v1/auth/') && route.path !== '/api/v1/auth/logout') {
       operation.responses[status].headers = {
@@ -663,7 +727,7 @@ const main = async () => {
   const { paths, missing } = await buildOperations(inventory, validators);
 
   if (missing.length) {
-    console.error('Undocumented routes — add them to scripts/openapi-operations.mjs:\n');
+    console.error('Undocumented routes — add them to scripts/openapi-operations.js:\n');
     for (const key of missing) console.error(`  ${key}`);
     process.exit(1);
   }
@@ -704,7 +768,7 @@ const main = async () => {
   };
 
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-  fs.writeFileSync(OUTPUT, `${JSON.stringify(document, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(OUTPUT, await formatDocument(`${JSON.stringify(document, null, 2)}\n`), 'utf8');
 
   const operationCount = Object.values(paths).reduce((n, p) => n + Object.keys(p).length, 0);
 

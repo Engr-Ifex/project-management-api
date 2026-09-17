@@ -1,0 +1,133 @@
+# =============================================================================
+# Local / single-host deployment.
+#
+# What this is for:
+#   - reproducing the production topology on one machine
+#   - running the API plus its database on a single VPS
+#
+# What this is NOT:
+#   - a hardened production orchestrator. There is one instance of each service,
+#     no rolling deploys, no secret manager, and the database port is published
+#     to the host. For anything with real availability requirements use a
+#     managed database and a proper scheduler; see docs/DEPLOYMENT.md.
+#
+# Usage:
+#   cp .env.example .env.production     # then fill it in
+#   docker compose up -d --build
+#   docker compose logs -f api
+#
+# Required variables are declared with `:?` so compose fails immediately with a
+# clear message rather than starting a container with an empty secret.
+# =============================================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: project-management-api:latest
+
+    # Reads JWT_ACCESS_SECRET, CORS_ORIGINS and friends from the host env file.
+    # Never commit that file — it is gitignored.
+    env_file:
+      - .env.production
+
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+
+      # The service name `mongo` resolves on the compose network. Credentials
+      # come from the host environment, never from this file.
+      MONGODB_URI: >-
+        mongodb://${MONGO_ROOT_USER:-pm}:${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}@mongo:27017/${MONGO_DATABASE:-project_management}?authSource=admin
+
+      # 0 when the API is reached directly; set to 1 if you put a reverse proxy
+      # in front of it, otherwise rate limiting will see the proxy's address.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+
+    ports:
+      - '${API_PORT:-5000}:5000'
+
+    volumes:
+      # Uploads must outlive the container, or every deploy discards every
+      # avatar and attachment.
+      - uploads:/app/src/uploads
+
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+    # The image's HEALTHCHECK covers liveness. This is the stronger readiness
+    # check, which also proves the database round trip.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:5000/api/v1/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    restart: unless-stopped
+
+    # Give the graceful shutdown handler room to finish. Node's shutdown
+    # deadline is SHUTDOWN_TIMEOUT_MS (default 10s), so this must exceed it —
+    # otherwise Docker SIGKILLs mid-drain and the graceful path never completes.
+    stop_grace_period: 20s
+
+    networks:
+      - pm
+
+  mongo:
+    image: mongo:7
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-pm}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE:-project_management}
+
+    volumes:
+      - mongo-data:/data/db
+
+    # Published so you can connect with a GUI during local development. Remove
+    # this mapping on a public host — the database should not be reachable from
+    # outside the compose network.
+    ports:
+      - '${MONGO_PORT:-27017}:27017'
+
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "db.adminCommand('ping').ok"
+        - -u
+        - ${MONGO_ROOT_USER:-pm}
+        - -p
+        - ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}
+        - --authenticationDatabase
+        - admin
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - pm
+
+volumes:
+  mongo-data:
+    driver: local
+
+  uploads:
+    driver: local
+
+networks:
+  pm:
+    driver: bridge

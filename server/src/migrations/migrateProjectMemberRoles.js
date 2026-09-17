@@ -7,6 +7,12 @@ dotenv.config();
 
 const migrateProjectMemberRoles = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error(
+        'MONGODB_URI is not set. Migrations connect directly and do not use the application config.'
+      );
+    }
+
     await mongoose.connect(process.env.MONGODB_URI);
 
     console.log('Connected to MongoDB');
@@ -59,6 +65,13 @@ const migrateProjectMemberRoles = async () => {
     console.log(`Migration complete. Updated ${updatedProjects} projects.`);
   } catch (error) {
     console.error('Migration failed:', error);
+
+    /*
+     * A migration that fails MUST exit non-zero. The original swallowed the
+     * error and exited 0, so a deploy script (or CI) saw success and carried
+     * on against a half-migrated database.
+     */
+    process.exitCode = 1;
   } finally {
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');

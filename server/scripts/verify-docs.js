@@ -9,7 +9,7 @@
  *
  * Exits non-zero on any failure, so this is safe to run in CI.
  *
- *   node scripts/verify-docs.mjs
+ *   node scripts/verify-docs.js
  */
 import fs from 'node:fs';
 import path from 'node:path';

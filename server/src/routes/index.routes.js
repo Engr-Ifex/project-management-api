@@ -1,4 +1,6 @@
 import { Router } from 'express';
+
+import ApiResponse from '../utils/ApiResponse.js';
 import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
 import workspaceRoutes from './workspace.routes.js';
@@ -14,23 +16,27 @@ import docsRoutes from './docs.routes.js';
 
 const router = Router();
 
-// Base Route
+/*
+ * API index.
+ *
+ * Uses the standard success envelope like every other endpoint. It previously
+ * returned a bespoke `{ success, message, version }` shape, which meant a
+ * client could not read `data` or `statusCode` here as it would everywhere
+ * else.
+ */
 router.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Welcome to the Product Management API',
-    version: '1.0.0',
-  });
+  res.status(200).json(
+    new ApiResponse(200, 'Welcome to the Product Management API', {
+      version: '1.0.0',
+      documentation: '/api/v1/openapi.json',
+    })
+  );
 });
 
-// Health Check Route
-router.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    status: 'OK',
-    message: 'Server is running successfully.',
-  });
-});
+/*
+ * Liveness and readiness probes live in `health.routes.js`. They are mounted
+ * in app.js ahead of the API rate limiter, so they are not registered here.
+ */
 
 // Authentication Routes
 router.use('/auth', authRoutes);

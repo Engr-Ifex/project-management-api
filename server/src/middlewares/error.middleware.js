@@ -1,3 +1,5 @@
+import logger from '../utils/logger.js';
+
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
@@ -109,8 +111,41 @@ const errorHandler = (err, req, res, next) => {
     errors = [{ field: err.field || 'file', message }];
   }
 
+  /*
+   * Log the failure.
+   *
+   * 5xx means something is wrong with us, so it is logged at `error` with the
+   * stack. 4xx is the client's problem and is expected traffic, so it is
+   * logged at `warn` without a stack — otherwise ordinary validation failures
+   * would drown out real faults.
+   *
+   * The request body is deliberately not logged: it routinely contains
+   * passwords on the auth routes.
+   */
+  const requestContext = {
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    ...(req.user?._id && { userId: req.user._id.toString() }),
+  };
+
+  if (statusCode >= 500) {
+    logger.error(`${req.method} ${req.originalUrl} failed`, {
+      ...requestContext,
+      error: err,
+    });
+  } else {
+    logger.warn(`${req.method} ${req.originalUrl} rejected`, requestContext);
+  }
+
   res.status(statusCode).json({
     success: false,
+    /*
+     * `statusCode` mirrors the success envelope. It was previously omitted, so
+     * a client reading `body.statusCode` got a value on success and
+     * `undefined` on every error — an asymmetry with no upside.
+     */
+    statusCode,
     message,
     errors,
     ...(process.env.NODE_ENV === 'development' && {

@@ -6,7 +6,10 @@ node_modules/
 # ===================================
 # Environment Variables
 # ===================================
+# Never commit a real environment file. `.env.example` documents the shape.
 .env
+.env.*
+!.env.example
 
 # ===================================
 # Logs
@@ -21,6 +24,7 @@ pnpm-debug.log*
 # Coverage
 # ===================================
 coverage/
+.nyc_output/
 
 # ===================================
 # Build Output
@@ -41,14 +45,6 @@ Thumbs.db
 *.temp
 
 # ===================================
-# Environment Overrides
-# ===================================
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# ===================================
 # IDE Files
 # ===================================
 .vscode/*
@@ -64,8 +60,21 @@ Thumbs.db
 *.seed
 
 # ===================================
-# Uploaded Attachments
+# Uploaded Files (runtime user data)
 # ===================================
-# Private user uploads: never commit the binaries. The directory itself is
-# created on demand by the local storage provider.
-src/uploads/attachments/
+# Both stores hold data created at runtime by users, never source. They are
+# mounted as a volume in production, so committing them would ship one
+# deployment's files into the next.
+#
+# The directories themselves are kept via .gitkeep so a fresh clone has the
+# structure the app expects.
+src/uploads/attachments/*
+!src/uploads/attachments/.gitkeep
+
+src/uploads/avatars/*
+!src/uploads/avatars/.gitkeep
+
+# Legacy top-level upload directory, superseded by src/uploads.
+# Anchored with a leading slash: an unanchored `uploads/` would also match
+# `src/uploads/`, ignoring the .gitkeep files above.
+/uploads/

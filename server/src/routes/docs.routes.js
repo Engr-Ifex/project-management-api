@@ -2,6 +2,9 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import ApiError from '../utils/ApiError.js';
+import { DOCS_DIR } from '../config/paths.js';
+
 /*
  * Serves the generated OpenAPI document.
  *
@@ -16,21 +19,18 @@ import path from 'node:path';
  */
 const router = express.Router();
 
-const SPEC_PATH = path.join(process.cwd(), 'docs', 'openapi.json');
+const SPEC_PATH = path.join(DOCS_DIR, 'openapi.json');
 
 let document = null;
 
-router.get('/openapi.json', (req, res) => {
+router.get('/openapi.json', (req, res, next) => {
   if (!document) {
     try {
       document = JSON.parse(fs.readFileSync(SPEC_PATH, 'utf8'));
     } catch {
-      return res.status(503).json({
-        success: false,
-        statusCode: 503,
-        message: 'OpenAPI document is unavailable. Run `npm run docs:generate`.',
-        errors: [],
-      });
+      return next(
+        new ApiError(503, 'OpenAPI document is unavailable. Run `npm run docs:generate`.')
+      );
     }
   }
 

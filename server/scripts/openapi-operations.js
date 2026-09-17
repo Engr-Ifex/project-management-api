@@ -2,7 +2,7 @@
  * Per-operation metadata for the OpenAPI document.
  *
  * Keyed by `METHOD /full/path`. Every route in `src/routes` must appear here —
- * `scripts/generate-openapi.mjs` fails loudly if one is missing, so a new
+ * `scripts/generate-openapi.js` fails loudly if one is missing, so a new
  * endpoint cannot be added without documenting it.
  *
  * Fields:
@@ -34,8 +34,13 @@ export const TAGS = [
 
 export const OPERATIONS = {
   // ---- System ----
-  'GET /api/v1/': ['System', 'API index and version', 'message'],
-  'GET /api/v1/health': ['System', 'Health check', 'message'],
+  'GET /api/v1/': ['System', 'API index and version', 'apiIndex'],
+  'GET /api/v1/health': ['System', 'Liveness probe (does not touch the database)', 'health'],
+  'GET /api/v1/health/ready': [
+    'System',
+    'Readiness probe (pings the database; 503 when unavailable)',
+    'healthReady',
+  ],
   'GET /api/v1/openapi.json': ['System', 'This OpenAPI document', 'openapi'],
 
   // ---- Authentication ----

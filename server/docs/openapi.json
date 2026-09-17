@@ -146,10 +146,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "user",
-              "admin"
-            ]
+            "enum": ["user", "admin"]
           },
           "avatar": {
             "type": "string",
@@ -184,11 +181,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "owner",
-              "admin",
-              "member"
-            ]
+            "enum": ["owner", "admin", "member"]
           }
         }
       },
@@ -266,19 +259,11 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "member"
-            ]
+            "enum": ["admin", "member"]
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "accepted",
-              "expired",
-              "cancelled"
-            ]
+            "enum": ["pending", "accepted", "expired", "cancelled"]
           },
           "expiresAt": {
             "type": "string",
@@ -311,12 +296,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "owner",
-              "admin",
-              "member",
-              "viewer"
-            ]
+            "enum": ["owner", "admin", "member", "viewer"]
           }
         }
       },
@@ -350,13 +330,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "planning",
-              "active",
-              "on_hold",
-              "completed",
-              "cancelled"
-            ]
+            "enum": ["planning", "active", "on_hold", "completed", "cancelled"]
           },
           "deadline": {
             "type": "string",
@@ -478,22 +452,11 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "todo",
-              "in_progress",
-              "in_review",
-              "completed",
-              "cancelled"
-            ]
+            "enum": ["todo", "in_progress", "in_review", "completed", "cancelled"]
           },
           "priority": {
             "type": "string",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "urgent"
-            ]
+            "enum": ["low", "medium", "high", "urgent"]
           },
           "startDate": {
             "type": "string",
@@ -672,11 +635,7 @@
           },
           "scope": {
             "type": "string",
-            "enum": [
-              "project",
-              "task",
-              "comment"
-            ]
+            "enum": ["project", "task", "comment"]
           },
           "createdAt": {
             "type": "string",
@@ -913,18 +872,11 @@
       "userResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -947,18 +899,11 @@
       "authResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -981,18 +926,11 @@
       "settingsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1015,18 +953,11 @@
       "workspaceResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1049,18 +980,11 @@
       "workspacesResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1089,18 +1013,11 @@
       "invitationResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1123,18 +1040,11 @@
       "membersResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1160,18 +1070,11 @@
       "memberResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1194,18 +1097,11 @@
       "projectResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1228,18 +1124,11 @@
       "projectsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1268,18 +1157,11 @@
       "taskResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1302,18 +1184,11 @@
       "tasksResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1342,18 +1217,11 @@
       "subtaskResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1376,18 +1244,11 @@
       "subtasksResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1413,18 +1274,11 @@
       "commentResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1447,18 +1301,11 @@
       "commentsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1487,18 +1334,11 @@
       "labelResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1521,18 +1361,11 @@
       "labelsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1558,18 +1391,11 @@
       "attachmentResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1592,18 +1418,11 @@
       "attachmentsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1632,18 +1451,11 @@
       "notificationResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1666,18 +1478,11 @@
       "notificationsResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1706,18 +1511,11 @@
       "countResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1740,18 +1538,11 @@
       "activitiesResponse": {
         "type": "object",
         "description": "Standard success envelope.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "data"
-        ],
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1777,20 +1568,132 @@
           }
         }
       },
-      "MessageResponse": {
+      "apiIndexResponse": {
         "type": "object",
-        "description": "Success envelope for endpoints that return no payload.",
-        "required": [
-          "success",
-          "statusCode",
-          "message"
-        ],
+        "description": "Standard success envelope.",
+        "required": ["success", "statusCode", "message", "data"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Request completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "documentation": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "healthResponse": {
+        "type": "object",
+        "description": "Standard success envelope.",
+        "required": ["success", "statusCode", "message", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Request completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["ok"]
+              },
+              "uptimeSeconds": {
+                "type": "integer"
+              },
+              "environment": {
+                "type": "string",
+                "enum": ["development", "test", "production"]
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "healthReadyResponse": {
+        "type": "object",
+        "description": "Standard success envelope.",
+        "required": ["success", "statusCode", "message", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Request completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["ready", "not_ready"]
+              },
+              "checks": {
+                "type": "object",
+                "properties": {
+                  "database": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": ["up", "down"]
+                      },
+                      "latencyMs": {
+                        "type": "integer",
+                        "description": "Present when the database is up."
+                      },
+                      "reason": {
+                        "type": "string",
+                        "description": "Present when the database is down."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "description": "Success envelope for endpoints that return no payload.",
+        "required": ["success", "statusCode", "message"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
           },
           "statusCode": {
             "type": "integer",
@@ -1809,18 +1712,11 @@
       "ErrorResponse": {
         "type": "object",
         "description": "Standard error envelope. `errors` is a list of field-level failures.",
-        "required": [
-          "success",
-          "statusCode",
-          "message",
-          "errors"
-        ],
+        "required": ["success", "statusCode", "message", "errors"],
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ]
+            "enum": [false]
           },
           "statusCode": {
             "type": "integer",
@@ -1865,9 +1761,7 @@
   "paths": {
     "/api/v1/": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "API index and version",
         "operationId": "getSystem",
         "responses": {
@@ -1876,48 +1770,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation failed, or the request is not actionable.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Rate limit exceeded. Authentication endpoints are limited to 10 requests / 15 minutes per IP.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/health": {
-      "get": {
-        "tags": [
-          "System"
-        ],
-        "summary": "Health check",
-        "operationId": "getSystem",
-        "responses": {
-          "200": {
-            "description": "Success.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponse"
+                  "$ref": "#/components/schemas/apiIndexResponse"
                 }
               }
             }
@@ -1947,9 +1800,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/attachments": {
       "post": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "Upload a file to a project",
         "operationId": "uploadProjectAttachment",
         "security": [
@@ -2045,9 +1896,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "List a project’s attachments",
         "operationId": "getProjectAttachments",
         "security": [
@@ -2168,11 +2017,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "originalFilename",
-                "size",
-                "createdAt"
-              ]
+              "enum": ["originalFilename", "size", "createdAt"]
             },
             "description": ""
           },
@@ -2182,10 +2027,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -2195,11 +2037,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "project",
-                "task",
-                "comment"
-              ]
+              "enum": ["project", "task", "comment"]
             },
             "description": ""
           }
@@ -2208,9 +2046,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/attachments": {
       "post": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "Upload a file to a task",
         "operationId": "uploadTaskAttachment",
         "security": [
@@ -2317,9 +2153,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "List a task’s attachments",
         "operationId": "getTaskAttachments",
         "security": [
@@ -2451,11 +2285,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "originalFilename",
-                "size",
-                "createdAt"
-              ]
+              "enum": ["originalFilename", "size", "createdAt"]
             },
             "description": ""
           },
@@ -2465,10 +2295,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -2478,11 +2305,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "project",
-                "task",
-                "comment"
-              ]
+              "enum": ["project", "task", "comment"]
             },
             "description": ""
           }
@@ -2491,9 +2314,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments/{commentId}/attachments": {
       "post": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "Upload a file to a comment",
         "operationId": "uploadCommentAttachment",
         "security": [
@@ -2611,9 +2432,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "List a comment’s attachments",
         "operationId": "getCommentAttachments",
         "security": [
@@ -2756,11 +2575,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "originalFilename",
-                "size",
-                "createdAt"
-              ]
+              "enum": ["originalFilename", "size", "createdAt"]
             },
             "description": ""
           },
@@ -2770,10 +2585,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -2783,11 +2595,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "project",
-                "task",
-                "comment"
-              ]
+              "enum": ["project", "task", "comment"]
             },
             "description": ""
           }
@@ -2796,9 +2604,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/attachments/{attachmentId}/download": {
       "get": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "Download a file",
         "operationId": "downloadAttachment",
         "security": [
@@ -2908,9 +2714,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/attachments/{attachmentId}": {
       "delete": {
-        "tags": [
-          "Attachments"
-        ],
+        "tags": ["Attachments"],
         "summary": "Delete a file",
         "operationId": "deleteAttachment",
         "security": [
@@ -3019,9 +2823,7 @@
     },
     "/api/v1/auth/register": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Register a new account",
         "operationId": "postAuthentication",
         "responses": {
@@ -3086,11 +2888,7 @@
                     "minLength": 8
                   }
                 },
-                "required": [
-                  "name",
-                  "email",
-                  "password"
-                ]
+                "required": ["name", "email", "password"]
               }
             }
           }
@@ -3099,9 +2897,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Log in and receive a session cookie",
         "operationId": "postAuthentication",
         "responses": {
@@ -3161,10 +2957,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "required": ["email", "password"]
               }
             }
           }
@@ -3173,9 +2966,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "summary": "Log out and clear the session cookie",
         "operationId": "postAuthentication",
         "security": [
@@ -3229,9 +3020,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/dashboard": {
       "get": {
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "summary": "Workspace statistics",
         "operationId": "getWorkspaceDashboard",
         "security": [
@@ -3318,9 +3107,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/dashboard": {
       "get": {
-        "tags": [
-          "Dashboard"
-        ],
+        "tags": ["Dashboard"],
         "summary": "Project statistics",
         "operationId": "getProjectDashboard",
         "security": [
@@ -3429,9 +3216,7 @@
     },
     "/api/v1/openapi.json": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "This OpenAPI document",
         "operationId": "getSystem",
         "responses": {
@@ -3468,11 +3253,97 @@
         }
       }
     },
+    "/api/v1/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Liveness probe (does not touch the database)",
+        "operationId": "getSystem",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/healthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or the request is not actionable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Authentication endpoints are limited to 10 requests / 15 minutes per IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Readiness probe (pings the database; 503 when unavailable)",
+        "operationId": "getSystem",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/healthReadyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or the request is not actionable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Authentication endpoints are limited to 10 requests / 15 minutes per IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The instance is not ready to receive traffic: the database is unreachable. It is still alive — use GET /api/v1/health for liveness.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/healthReadyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/labels": {
       "post": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Create a label",
         "operationId": "createLabel",
         "security": [
@@ -3559,10 +3430,7 @@
                     "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
                   }
                 },
-                "required": [
-                  "name",
-                  "color"
-                ]
+                "required": ["name", "color"]
               }
             }
           }
@@ -3593,9 +3461,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "List a project’s labels",
         "operationId": "getProjectLabels",
         "security": [
@@ -3716,11 +3582,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "name",
-                "createdAt",
-                "updatedAt"
-              ]
+              "enum": ["name", "createdAt", "updatedAt"]
             },
             "description": ""
           },
@@ -3730,10 +3592,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -3753,9 +3612,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/labels/{labelId}": {
       "get": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Get a label",
         "operationId": "getLabelById",
         "security": [
@@ -3862,9 +3719,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Update a label",
         "operationId": "updateLabel",
         "security": [
@@ -3992,9 +3847,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Delete a label",
         "operationId": "deleteLabel",
         "security": [
@@ -4103,9 +3956,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/labels": {
       "post": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Assign a label to a task",
         "operationId": "assignLabelToTask",
         "security": [
@@ -4187,9 +4038,7 @@
                     "pattern": "^[0-9a-fA-F]{24}$"
                   }
                 },
-                "required": [
-                  "labelId"
-                ]
+                "required": ["labelId"]
               }
             }
           }
@@ -4233,9 +4082,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/labels/{labelId}": {
       "delete": {
-        "tags": [
-          "Labels"
-        ],
+        "tags": ["Labels"],
         "summary": "Remove a label from a task",
         "operationId": "removeLabelFromTask",
         "security": [
@@ -4355,9 +4202,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "List notifications",
         "operationId": "getNotifications",
         "security": [
@@ -4436,11 +4281,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "readAt",
-                "type"
-              ]
+              "enum": ["createdAt", "readAt", "type"]
             },
             "description": ""
           },
@@ -4450,10 +4291,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -4463,10 +4301,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "enum": ["true", "false"]
             },
             "description": ""
           },
@@ -4493,9 +4328,7 @@
     },
     "/api/v1/notifications/unread": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "List unread notifications",
         "operationId": "getUnreadNotifications",
         "security": [
@@ -4574,11 +4407,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "readAt",
-                "type"
-              ]
+              "enum": ["createdAt", "readAt", "type"]
             },
             "description": ""
           },
@@ -4588,10 +4417,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -4601,10 +4427,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "enum": ["true", "false"]
             },
             "description": ""
           },
@@ -4631,9 +4454,7 @@
     },
     "/api/v1/notifications/unread/count": {
       "get": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Count unread notifications",
         "operationId": "getUnreadCount",
         "security": [
@@ -4687,9 +4508,7 @@
     },
     "/api/v1/notifications/read-all": {
       "patch": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Mark every notification as read",
         "operationId": "markAllNotificationsAsRead",
         "security": [
@@ -4743,9 +4562,7 @@
     },
     "/api/v1/notifications/{notificationId}/read": {
       "patch": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Mark one notification as read",
         "operationId": "markNotificationAsRead",
         "security": [
@@ -4822,9 +4639,7 @@
     },
     "/api/v1/notifications/{notificationId}": {
       "delete": {
-        "tags": [
-          "Notifications"
-        ],
+        "tags": ["Notifications"],
         "summary": "Delete a notification",
         "operationId": "deleteNotification",
         "security": [
@@ -4901,9 +4716,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects": {
       "post": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Create a project",
         "operationId": "createProject",
         "security": [
@@ -5014,9 +4827,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "name"
-                ]
+                "required": ["name"]
               }
             }
           }
@@ -5036,9 +4847,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "List projects in a workspace",
         "operationId": "getWorkspaceProjects",
         "security": [
@@ -5138,13 +4947,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "name",
-                "status",
-                "deadline",
-                "createdAt",
-                "updatedAt"
-              ]
+              "enum": ["name", "status", "deadline", "createdAt", "updatedAt"]
             },
             "description": ""
           },
@@ -5154,10 +4957,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -5178,13 +4978,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "planning",
-                "active",
-                "on_hold",
-                "completed",
-                "cancelled"
-              ]
+              "enum": ["planning", "active", "on_hold", "completed", "cancelled"]
             },
             "description": ""
           },
@@ -5194,10 +4988,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "enum": ["true", "false"]
             },
             "description": ""
           },
@@ -5220,9 +5011,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}": {
       "get": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Get a project",
         "operationId": "getProjectById",
         "security": [
@@ -5308,9 +5097,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Update a project",
         "operationId": "updateProject",
         "security": [
@@ -5452,9 +5239,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/archive": {
       "patch": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Archive a project",
         "operationId": "archiveProject",
         "security": [
@@ -5552,9 +5337,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/restore": {
       "patch": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Restore an archived project",
         "operationId": "restoreProject",
         "security": [
@@ -5652,9 +5435,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/status": {
       "patch": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Change a project’s status",
         "operationId": "updateProjectStatus",
         "security": [
@@ -5733,18 +5514,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "planning",
-                      "active",
-                      "on_hold",
-                      "completed",
-                      "cancelled"
-                    ]
+                    "enum": ["planning", "active", "on_hold", "completed", "cancelled"]
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -5777,9 +5550,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/members": {
       "post": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Add a project member",
         "operationId": "addProjectMember",
         "security": [
@@ -5861,9 +5632,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "userId"
-                ]
+                "required": ["userId"]
               }
             }
           }
@@ -5896,9 +5665,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/members/{userId}": {
       "delete": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Remove a project member",
         "operationId": "removeProjectMember",
         "security": [
@@ -6007,9 +5774,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/activities": {
       "get": {
-        "tags": [
-          "Activity"
-        ],
+        "tags": ["Activity"],
         "summary": "List a project’s activity feed",
         "operationId": "getProjectActivities",
         "security": [
@@ -6130,10 +5895,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "action"
-              ]
+              "enum": ["createdAt", "action"]
             },
             "description": ""
           },
@@ -6143,10 +5905,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -6196,9 +5955,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/activities": {
       "get": {
-        "tags": [
-          "Activity"
-        ],
+        "tags": ["Activity"],
         "summary": "List a task’s activity feed",
         "operationId": "getTaskActivities",
         "security": [
@@ -6330,10 +6087,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "action"
-              ]
+              "enum": ["createdAt", "action"]
             },
             "description": ""
           },
@@ -6343,10 +6097,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -6396,9 +6147,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/members/{userId}/role": {
       "patch": {
-        "tags": [
-          "Projects"
-        ],
+        "tags": ["Projects"],
         "summary": "Change a project member’s role",
         "operationId": "changeProjectMemberRoleController",
         "security": [
@@ -6477,17 +6226,10 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": [
-                      "owner",
-                      "admin",
-                      "member",
-                      "viewer"
-                    ]
+                    "enum": ["owner", "admin", "member", "viewer"]
                   }
                 },
-                "required": [
-                  "role"
-                ]
+                "required": ["role"]
               }
             }
           }
@@ -6531,9 +6273,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks": {
       "post": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Create a task",
         "operationId": "createTask",
         "security": [
@@ -6664,17 +6404,10 @@
                   "priority": {
                     "default": "medium",
                     "type": "string",
-                    "enum": [
-                      "low",
-                      "medium",
-                      "high",
-                      "urgent"
-                    ]
+                    "enum": ["low", "medium", "high", "urgent"]
                   }
                 },
-                "required": [
-                  "title"
-                ]
+                "required": ["title"]
               }
             }
           }
@@ -6705,9 +6438,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "List tasks in a project",
         "operationId": "getProjectTasks",
         "security": [
@@ -6837,10 +6568,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -6861,13 +6589,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "todo",
-                "in_progress",
-                "in_review",
-                "completed",
-                "cancelled"
-              ]
+              "enum": ["todo", "in_progress", "in_review", "completed", "cancelled"]
             },
             "description": ""
           },
@@ -6877,12 +6599,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "low",
-                "medium",
-                "high",
-                "urgent"
-              ]
+              "enum": ["low", "medium", "high", "urgent"]
             },
             "description": ""
           },
@@ -6902,10 +6619,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "enum": ["true", "false"]
             },
             "description": ""
           },
@@ -6915,10 +6629,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "true",
-                "false"
-              ]
+              "enum": ["true", "false"]
             },
             "description": ""
           },
@@ -6965,9 +6676,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}": {
       "get": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Get a task",
         "operationId": "getTaskById",
         "security": [
@@ -7064,9 +6773,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Update a task",
         "operationId": "updateTask",
         "security": [
@@ -7225,9 +6932,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/archive": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Archive a task",
         "operationId": "archiveTask",
         "security": [
@@ -7336,9 +7041,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/restore": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Restore an archived task",
         "operationId": "restoreTask",
         "security": [
@@ -7447,9 +7150,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/status": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Change a task’s status",
         "operationId": "updateTaskStatus",
         "security": [
@@ -7528,18 +7229,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "todo",
-                      "in_progress",
-                      "in_review",
-                      "completed",
-                      "cancelled"
-                    ]
+                    "enum": ["todo", "in_progress", "in_review", "completed", "cancelled"]
                   }
                 },
-                "required": [
-                  "status"
-                ]
+                "required": ["status"]
               }
             }
           }
@@ -7583,9 +7276,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/priority": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Change a task’s priority",
         "operationId": "updateTaskPriority",
         "security": [
@@ -7664,17 +7355,10 @@
                 "properties": {
                   "priority": {
                     "type": "string",
-                    "enum": [
-                      "low",
-                      "medium",
-                      "high",
-                      "urgent"
-                    ]
+                    "enum": ["low", "medium", "high", "urgent"]
                   }
                 },
-                "required": [
-                  "priority"
-                ]
+                "required": ["priority"]
               }
             }
           }
@@ -7718,9 +7402,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/assignee": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Assign or unassign a task",
         "operationId": "assignTask",
         "security": [
@@ -7809,9 +7491,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "assignee"
-                ]
+                "required": ["assignee"]
               }
             }
           }
@@ -7855,9 +7535,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/due-date": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Set or clear the due date",
         "operationId": "updateTaskDueDate",
         "security": [
@@ -7947,9 +7625,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "dueDate"
-                ]
+                "required": ["dueDate"]
               }
             }
           }
@@ -7993,9 +7669,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/start-date": {
       "patch": {
-        "tags": [
-          "Tasks"
-        ],
+        "tags": ["Tasks"],
         "summary": "Set or clear the start date",
         "operationId": "updateTaskStartDate",
         "security": [
@@ -8085,9 +7759,7 @@
                     ]
                   }
                 },
-                "required": [
-                  "startDate"
-                ]
+                "required": ["startDate"]
               }
             }
           }
@@ -8131,9 +7803,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/subtasks": {
       "post": {
-        "tags": [
-          "Subtasks"
-        ],
+        "tags": ["Subtasks"],
         "summary": "Add a subtask (returns the parent task)",
         "operationId": "createSubtask",
         "security": [
@@ -8216,9 +7886,7 @@
                     "maxLength": 200
                   }
                 },
-                "required": [
-                  "title"
-                ]
+                "required": ["title"]
               }
             }
           }
@@ -8260,9 +7928,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Subtasks"
-        ],
+        "tags": ["Subtasks"],
         "summary": "List a task’s subtasks",
         "operationId": "getSubtasks",
         "security": [
@@ -8361,9 +8027,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/subtasks/{subtaskId}": {
       "patch": {
-        "tags": [
-          "Subtasks"
-        ],
+        "tags": ["Subtasks"],
         "summary": "Update a subtask",
         "operationId": "updateSubtask",
         "security": [
@@ -8501,9 +8165,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Subtasks"
-        ],
+        "tags": ["Subtasks"],
         "summary": "Delete a subtask",
         "operationId": "deleteSubtask",
         "security": [
@@ -8623,9 +8285,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments": {
       "post": {
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "summary": "Add a comment",
         "operationId": "createTaskComment",
         "security": [
@@ -8708,9 +8368,7 @@
                     "maxLength": 2000
                   }
                 },
-                "required": [
-                  "content"
-                ]
+                "required": ["content"]
               }
             }
           }
@@ -8752,9 +8410,7 @@
         ]
       },
       "get": {
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "summary": "List a task’s comments",
         "operationId": "getTaskComments",
         "security": [
@@ -8886,10 +8542,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "createdAt",
-                "updatedAt"
-              ]
+              "enum": ["createdAt", "updatedAt"]
             },
             "description": ""
           },
@@ -8899,10 +8552,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -8922,9 +8572,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/projects/{projectId}/tasks/{taskId}/comments/{commentId}": {
       "get": {
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "summary": "Get a comment",
         "operationId": "getTaskCommentById",
         "security": [
@@ -9042,9 +8690,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "summary": "Edit a comment (author only)",
         "operationId": "updateTaskComment",
         "security": [
@@ -9127,9 +8773,7 @@
                     "maxLength": 2000
                   }
                 },
-                "required": [
-                  "content"
-                ]
+                "required": ["content"]
               }
             }
           }
@@ -9182,9 +8826,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Comments"
-        ],
+        "tags": ["Comments"],
         "summary": "Delete a comment",
         "operationId": "deleteTaskComment",
         "security": [
@@ -9304,9 +8946,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/invitations": {
       "post": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Invite someone to the workspace",
         "operationId": "inviteMember",
         "security": [
@@ -9391,15 +9031,10 @@
                   "role": {
                     "default": "member",
                     "type": "string",
-                    "enum": [
-                      "admin",
-                      "member"
-                    ]
+                    "enum": ["admin", "member"]
                   }
                 },
-                "required": [
-                  "email"
-                ]
+                "required": ["email"]
               }
             }
           }
@@ -9421,9 +9056,7 @@
     },
     "/api/v1/invitations/{token}/accept": {
       "patch": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Accept an invitation",
         "operationId": "acceptInvitation",
         "security": [
@@ -9500,9 +9133,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/members": {
       "get": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "List workspace members",
         "operationId": "getWorkspaceMembers",
         "security": [
@@ -9579,9 +9210,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/members/{userId}": {
       "delete": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Remove a workspace member",
         "operationId": "removeWorkspaceMember",
         "security": [
@@ -9679,9 +9308,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/members/{userId}/role": {
       "patch": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Change a workspace member’s role",
         "operationId": "updateMemberRole",
         "security": [
@@ -9760,15 +9387,10 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": [
-                      "admin",
-                      "member"
-                    ]
+                    "enum": ["admin", "member"]
                   }
                 },
-                "required": [
-                  "role"
-                ]
+                "required": ["role"]
               }
             }
           }
@@ -9801,9 +9423,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/transfer-ownership": {
       "patch": {
-        "tags": [
-          "Team"
-        ],
+        "tags": ["Team"],
         "summary": "Transfer workspace ownership",
         "operationId": "transferOwnership",
         "security": [
@@ -9885,9 +9505,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "userId"
-                ]
+                "required": ["userId"]
               }
             }
           }
@@ -9909,9 +9527,7 @@
     },
     "/api/v1/users/profile": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get the authenticated user’s profile",
         "operationId": "getUsers",
         "security": [
@@ -9963,9 +9579,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update the authenticated user’s profile",
         "operationId": "patchUsers",
         "security": [
@@ -10036,9 +9650,7 @@
     },
     "/api/v1/users/avatar": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Upload or replace the avatar",
         "operationId": "patchUsers",
         "security": [
@@ -10092,9 +9704,7 @@
     },
     "/api/v1/users/change-password": {
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Change the password and invalidate existing sessions",
         "operationId": "patchUsers",
         "security": [
@@ -10164,11 +9774,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "currentPassword",
-                  "newPassword",
-                  "confirmPassword"
-                ]
+                "required": ["currentPassword", "newPassword", "confirmPassword"]
               }
             }
           }
@@ -10177,9 +9783,7 @@
     },
     "/api/v1/users/settings": {
       "get": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Get notification settings",
         "operationId": "getUsers",
         "security": [
@@ -10231,9 +9835,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Update notification settings",
         "operationId": "patchUsers",
         "security": [
@@ -10306,9 +9908,7 @@
     },
     "/api/v1/users/account": {
       "delete": {
-        "tags": [
-          "Users"
-        ],
+        "tags": ["Users"],
         "summary": "Soft-delete the account",
         "operationId": "deleteUsers",
         "security": [
@@ -10362,9 +9962,7 @@
     },
     "/api/v1/workspaces": {
       "post": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Create a workspace",
         "operationId": "createWorkspace",
         "security": [
@@ -10431,9 +10029,7 @@
                     "maxLength": 500
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "additionalProperties": false
               }
             }
@@ -10441,9 +10037,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "List workspaces the caller belongs to",
         "operationId": "getUserWorkspaces",
         "security": [
@@ -10522,11 +10116,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "name",
-                "createdAt",
-                "updatedAt"
-              ]
+              "enum": ["name", "createdAt", "updatedAt"]
             },
             "description": ""
           },
@@ -10536,10 +10126,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "asc",
-                "desc"
-              ]
+              "enum": ["asc", "desc"]
             },
             "description": ""
           },
@@ -10559,9 +10146,7 @@
     },
     "/api/v1/workspaces/{workspaceId}": {
       "get": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Get a workspace",
         "operationId": "getWorkspaceById",
         "security": [
@@ -10636,9 +10221,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Update a workspace",
         "operationId": "updateWorkspace",
         "security": [
@@ -10745,9 +10328,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Delete a workspace",
         "operationId": "deleteWorkspace",
         "security": [
@@ -10834,9 +10415,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/archive": {
       "patch": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Archive a workspace",
         "operationId": "archiveWorkspace",
         "security": [
@@ -10923,9 +10502,7 @@
     },
     "/api/v1/workspaces/{workspaceId}/restore": {
       "patch": {
-        "tags": [
-          "Workspaces"
-        ],
+        "tags": ["Workspaces"],
         "summary": "Restore an archived workspace",
         "operationId": "restoreWorkspace",
         "security": [

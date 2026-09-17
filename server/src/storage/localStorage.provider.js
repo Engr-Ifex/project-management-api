@@ -5,6 +5,7 @@ import crypto from 'crypto';
 
 import ApiError from '../utils/ApiError.js';
 import { OBJECT_ID_REGEX } from '../constants/regex.js';
+import { PRIVATE_ATTACHMENTS_DIR } from '../config/paths.js';
 
 /*
  * Local disk storage provider.
@@ -24,7 +25,7 @@ import { OBJECT_ID_REGEX } from '../constants/regex.js';
  * attachment service never has to change.
  */
 
-const BASE_DIR = path.join(process.cwd(), 'src', 'uploads', 'attachments');
+const BASE_DIR = PRIVATE_ATTACHMENTS_DIR;
 
 // Stored filenames are generated, so a strict extension shape is enough.
 const SAFE_EXTENSION_REGEX = /^\.[a-z0-9]{1,10}$/;

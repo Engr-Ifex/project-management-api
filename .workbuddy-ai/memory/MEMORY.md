@@ -20,6 +20,13 @@ Curated, long-lived notes. Daily detail lives in `YYYY-MM-DD.md`.
 - Rate limiting is **skipped when `NODE_ENV=test`** (the whole suite originates from one IP); the limiter is unit-tested with its own instance.
 - Fixtures are created through the **models**, not the API, so schema defaults and hooks apply. The audit trail is written by the **service layer**, so activity tests must create resources through the API.
 
+## Documentation & deployment pipeline (Phases 19–20)
+- **`docs/openapi.json` is generated, never hand-edited.** `npm run docs:generate` builds it from the route table + the routes' own Zod validators; `npm run docs:verify` fails the build if code and spec disagree. The generator runs its own output through prettier, so `docs:generate` and `format:check` cannot fight each other — **do not** add `.prettierignore` for it.
+- The docs scripts are plain **`.js`** (the codebase is uniformly `"type": "module"`; ESLint only globs `**/*.js`, so `.mjs` files produce `no-undef` errors).
+- **Two health endpoints, deliberately different:** `/api/v1/health` is liveness and must never touch the database; `/api/v1/health/ready` pings it and returns 503 when down. Both are mounted ahead of the rate limiter.
+- `npm run preflight` (also run by `start:prod`) validates the *production* environment and exits 1 on the development `.env` — that failure is expected locally, not a bug.
+- **Docker is not installed on this machine.** `Dockerfile` / `docker-compose.yml` have never been built or run; treat them as unverified code. Graceful shutdown likewise cannot be exercised on Windows (Node does not deliver POSIX signals).
+
 ## Known inconsistencies (documented, deliberately unfixed)
 - `POST /subtasks` returns the parent task under the `subtask` key; `PATCH` returns the subtask.
 - An archived project remains retrievable by id; an archived task 404s.

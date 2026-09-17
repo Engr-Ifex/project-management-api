@@ -90,19 +90,19 @@ The API listens on `http://localhost:5000` by default and the base path is
 Read once at startup by `src/config/env.js`, which **validates them and refuses
 to boot** on a fatal misconfiguration.
 
-| Variable | Required | Default | Notes |
-|---|---|---|---|
-| `NODE_ENV` | no | `development` | `development` \| `test` \| `production` |
-| `PORT` | no | `5000` | |
-| `MONGODB_URI` | **yes** | — | Connection string. |
-| `JWT_ACCESS_SECRET` | **yes** | — | **Minimum 32 characters.** |
-| `JWT_ACCESS_EXPIRES_IN` | no | `15m` | Access-token lifetime. |
-| `COOKIE_MAX_AGE` | no | `900000` | Cookie lifetime in ms (15 min). |
-| `BCRYPT_SALT_ROUNDS` | no | `10` | Must be 10–15. |
-| `CORS_ORIGINS` | no | *(empty)* | Comma-separated allow-list. |
-| `TRUST_PROXY` | no | `0` | Trusted proxy hops. Set behind a load balancer. |
-| `RATE_LIMIT_MAX` | no | `1000` | Requests per IP per window. |
-| `RATE_LIMIT_WINDOW_MS` | no | `900000` | Window length in ms. |
+| Variable                | Required | Default       | Notes                                           |
+| ----------------------- | -------- | ------------- | ----------------------------------------------- |
+| `NODE_ENV`              | no       | `development` | `development` \| `test` \| `production`         |
+| `PORT`                  | no       | `5000`        |                                                 |
+| `MONGODB_URI`           | **yes**  | —             | Connection string.                              |
+| `JWT_ACCESS_SECRET`     | **yes**  | —             | **Minimum 32 characters.**                      |
+| `JWT_ACCESS_EXPIRES_IN` | no       | `15m`         | Access-token lifetime.                          |
+| `COOKIE_MAX_AGE`        | no       | `900000`      | Cookie lifetime in ms (15 min).                 |
+| `BCRYPT_SALT_ROUNDS`    | no       | `10`          | Must be 10–15.                                  |
+| `CORS_ORIGINS`          | no       | _(empty)_     | Comma-separated allow-list.                     |
+| `TRUST_PROXY`           | no       | `0`           | Trusted proxy hops. Set behind a load balancer. |
+| `RATE_LIMIT_MAX`        | no       | `1000`        | Requests per IP per window.                     |
+| `RATE_LIMIT_WINDOW_MS`  | no       | `900000`      | Window length in ms.                            |
 
 ### Validation behaviour
 
@@ -167,15 +167,15 @@ Login and registration set a single cookie:
 Set-Cookie: accessToken=<JWT>; Max-Age=900; Path=/; HttpOnly; SameSite=Strict
 ```
 
-| Property | Value |
-|---|---|
-| Name | `accessToken` |
-| Type | JWT (HS256, algorithm pinned) |
-| Lifetime | `JWT_ACCESS_EXPIRES_IN`, default 15 minutes |
-| `HttpOnly` | always — JavaScript cannot read it |
-| `SameSite` | `Strict` |
-| `Secure` | only when `NODE_ENV=production` |
-| Bearer token | **not supported** |
+| Property     | Value                                       |
+| ------------ | ------------------------------------------- |
+| Name         | `accessToken`                               |
+| Type         | JWT (HS256, algorithm pinned)               |
+| Lifetime     | `JWT_ACCESS_EXPIRES_IN`, default 15 minutes |
+| `HttpOnly`   | always — JavaScript cannot read it          |
+| `SameSite`   | `Strict`                                    |
+| `Secure`     | only when `NODE_ENV=production`             |
+| Bearer token | **not supported**                           |
 
 Send it back automatically by including credentials in your requests:
 
@@ -196,12 +196,12 @@ fetch('http://localhost:5000/api/v1/users/profile', { credentials: 'include' });
 
 ### When a request is rejected with 401
 
-| Cause | Message |
-|---|---|
-| No cookie | `Authentication required` |
-| Expired | `Access token has expired` |
-| Malformed, bad signature, `alg:none` | `Invalid access token` |
-| User deleted since the token was issued | `User no longer exists` |
+| Cause                                        | Message                                |
+| -------------------------------------------- | -------------------------------------- |
+| No cookie                                    | `Authentication required`              |
+| Expired                                      | `Access token has expired`             |
+| Malformed, bad signature, `alg:none`         | `Invalid access token`                 |
+| User deleted since the token was issued      | `User no longer exists`                |
 | Token issued before the last password change | `Session expired, please log in again` |
 
 ### Token invalidation
@@ -222,10 +222,10 @@ exists.
 
 ### Rate limiting
 
-| Scope | Limit |
-|---|---|
-| `POST /auth/register`, `POST /auth/login` | **10 requests / 15 minutes per IP** |
-| Everything else under `/api` | `RATE_LIMIT_MAX` per `RATE_LIMIT_WINDOW_MS` (default 1000 / 15 min) |
+| Scope                                     | Limit                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `POST /auth/register`, `POST /auth/login` | **10 requests / 15 minutes per IP**                                 |
+| Everything else under `/api`              | `RATE_LIMIT_MAX` per `RATE_LIMIT_WINDOW_MS` (default 1000 / 15 min) |
 
 Exceeding a limit returns **429** with `RateLimit-*` and `Retry-After` headers.
 
@@ -235,13 +235,13 @@ Exceeding a limit returns **429** with `RateLimit-*` and `Retry-After` headers.
 
 Authorization is applied in layers, each answering a different question:
 
-| Layer | Question |
-|---|---|
-| `authenticate` | Is there a valid session? |
-| `requireWorkspaceMember` | Does the caller belong to this workspace? |
-| `requireWorkspacePermission` | Does the caller's **workspace role** grant this capability? |
-| `requireProjectPermission` | Does the caller's **project role** grant this capability? |
-| Service layer | Object-level rules — authorship, moderation, assignee validity |
+| Layer                        | Question                                                       |
+| ---------------------------- | -------------------------------------------------------------- |
+| `authenticate`               | Is there a valid session?                                      |
+| `requireWorkspaceMember`     | Does the caller belong to this workspace?                      |
+| `requireWorkspacePermission` | Does the caller's **workspace role** grant this capability?    |
+| `requireProjectPermission`   | Does the caller's **project role** grant this capability?      |
+| Service layer                | Object-level rules — authorship, moderation, assignee validity |
 
 ### The workspace override (Policy A)
 
@@ -259,8 +259,8 @@ anyone else.
 
 ### Rules no role overrides
 
-- **Editing a comment is author-only.** A workspace admin can *delete* another
-  member's comment but cannot *edit* it.
+- **Editing a comment is author-only.** A workspace admin can _delete_ another
+  member's comment but cannot _edit_ it.
 - **Assignees must be project members.** Assigning to a non-member is a **400**,
   not a permission error.
 - **Uploaders may always delete their own files**, regardless of role.
@@ -277,26 +277,26 @@ can read any project's tasks, subtasks and comments. Writes are scoped to the
 
 Three roles, defined in `src/constants/workspaceRoles.js`.
 
-| Role | Rank | Summary |
-|---|---|---|
-| `owner` | 3 | Full control, including deleting the workspace and transferring ownership. |
-| `admin` | 2 | Manages members and workspace settings. Cannot delete the workspace or transfer ownership. |
-| `member` | 1 | Read-only at workspace level; works inside projects. |
+| Role     | Rank | Summary                                                                                    |
+| -------- | ---- | ------------------------------------------------------------------------------------------ |
+| `owner`  | 3    | Full control, including deleting the workspace and transferring ownership.                 |
+| `admin`  | 2    | Manages members and workspace settings. Cannot delete the workspace or transfer ownership. |
+| `member` | 1    | Read-only at workspace level; works inside projects.                                       |
 
 ### Workspace permission matrix
 
-| Permission | owner | admin | member |
-|---|:--:|:--:|:--:|
-| `view_workspace` | yes | yes | yes |
-| `update_workspace` | yes | yes | — |
-| `view_members` | yes | yes | yes |
-| `invite_members` | yes | yes | — |
-| `remove_members` | yes | yes | — |
-| `change_roles` | yes | — | — |
-| `archive_workspace` | yes | yes | — |
-| `restore_workspace` | yes | yes | — |
-| `delete_workspace` | yes | — | — |
-| `transfer_ownership` | yes | — | — |
+| Permission           | owner | admin | member |
+| -------------------- | :---: | :---: | :----: |
+| `view_workspace`     |  yes  |  yes  |  yes   |
+| `update_workspace`   |  yes  |  yes  |   —    |
+| `view_members`       |  yes  |  yes  |  yes   |
+| `invite_members`     |  yes  |  yes  |   —    |
+| `remove_members`     |  yes  |  yes  |   —    |
+| `change_roles`       |  yes  |   —   |   —    |
+| `archive_workspace`  |  yes  |  yes  |   —    |
+| `restore_workspace`  |  yes  |  yes  |   —    |
+| `delete_workspace`   |  yes  |   —   |   —    |
+| `transfer_ownership` |  yes  |   —   |   —    |
 
 > **Implementation note.** Archiving and restoring a workspace are enforced by
 > `requireWorkspaceRole(OWNER)` on the route, which is **stricter** than the
@@ -316,45 +316,45 @@ Additional guards from the route layer:
 
 Four roles, defined in `src/constants/projectRoles.js`.
 
-| Role | Summary |
-|---|---|
-| `owner` | Full control of the project and its content. |
-| `admin` | Identical to owner in the current permission table. |
+| Role     | Summary                                                                |
+| -------- | ---------------------------------------------------------------------- |
+| `owner`  | Full control of the project and its content.                           |
+| `admin`  | Identical to owner in the current permission table.                    |
 | `member` | Creates and edits work; cannot delete, archive, or manage the project. |
-| `viewer` | Read-only. |
+| `viewer` | Read-only.                                                             |
 
 ## 10. Project permissions
 
-| Permission | owner | admin | member | viewer |
-|---|:--:|:--:|:--:|:--:|
-| `project:view` | yes | yes | yes | yes |
-| `project:update` | yes | yes | — | — |
-| `project:archive` | yes | yes | — | — |
-| `project:restore` | yes | yes | — | — |
-| `project:view_members` | yes | yes | yes | yes |
-| `project:add_member` | yes | yes | — | — |
-| `project:remove_member` | yes | yes | — | — |
-| `project:change_role` | yes | yes | — | — |
-| `task:create` | yes | yes | yes | — |
-| `task:update` | yes | yes | yes | — |
-| `task:assign` | yes | yes | yes | — |
-| `task:delete` | yes | yes | — | — |
-| `task:archive` | yes | yes | — | — |
-| `task:restore` | yes | yes | — | — |
-| `subtask:create` | yes | yes | yes | — |
-| `subtask:update` | yes | yes | yes | — |
-| `subtask:delete` | yes | yes | yes | — |
-| `comment:create` | yes | yes | yes | — |
-| `comment:update` | yes | yes | yes | — |
-| `comment:delete` | yes | yes | yes | — |
-| `comment:moderate` | yes | yes | — | — |
-| `label:create` | yes | yes | — | — |
-| `label:update` | yes | yes | — | — |
-| `label:delete` | yes | yes | — | — |
-| `label:assign` | yes | yes | yes | — |
-| `attachment:create` | yes | yes | yes | — |
-| `attachment:delete` | yes | yes | yes | — |
-| `attachment:moderate` | yes | yes | — | — |
+| Permission              | owner | admin | member | viewer |
+| ----------------------- | :---: | :---: | :----: | :----: |
+| `project:view`          |  yes  |  yes  |  yes   |  yes   |
+| `project:update`        |  yes  |  yes  |   —    |   —    |
+| `project:archive`       |  yes  |  yes  |   —    |   —    |
+| `project:restore`       |  yes  |  yes  |   —    |   —    |
+| `project:view_members`  |  yes  |  yes  |  yes   |  yes   |
+| `project:add_member`    |  yes  |  yes  |   —    |   —    |
+| `project:remove_member` |  yes  |  yes  |   —    |   —    |
+| `project:change_role`   |  yes  |  yes  |   —    |   —    |
+| `task:create`           |  yes  |  yes  |  yes   |   —    |
+| `task:update`           |  yes  |  yes  |  yes   |   —    |
+| `task:assign`           |  yes  |  yes  |  yes   |   —    |
+| `task:delete`           |  yes  |  yes  |   —    |   —    |
+| `task:archive`          |  yes  |  yes  |   —    |   —    |
+| `task:restore`          |  yes  |  yes  |   —    |   —    |
+| `subtask:create`        |  yes  |  yes  |  yes   |   —    |
+| `subtask:update`        |  yes  |  yes  |  yes   |   —    |
+| `subtask:delete`        |  yes  |  yes  |  yes   |   —    |
+| `comment:create`        |  yes  |  yes  |  yes   |   —    |
+| `comment:update`        |  yes  |  yes  |  yes   |   —    |
+| `comment:delete`        |  yes  |  yes  |  yes   |   —    |
+| `comment:moderate`      |  yes  |  yes  |   —    |   —    |
+| `label:create`          |  yes  |  yes  |   —    |   —    |
+| `label:update`          |  yes  |  yes  |   —    |   —    |
+| `label:delete`          |  yes  |  yes  |   —    |   —    |
+| `label:assign`          |  yes  |  yes  |  yes   |   —    |
+| `attachment:create`     |  yes  |  yes  |  yes   |   —    |
+| `attachment:delete`     |  yes  |  yes  |  yes   |   —    |
+| `attachment:moderate`   |  yes  |  yes  |   —    |   —    |
 
 Notes:
 
@@ -371,11 +371,82 @@ Notes:
 The version is in the path: **`/api/v1`**. Every route documented here is
 relative to that prefix.
 
-`GET /api/v1/` returns the index and current version:
+`GET /api/v1/` returns the index and current version, using the standard
+success envelope:
 
 ```json
-{ "success": true, "message": "Welcome to the Product Management API", "version": "1.0.0" }
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Welcome to the Product Management API",
+  "data": { "version": "1.0.0", "documentation": "/api/v1/openapi.json" }
+}
 ```
+
+### System endpoints
+
+Three endpoints are outside the resource model and need no authentication:
+
+| Method | Path            | Purpose                                                                   |
+| ------ | --------------- | ------------------------------------------------------------------------- |
+| `GET`  | `/`             | API index and version                                                     |
+| `GET`  | `/health`       | **Liveness** — is the process alive? Never touches the database.          |
+| `GET`  | `/health/ready` | **Readiness** — should this instance receive traffic? Pings the database. |
+| `GET`  | `/openapi.json` | This document.                                                            |
+
+They are mounted **ahead of the rate limiter**, so a probe is never throttled by
+API traffic. Successful probes are not logged; failing ones are.
+
+#### Liveness — `GET /health`
+
+Always `200` while the process can serve a request.
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Service is healthy",
+  "data": { "status": "ok", "uptimeSeconds": 812, "environment": "production", "version": "1.0.0" }
+}
+```
+
+Use this as a container liveness probe. It deliberately ignores the database: a
+liveness probe that failed on a database blip would make the orchestrator
+restart healthy instances, which cannot fix a database problem.
+
+#### Readiness — `GET /health/ready`
+
+`200` when the instance can serve traffic:
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Service is ready",
+  "data": { "status": "ready", "checks": { "database": { "status": "up", "latencyMs": 3 } } }
+}
+```
+
+`503` when the database is unreachable — note `success: false`, and that the
+instance is still _alive_:
+
+```json
+{
+  "success": false,
+  "statusCode": 503,
+  "message": "Service is not ready",
+  "data": {
+    "status": "not_ready",
+    "checks": { "database": { "status": "down", "reason": "not connected" } }
+  }
+}
+```
+
+Use this for **load-balancer readiness**. An unready instance should be removed
+from the pool but left running, so it can recover on its own.
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for how to wire these into an
+orchestrator.
 
 ---
 
@@ -433,9 +504,7 @@ schemas, which document each resource's actual shape.
   "success": false,
   "statusCode": 400,
   "message": "Validation failed",
-  "errors": [
-    { "field": "body.email", "message": "Please provide a valid email address" }
-  ]
+  "errors": [{ "field": "body.email", "message": "Please provide a valid email address" }]
 }
 ```
 
@@ -448,11 +517,11 @@ Stack traces are attached only when `NODE_ENV=development`.
 
 ## 14. Authentication endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `/auth/register` | public | Create an account and start a session |
-| `POST` | `/auth/login` | public | Start a session |
-| `POST` | `/auth/logout` | required | Clear the session cookie |
+| Method | Path             | Auth     | Purpose                               |
+| ------ | ---------------- | -------- | ------------------------------------- |
+| `POST` | `/auth/register` | public   | Create an account and start a session |
+| `POST` | `/auth/login`    | public   | Start a session                       |
+| `POST` | `/auth/logout`   | required | Clear the session cookie              |
 
 All three are rate limited to **10 requests / 15 minutes per IP**.
 
@@ -474,15 +543,15 @@ expires — there is no server-side revocation list.
 
 ## 15. Workspace endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `/workspaces` | required | Create a workspace |
-| `GET` | `/workspaces` | required | List workspaces you belong to |
-| `GET` | `/workspaces/:workspaceId` | member | Get one workspace |
-| `PATCH` | `/workspaces/:workspaceId` | owner, admin | Update name/description |
-| `PATCH` | `/workspaces/:workspaceId/archive` | **owner** | Archive |
-| `PATCH` | `/workspaces/:workspaceId/restore` | **owner** | Restore an archived workspace |
-| `DELETE` | `/workspaces/:workspaceId` | **owner** | Delete |
+| Method   | Path                               | Auth         | Purpose                       |
+| -------- | ---------------------------------- | ------------ | ----------------------------- |
+| `POST`   | `/workspaces`                      | required     | Create a workspace            |
+| `GET`    | `/workspaces`                      | required     | List workspaces you belong to |
+| `GET`    | `/workspaces/:workspaceId`         | member       | Get one workspace             |
+| `PATCH`  | `/workspaces/:workspaceId`         | owner, admin | Update name/description       |
+| `PATCH`  | `/workspaces/:workspaceId/archive` | **owner**    | Archive                       |
+| `PATCH`  | `/workspaces/:workspaceId/restore` | **owner**    | Restore an archived workspace |
+| `DELETE` | `/workspaces/:workspaceId`         | **owner**    | Delete                        |
 
 Creating a workspace makes the creator its `owner`. An archived workspace is
 invisible to the membership guard, so `GET` on it returns **404** until restored.
@@ -491,15 +560,15 @@ invisible to the membership guard, so `GET` on it returns **404** until restored
 
 ## 16. Project endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `/workspaces/:workspaceId/projects` | workspace `update_workspace` | Create |
-| `GET` | `/workspaces/:workspaceId/projects` | workspace member | List |
-| `GET` | `/workspaces/:workspaceId/projects/:projectId` | workspace member | Get one |
-| `PATCH` | `/workspaces/:workspaceId/projects/:projectId` | workspace `update_workspace` | Update |
-| `PATCH` | `…/projects/:projectId/archive` | workspace `update_workspace` | Archive |
-| `PATCH` | `…/projects/:projectId/restore` | workspace `update_workspace` | Restore |
-| `PATCH` | `…/projects/:projectId/status` | workspace `update_workspace` | Change status |
+| Method  | Path                                           | Auth                         | Purpose       |
+| ------- | ---------------------------------------------- | ---------------------------- | ------------- |
+| `POST`  | `/workspaces/:workspaceId/projects`            | workspace `update_workspace` | Create        |
+| `GET`   | `/workspaces/:workspaceId/projects`            | workspace member             | List          |
+| `GET`   | `/workspaces/:workspaceId/projects/:projectId` | workspace member             | Get one       |
+| `PATCH` | `/workspaces/:workspaceId/projects/:projectId` | workspace `update_workspace` | Update        |
+| `PATCH` | `…/projects/:projectId/archive`                | workspace `update_workspace` | Archive       |
+| `PATCH` | `…/projects/:projectId/restore`                | workspace `update_workspace` | Restore       |
+| `PATCH` | `…/projects/:projectId/status`                 | workspace `update_workspace` | Change status |
 
 Project **lifecycle** is a workspace-level concern, so these routes require the
 `update_workspace` permission (workspace owner/admin) rather than a project role.
@@ -508,17 +577,17 @@ The creator becomes the project's `owner`. Project status is one of `planning`,
 `active`, `on_hold`, `completed`, `cancelled`.
 
 > An archived project disappears from the listing but **remains retrievable by
-> id**. Archived *tasks*, by contrast, return 404.
+> id**. Archived _tasks_, by contrast, return 404.
 
 ---
 
 ## 17. Project member and role endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `…/projects/:projectId/members` | workspace `update_workspace` | Add a member |
-| `DELETE` | `…/projects/:projectId/members/:userId` | workspace `update_workspace` | Remove a member |
-| `PATCH` | `…/projects/:projectId/members/:userId/role` | project `project:change_role` | Change a role |
+| Method   | Path                                         | Auth                          | Purpose         |
+| -------- | -------------------------------------------- | ----------------------------- | --------------- |
+| `POST`   | `…/projects/:projectId/members`              | workspace `update_workspace`  | Add a member    |
+| `DELETE` | `…/projects/:projectId/members/:userId`      | workspace `update_workspace`  | Remove a member |
+| `PATCH`  | `…/projects/:projectId/members/:userId/role` | project `project:change_role` | Change a role   |
 
 Adding and removing require workspace authority; changing a role requires
 project authority. The target user must already belong to the workspace, and
@@ -528,19 +597,19 @@ roles are one of `owner`, `admin`, `member`, `viewer`.
 
 ## 18. Task endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `POST` | `…/tasks` | `task:create` | Create |
-| `GET` | `…/tasks` | *(workspace member)* | List, filter, sort, paginate |
-| `GET` | `…/tasks/:taskId` | *(workspace member)* | Get one |
-| `PATCH` | `…/tasks/:taskId` | `task:update` | Update title/description/dates/estimate |
-| `PATCH` | `…/tasks/:taskId/archive` | `task:archive` | Archive |
-| `PATCH` | `…/tasks/:taskId/restore` | `task:restore` | Restore |
-| `PATCH` | `…/tasks/:taskId/status` | `task:update` | Change status |
-| `PATCH` | `…/tasks/:taskId/priority` | `task:update` | Change priority |
-| `PATCH` | `…/tasks/:taskId/assignee` | `task:assign` | Assign or unassign |
-| `PATCH` | `…/tasks/:taskId/due-date` | `task:update` | Set or clear the due date |
-| `PATCH` | `…/tasks/:taskId/start-date` | `task:update` | Set or clear the start date |
+| Method  | Path                         | Project permission   | Purpose                                 |
+| ------- | ---------------------------- | -------------------- | --------------------------------------- |
+| `POST`  | `…/tasks`                    | `task:create`        | Create                                  |
+| `GET`   | `…/tasks`                    | _(workspace member)_ | List, filter, sort, paginate            |
+| `GET`   | `…/tasks/:taskId`            | _(workspace member)_ | Get one                                 |
+| `PATCH` | `…/tasks/:taskId`            | `task:update`        | Update title/description/dates/estimate |
+| `PATCH` | `…/tasks/:taskId/archive`    | `task:archive`       | Archive                                 |
+| `PATCH` | `…/tasks/:taskId/restore`    | `task:restore`       | Restore                                 |
+| `PATCH` | `…/tasks/:taskId/status`     | `task:update`        | Change status                           |
+| `PATCH` | `…/tasks/:taskId/priority`   | `task:update`        | Change priority                         |
+| `PATCH` | `…/tasks/:taskId/assignee`   | `task:assign`        | Assign or unassign                      |
+| `PATCH` | `…/tasks/:taskId/due-date`   | `task:update`        | Set or clear the due date               |
+| `PATCH` | `…/tasks/:taskId/start-date` | `task:update`        | Set or clear the start date             |
 
 **There is no delete endpoint for tasks.** They are archived.
 
@@ -567,12 +636,12 @@ Create payload:
 
 ## 19. Subtask endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `POST` | `…/tasks/:taskId/subtasks` | `subtask:create` | Add a subtask |
-| `GET` | `…/tasks/:taskId/subtasks` | *(workspace member)* | List subtasks |
-| `PATCH` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:update` | Update |
-| `DELETE` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:delete` | Delete |
+| Method   | Path                                  | Project permission   | Purpose       |
+| -------- | ------------------------------------- | -------------------- | ------------- |
+| `POST`   | `…/tasks/:taskId/subtasks`            | `subtask:create`     | Add a subtask |
+| `GET`    | `…/tasks/:taskId/subtasks`            | _(workspace member)_ | List subtasks |
+| `PATCH`  | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:update`     | Update        |
+| `DELETE` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:delete`     | Delete        |
 
 Subtasks are embedded in the parent task and support `title` and
 `isCompleted`. Setting `isCompleted` stamps `completedAt`.
@@ -585,13 +654,13 @@ Subtasks are embedded in the parent task and support `title` and
 
 ## 20. Comment endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `POST` | `…/tasks/:taskId/comments` | `comment:create` | Add a comment |
-| `GET` | `…/tasks/:taskId/comments` | *(workspace member)* | List comments |
-| `GET` | `…/tasks/:taskId/comments/:commentId` | *(workspace member)* | Get one |
-| `PATCH` | `…/tasks/:taskId/comments/:commentId` | `comment:update` | Edit — **author only** |
-| `DELETE` | `…/tasks/:taskId/comments/:commentId` | `comment:delete` | Delete |
+| Method   | Path                                  | Project permission   | Purpose                |
+| -------- | ------------------------------------- | -------------------- | ---------------------- |
+| `POST`   | `…/tasks/:taskId/comments`            | `comment:create`     | Add a comment          |
+| `GET`    | `…/tasks/:taskId/comments`            | _(workspace member)_ | List comments          |
+| `GET`    | `…/tasks/:taskId/comments/:commentId` | _(workspace member)_ | Get one                |
+| `PATCH`  | `…/tasks/:taskId/comments/:commentId` | `comment:update`     | Edit — **author only** |
+| `DELETE` | `…/tasks/:taskId/comments/:commentId` | `comment:delete`     | Delete                 |
 
 `content` is required and limited to 2000 characters. Deletion is a soft delete:
 the comment is hidden from listings and its attachments are purged.
@@ -604,15 +673,15 @@ and project owner/admin (or a workspace owner/admin) may delete anyone's.
 
 ## 21. Label endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `POST` | `…/projects/:projectId/labels` | `label:create` | Create |
-| `GET` | `…/projects/:projectId/labels` | *(workspace member)* | List |
-| `GET` | `…/projects/:projectId/labels/:labelId` | *(workspace member)* | Get one |
-| `PATCH` | `…/projects/:projectId/labels/:labelId` | `label:update` | Update |
-| `DELETE` | `…/projects/:projectId/labels/:labelId` | `label:delete` | Delete |
-| `POST` | `…/tasks/:taskId/labels` | `label:assign` | Assign to a task |
-| `DELETE` | `…/tasks/:taskId/labels/:labelId` | `label:assign` | Remove from a task |
+| Method   | Path                                    | Project permission   | Purpose            |
+| -------- | --------------------------------------- | -------------------- | ------------------ |
+| `POST`   | `…/projects/:projectId/labels`          | `label:create`       | Create             |
+| `GET`    | `…/projects/:projectId/labels`          | _(workspace member)_ | List               |
+| `GET`    | `…/projects/:projectId/labels/:labelId` | _(workspace member)_ | Get one            |
+| `PATCH`  | `…/projects/:projectId/labels/:labelId` | `label:update`       | Update             |
+| `DELETE` | `…/projects/:projectId/labels/:labelId` | `label:delete`       | Delete             |
+| `POST`   | `…/tasks/:taskId/labels`                | `label:assign`       | Assign to a task   |
+| `DELETE` | `…/tasks/:taskId/labels/:labelId`       | `label:assign`       | Remove from a task |
 
 Labels are project-scoped: `name` (1–50 chars, unique within the project) and
 `color` (hex, e.g. `#ff0000`). Only owner/admin may create, rename or delete
@@ -624,14 +693,14 @@ Assigning a label that belongs to another project fails with **400** or **404**.
 
 ## 22. Notification endpoints
 
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `GET` | `/notifications` | required | List your notifications |
-| `GET` | `/notifications/unread` | required | List unread only |
-| `GET` | `/notifications/unread/count` | required | Count unread |
-| `PATCH` | `/notifications/read-all` | required | Mark all read |
-| `PATCH` | `/notifications/:notificationId/read` | required | Mark one read |
-| `DELETE` | `/notifications/:notificationId` | required | Delete |
+| Method   | Path                                  | Auth     | Purpose                 |
+| -------- | ------------------------------------- | -------- | ----------------------- |
+| `GET`    | `/notifications`                      | required | List your notifications |
+| `GET`    | `/notifications/unread`               | required | List unread only        |
+| `GET`    | `/notifications/unread/count`         | required | Count unread            |
+| `PATCH`  | `/notifications/read-all`             | required | Mark all read           |
+| `PATCH`  | `/notifications/:notificationId/read` | required | Mark one read           |
+| `DELETE` | `/notifications/:notificationId`      | required | Delete                  |
 
 Notifications are per-user and **never** visible to anyone else: acting on
 another user's notification returns **404**, not 403, so the resource is not
@@ -645,10 +714,10 @@ Types: `task_assigned`, `task_reassigned`, `task_due_soon`,
 
 ## 23. Activity endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `GET` | `…/projects/:projectId/activities` | `project:view` | Project feed |
-| `GET` | `…/tasks/:taskId/activities` | `project:view` | Task feed |
+| Method | Path                               | Project permission | Purpose      |
+| ------ | ---------------------------------- | ------------------ | ------------ |
+| `GET`  | `…/projects/:projectId/activities` | `project:view`     | Project feed |
+| `GET`  | `…/tasks/:taskId/activities`       | `project:view`     | Task feed    |
 
 The audit trail is append-only and written by the service layer — clients cannot
 create entries. Entries carry `workspace`, `project`, `user`, `action`,
@@ -672,16 +741,16 @@ An unknown `action` value is a **400**.
 
 ## 24. File endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `POST` | `…/projects/:projectId/attachments` | `attachment:create` | Upload to a project |
-| `GET` | `…/projects/:projectId/attachments` | `project:view` | List |
-| `POST` | `…/tasks/:taskId/attachments` | `attachment:create` | Upload to a task |
-| `GET` | `…/tasks/:taskId/attachments` | `project:view` | List |
-| `POST` | `…/tasks/:taskId/comments/:commentId/attachments` | `attachment:create` | Upload to a comment |
-| `GET` | `…/tasks/:taskId/comments/:commentId/attachments` | `project:view` | List |
-| `GET` | `…/projects/:projectId/attachments/:attachmentId/download` | `project:view` | Download |
-| `DELETE` | `…/projects/:projectId/attachments/:attachmentId` | `attachment:delete` | Delete |
+| Method   | Path                                                       | Project permission  | Purpose             |
+| -------- | ---------------------------------------------------------- | ------------------- | ------------------- |
+| `POST`   | `…/projects/:projectId/attachments`                        | `attachment:create` | Upload to a project |
+| `GET`    | `…/projects/:projectId/attachments`                        | `project:view`      | List                |
+| `POST`   | `…/tasks/:taskId/attachments`                              | `attachment:create` | Upload to a task    |
+| `GET`    | `…/tasks/:taskId/attachments`                              | `project:view`      | List                |
+| `POST`   | `…/tasks/:taskId/comments/:commentId/attachments`          | `attachment:create` | Upload to a comment |
+| `GET`    | `…/tasks/:taskId/comments/:commentId/attachments`          | `project:view`      | List                |
+| `GET`    | `…/projects/:projectId/attachments/:attachmentId/download` | `project:view`      | Download            |
+| `DELETE` | `…/projects/:projectId/attachments/:attachmentId`          | `attachment:delete` | Delete              |
 
 Uploads are `multipart/form-data` with the file in the field **`file`**. One file
 per request.
@@ -703,10 +772,10 @@ public and served from `/uploads/avatars/<name>`.
 
 ## 25. Dashboard endpoints
 
-| Method | Path | Project permission | Purpose |
-|---|---|---|---|
-| `GET` | `/workspaces/:workspaceId/dashboard` | workspace `view_workspace` | Workspace statistics |
-| `GET` | `…/projects/:projectId/dashboard` | `project:view` | Project statistics |
+| Method | Path                                 | Project permission         | Purpose              |
+| ------ | ------------------------------------ | -------------------------- | -------------------- |
+| `GET`  | `/workspaces/:workspaceId/dashboard` | workspace `view_workspace` | Workspace statistics |
+| `GET`  | `…/projects/:projectId/dashboard`    | `project:view`             | Project statistics   |
 
 Workspace dashboard:
 
@@ -760,10 +829,10 @@ Shared conventions across list endpoints, built by `src/utils/query.js`.
 
 ### Pagination
 
-| Parameter | Default | Range |
-|---|---|---|
-| `page` | `1` | `>= 1` |
-| `limit` | `20` | `1`–`100` |
+| Parameter | Default | Range     |
+| --------- | ------- | --------- |
+| `page`    | `1`     | `>= 1`    |
+| `limit`   | `20`    | `1`–`100` |
 
 `page=0`, `page=-1`, `page=abc` and `limit=500` are **400**.
 
@@ -778,17 +847,17 @@ Task list sorting: `position` (default), `title`, `status`, `priority`,
 
 ### Task list filters
 
-| Parameter | Type | Notes |
-|---|---|---|
-| `status` | enum | One task status |
-| `priority` | enum | One priority |
-| `assignee` | ObjectId | Mutually exclusive with `unassigned` |
-| `unassigned` | boolean | Mutually exclusive with `assignee` |
-| `labels` | ObjectId list | Comma-separated; matches **any** |
-| `isArchived` | boolean | Default `false` |
-| `dueDateFrom` / `dueDateTo` | ISO date | An inverted range is **400** |
-| `startDateFrom` / `startDateTo` | ISO date | An inverted range is **400** |
-| `search` | string | Case-insensitive across title and description |
+| Parameter                       | Type          | Notes                                         |
+| ------------------------------- | ------------- | --------------------------------------------- |
+| `status`                        | enum          | One task status                               |
+| `priority`                      | enum          | One priority                                  |
+| `assignee`                      | ObjectId      | Mutually exclusive with `unassigned`          |
+| `unassigned`                    | boolean       | Mutually exclusive with `assignee`            |
+| `labels`                        | ObjectId list | Comma-separated; matches **any**              |
+| `isArchived`                    | boolean       | Default `false`                               |
+| `dueDateFrom` / `dueDateTo`     | ISO date      | An inverted range is **400**                  |
+| `startDateFrom` / `startDateTo` | ISO date      | An inverted range is **400**                  |
+| `search`                        | string        | Case-insensitive across title and description |
 
 Passing both `assignee` and `unassigned=true` is **400**.
 
@@ -812,23 +881,23 @@ Every request is validated with Zod before it reaches a controller
 (`src/middlewares/validate.middleware.js`). A failure returns **400** with one
 entry per invalid field.
 
-| Field | Rule |
-|---|---|
-| `name` (user) | 2–100 chars, trimmed |
-| `email` | Valid email; lower-cased |
-| `password` | Minimum 8 characters |
-| `name` (workspace/project) | 2–100 chars, trimmed |
-| `title` (task) | 2–200 chars, trimmed |
-| `description` | Maximum 5000 chars |
-| `estimatedTime` | Integer, `>= 0`, minutes |
-| `status` (task) | `todo` \| `in_progress` \| `in_review` \| `completed` \| `cancelled` |
-| `priority` | `low` \| `medium` \| `high` \| `urgent` |
-| `status` (project) | `planning` \| `active` \| `on_hold` \| `completed` \| `cancelled` |
-| `content` (comment) | 1–2000 chars |
-| `name` (label) | 1–50 chars, unique per project |
-| `color` (label) | Hex, e.g. `#ff0000` |
-| `role` (project member) | `owner` \| `admin` \| `member` \| `viewer` |
-| `role` (workspace member) | `owner` \| `admin` \| `member` |
+| Field                      | Rule                                                                 |
+| -------------------------- | -------------------------------------------------------------------- |
+| `name` (user)              | 2–100 chars, trimmed                                                 |
+| `email`                    | Valid email; lower-cased                                             |
+| `password`                 | Minimum 8 characters                                                 |
+| `name` (workspace/project) | 2–100 chars, trimmed                                                 |
+| `title` (task)             | 2–200 chars, trimmed                                                 |
+| `description`              | Maximum 5000 chars                                                   |
+| `estimatedTime`            | Integer, `>= 0`, minutes                                             |
+| `status` (task)            | `todo` \| `in_progress` \| `in_review` \| `completed` \| `cancelled` |
+| `priority`                 | `low` \| `medium` \| `high` \| `urgent`                              |
+| `status` (project)         | `planning` \| `active` \| `on_hold` \| `completed` \| `cancelled`    |
+| `content` (comment)        | 1–2000 chars                                                         |
+| `name` (label)             | 1–50 chars, unique per project                                       |
+| `color` (label)            | Hex, e.g. `#ff0000`                                                  |
+| `role` (project member)    | `owner` \| `admin` \| `member` \| `viewer`                           |
+| `role` (workspace member)  | `owner` \| `admin` \| `member`                                       |
 
 Path parameters named `*Id` must be 24-character hex ObjectIds. A malformed one
 produces a **400**, not a 500.
@@ -845,11 +914,11 @@ directly from these validators.
 Enforced by `src/middlewares/upload.middleware.js` and
 `src/constants/attachment.js`.
 
-| | Attachments | Avatars |
-|---|---|---|
-| Max size | **10 MB** | **5 MB** |
-| Files per request | 1 | 1 |
-| Form field | `file` | `avatar` |
+|                   | Attachments | Avatars  |
+| ----------------- | ----------- | -------- |
+| Max size          | **10 MB**   | **5 MB** |
+| Files per request | 1           | 1        |
+| Form field        | `file`      | `avatar` |
 
 A file must satisfy **both** checks: its declared MIME type must be allow-listed
 **and** its extension must be one mapped to that MIME type. This blocks a renamed
@@ -874,18 +943,18 @@ Rejections return **400**.
 
 ## 29. HTTP status codes
 
-| Code | Meaning here |
-|---|---|
-| **200** | Success (`GET`, `PATCH`, `DELETE`). |
-| **201** | Resource created (`POST`). |
-| **400** | Validation failed, or the request is not actionable (bad ObjectId, invalid date range, assigning a non-member, unsupported file type). |
-| **401** | Missing, expired, malformed or revoked session cookie; wrong current password. |
-| **403** | Authenticated but without the required workspace or project authority. |
+| Code    | Meaning here                                                                                                                                                                                               |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **200** | Success (`GET`, `PATCH`, `DELETE`).                                                                                                                                                                        |
+| **201** | Resource created (`POST`).                                                                                                                                                                                 |
+| **400** | Validation failed, or the request is not actionable (bad ObjectId, invalid date range, assigning a non-member, unsupported file type).                                                                     |
+| **401** | Missing, expired, malformed or revoked session cookie; wrong current password.                                                                                                                             |
+| **403** | Authenticated but without the required workspace or project authority.                                                                                                                                     |
 | **404** | The resource does not exist, is archived, or is outside the caller's scope. Also used deliberately where revealing existence would leak information — another user's notification, another project's task. |
-| **409** | Conflict — e.g. registering an email that already exists, or a duplicate label name. |
-| **429** | Rate limit exceeded. |
-| **500** | Unexpected server error. Never includes a stack trace outside development. |
-| **503** | `GET /openapi.json` when the document has not been generated. |
+| **409** | Conflict — e.g. registering an email that already exists, or a duplicate label name.                                                                                                                       |
+| **429** | Rate limit exceeded.                                                                                                                                                                                       |
+| **500** | Unexpected server error. Never includes a stack trace outside development.                                                                                                                                 |
+| **503** | Service unavailable — `GET /health/ready` when the database is unreachable, or `GET /openapi.json` when the document has not been generated.                                                               |
 
 ---
 
@@ -1017,95 +1086,96 @@ requirements without project membership.
 
 ### Public
 
-| Method | Path |
-|---|---|
-| `GET` | `/` |
-| `GET` | `/health` |
-| `GET` | `/openapi.json` |
+| Method | Path             |
+| ------ | ---------------- |
+| `GET`  | `/`              |
+| `GET`  | `/health`        |
+| `GET`  | `/health/ready`  |
+| `GET`  | `/openapi.json`  |
 | `POST` | `/auth/register` |
-| `POST` | `/auth/login` |
+| `POST` | `/auth/login`    |
 
 ### Authenticated (any logged-in user)
 
-| Method | Path |
-|---|---|
-| `POST` | `/auth/logout` |
-| `GET` `PATCH` | `/users/profile` |
-| `PATCH` | `/users/avatar` |
-| `PATCH` | `/users/change-password` |
-| `GET` `PATCH` | `/users/settings` |
-| `DELETE` | `/users/account` |
-| `POST` | `/workspaces` |
-| `GET` | `/workspaces` |
-| `PATCH` | `/invitations/:token/accept` |
-| `GET` `PATCH` `DELETE` | `/notifications…` |
+| Method                 | Path                         |
+| ---------------------- | ---------------------------- |
+| `POST`                 | `/auth/logout`               |
+| `GET` `PATCH`          | `/users/profile`             |
+| `PATCH`                | `/users/avatar`              |
+| `PATCH`                | `/users/change-password`     |
+| `GET` `PATCH`          | `/users/settings`            |
+| `DELETE`               | `/users/account`             |
+| `POST`                 | `/workspaces`                |
+| `GET`                  | `/workspaces`                |
+| `PATCH`                | `/invitations/:token/accept` |
+| `GET` `PATCH` `DELETE` | `/notifications…`            |
 
 ### Workspace membership required
 
-| Method | Path | Extra requirement |
-|---|---|---|
-| `GET` | `/workspaces/:workspaceId` | — |
-| `GET` | `/workspaces/:workspaceId/members` | — |
-| `GET` | `/workspaces/:workspaceId/dashboard` | `view_workspace` |
-| `PATCH` | `/workspaces/:workspaceId` | role `owner` or `admin` |
-| `PATCH` | `/workspaces/:workspaceId/archive` | role `owner` |
-| `PATCH` | `/workspaces/:workspaceId/restore` | role `owner`, workspace must be archived |
-| `DELETE` | `/workspaces/:workspaceId` | role `owner` |
-| `POST` | `/workspaces/:workspaceId/invitations` | `invite_members` |
-| `DELETE` | `/workspaces/:workspaceId/members/:userId` | `remove_members` |
-| `PATCH` | `/workspaces/:workspaceId/members/:userId/role` | `change_roles` |
-| `PATCH` | `/workspaces/:workspaceId/transfer-ownership` | `transfer_ownership` |
+| Method   | Path                                            | Extra requirement                        |
+| -------- | ----------------------------------------------- | ---------------------------------------- |
+| `GET`    | `/workspaces/:workspaceId`                      | —                                        |
+| `GET`    | `/workspaces/:workspaceId/members`              | —                                        |
+| `GET`    | `/workspaces/:workspaceId/dashboard`            | `view_workspace`                         |
+| `PATCH`  | `/workspaces/:workspaceId`                      | role `owner` or `admin`                  |
+| `PATCH`  | `/workspaces/:workspaceId/archive`              | role `owner`                             |
+| `PATCH`  | `/workspaces/:workspaceId/restore`              | role `owner`, workspace must be archived |
+| `DELETE` | `/workspaces/:workspaceId`                      | role `owner`                             |
+| `POST`   | `/workspaces/:workspaceId/invitations`          | `invite_members`                         |
+| `DELETE` | `/workspaces/:workspaceId/members/:userId`      | `remove_members`                         |
+| `PATCH`  | `/workspaces/:workspaceId/members/:userId/role` | `change_roles`                           |
+| `PATCH`  | `/workspaces/:workspaceId/transfer-ownership`   | `transfer_ownership`                     |
 
 ### Workspace `update_workspace` (owner/admin)
 
-| Method | Path |
-|---|---|
-| `POST` | `/workspaces/:workspaceId/projects` |
-| `PATCH` | `…/projects/:projectId` |
-| `PATCH` | `…/projects/:projectId/archive` |
-| `PATCH` | `…/projects/:projectId/restore` |
-| `PATCH` | `…/projects/:projectId/status` |
-| `POST` | `…/projects/:projectId/members` |
+| Method   | Path                                    |
+| -------- | --------------------------------------- |
+| `POST`   | `/workspaces/:workspaceId/projects`     |
+| `PATCH`  | `…/projects/:projectId`                 |
+| `PATCH`  | `…/projects/:projectId/archive`         |
+| `PATCH`  | `…/projects/:projectId/restore`         |
+| `PATCH`  | `…/projects/:projectId/status`          |
+| `POST`   | `…/projects/:projectId/members`         |
 | `DELETE` | `…/projects/:projectId/members/:userId` |
 
 ### Project permission required
 
 Workspace owner/admin satisfy all of these.
 
-| Method | Path | Permission |
-|---|---|---|
-| `GET` | `…/projects/:projectId` | *(workspace member)* |
-| `GET` | `…/projects/:projectId/dashboard` | `project:view` |
-| `GET` | `…/projects/:projectId/activities` | `project:view` |
-| `PATCH` | `…/projects/:projectId/members/:userId/role` | `project:change_role` |
-| `GET` `POST` | `…/tasks` | `project:view` / `task:create` |
-| `GET` `PATCH` | `…/tasks/:taskId` | `project:view` / `task:update` |
-| `PATCH` | `…/tasks/:taskId/archive` \| `restore` | `task:archive` / `task:restore` |
-| `PATCH` | `…/tasks/:taskId/status` \| `priority` \| `due-date` \| `start-date` | `task:update` |
-| `PATCH` | `…/tasks/:taskId/assignee` | `task:assign` |
-| `GET` `POST` | `…/tasks/:taskId/subtasks` | `project:view` / `subtask:create` |
-| `PATCH` `DELETE` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:update` / `subtask:delete` |
-| `GET` `POST` | `…/tasks/:taskId/comments` | `project:view` / `comment:create` |
-| `GET` `PATCH` `DELETE` | `…/tasks/:taskId/comments/:commentId` | `project:view` / `comment:update` / `comment:delete` |
-| `GET` | `…/tasks/:taskId/activities` | `project:view` |
-| `GET` `POST` | `…/projects/:projectId/labels` | `project:view` / `label:create` |
-| `GET` `PATCH` `DELETE` | `…/projects/:projectId/labels/:labelId` | `project:view` / `label:update` / `label:delete` |
-| `POST` `DELETE` | `…/tasks/:taskId/labels…` | `label:assign` |
-| `GET` `POST` | `…/projects/:projectId/attachments` | `project:view` / `attachment:create` |
-| `GET` `POST` | `…/tasks/:taskId/attachments` | `project:view` / `attachment:create` |
-| `GET` `POST` | `…/tasks/:taskId/comments/:commentId/attachments` | `project:view` / `attachment:create` |
-| `GET` | `…/projects/:projectId/attachments/:attachmentId/download` | `project:view` |
-| `DELETE` | `…/projects/:projectId/attachments/:attachmentId` | `attachment:delete` |
+| Method                 | Path                                                                 | Permission                                           |
+| ---------------------- | -------------------------------------------------------------------- | ---------------------------------------------------- |
+| `GET`                  | `…/projects/:projectId`                                              | _(workspace member)_                                 |
+| `GET`                  | `…/projects/:projectId/dashboard`                                    | `project:view`                                       |
+| `GET`                  | `…/projects/:projectId/activities`                                   | `project:view`                                       |
+| `PATCH`                | `…/projects/:projectId/members/:userId/role`                         | `project:change_role`                                |
+| `GET` `POST`           | `…/tasks`                                                            | `project:view` / `task:create`                       |
+| `GET` `PATCH`          | `…/tasks/:taskId`                                                    | `project:view` / `task:update`                       |
+| `PATCH`                | `…/tasks/:taskId/archive` \| `restore`                               | `task:archive` / `task:restore`                      |
+| `PATCH`                | `…/tasks/:taskId/status` \| `priority` \| `due-date` \| `start-date` | `task:update`                                        |
+| `PATCH`                | `…/tasks/:taskId/assignee`                                           | `task:assign`                                        |
+| `GET` `POST`           | `…/tasks/:taskId/subtasks`                                           | `project:view` / `subtask:create`                    |
+| `PATCH` `DELETE`       | `…/tasks/:taskId/subtasks/:subtaskId`                                | `subtask:update` / `subtask:delete`                  |
+| `GET` `POST`           | `…/tasks/:taskId/comments`                                           | `project:view` / `comment:create`                    |
+| `GET` `PATCH` `DELETE` | `…/tasks/:taskId/comments/:commentId`                                | `project:view` / `comment:update` / `comment:delete` |
+| `GET`                  | `…/tasks/:taskId/activities`                                         | `project:view`                                       |
+| `GET` `POST`           | `…/projects/:projectId/labels`                                       | `project:view` / `label:create`                      |
+| `GET` `PATCH` `DELETE` | `…/projects/:projectId/labels/:labelId`                              | `project:view` / `label:update` / `label:delete`     |
+| `POST` `DELETE`        | `…/tasks/:taskId/labels…`                                            | `label:assign`                                       |
+| `GET` `POST`           | `…/projects/:projectId/attachments`                                  | `project:view` / `attachment:create`                 |
+| `GET` `POST`           | `…/tasks/:taskId/attachments`                                        | `project:view` / `attachment:create`                 |
+| `GET` `POST`           | `…/tasks/:taskId/comments/:commentId/attachments`                    | `project:view` / `attachment:create`                 |
+| `GET`                  | `…/projects/:projectId/attachments/:attachmentId/download`           | `project:view`                                       |
+| `DELETE`               | `…/projects/:projectId/attachments/:attachmentId`                    | `attachment:delete`                                  |
 
 ### Object-level rules on top of the above
 
-| Action | Additional rule |
-|---|---|
-| Edit a comment | Must be the author. No role overrides this. |
-| Delete a comment | Author, or `comment:moderate` (project owner/admin, or workspace owner/admin). |
-| Delete an attachment | Uploader, or `attachment:moderate`. |
-| Assign a task | The assignee must be a project member (**400** otherwise). |
-| Read/act on a notification | Must be the recipient — otherwise **404**. |
+| Action                     | Additional rule                                                                |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| Edit a comment             | Must be the author. No role overrides this.                                    |
+| Delete a comment           | Author, or `comment:moderate` (project owner/admin, or workspace owner/admin). |
+| Delete an attachment       | Uploader, or `attachment:moderate`.                                            |
+| Assign a task              | The assignee must be a project member (**400** otherwise).                     |
+| Read/act on a notification | Must be the recipient — otherwise **404**.                                     |
 
 ---
 

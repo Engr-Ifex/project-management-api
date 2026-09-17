@@ -6,20 +6,24 @@
  * controller handler that serves it.
  *
  * This exists so the documentation cannot drift from the implementation. It is
- * consumed by `scripts/verify-docs.mjs`, which asserts that every route appears
- * in `docs/openapi.yaml`, and it can be printed for a quick review:
+ * consumed by `scripts/verify-docs.js`, which asserts that every route appears
+ * in `docs/openapi.json`, and it can be printed for a quick review:
  *
- *   node scripts/route-inventory.mjs            # human-readable table
- *   node scripts/route-inventory.mjs --json     # JSON
+ *   node scripts/route-inventory.js            # human-readable table
+ *   node scripts/route-inventory.js --json     # JSON
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(here, '..');
 const routesDir = path.join(here, '..', 'src', 'routes');
 
 const HTTP_METHODS = ['get', 'post', 'patch', 'put', 'delete'];
+
+/** Every router is served under this base path. */
+const API_BASE = '/api/v1';
 
 /**
  * Resolve the mount prefix for each router by reading `index.routes.js`, so
@@ -56,6 +60,43 @@ const readMounts = () => {
   }
 
   return byFile;
+};
+
+/**
+ * Routers mounted directly in `app.js` rather than inside `index.routes.js`.
+ *
+ * The health probes are mounted this way — deliberately, so they sit ahead of
+ * the API rate limiter. Without reading app.js their mount prefix would be
+ * guessed as empty and the reported paths would only be correct by accident of
+ * both bases happening to be `/api/v1`.
+ */
+const readAppMounts = () => {
+  const source = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const mounts = new Map();
+
+  const importRe = /import\s+(\w+)\s+from\s+'\.\/src\/routes\/([\w.]+)'/g;
+  const files = new Map();
+
+  let match = importRe.exec(source);
+
+  while (match) {
+    files.set(match[1], match[2]);
+    match = importRe.exec(source);
+  }
+
+  const useRe = /app\.use\(\s*'([^']*)'\s*,\s*(\w+)\s*\)/g;
+
+  match = useRe.exec(source);
+
+  while (match) {
+    const [, prefix, importName] = match;
+
+    if (files.has(importName)) mounts.set(files.get(importName), prefix === '/' ? '' : prefix);
+
+    match = useRe.exec(source);
+  }
+
+  return mounts;
 };
 
 /** Split a router file into one block per route registration. */
@@ -135,6 +176,7 @@ const readInlineRoutes = () => {
 
 export const buildInventory = () => {
   const mounts = readMounts();
+  const appMounts = readAppMounts();
   const inventory = [...readInlineRoutes()];
 
   const files = fs
@@ -142,7 +184,13 @@ export const buildInventory = () => {
     .filter((file) => file.endsWith('.routes.js') && file !== 'index.routes.js');
 
   for (const file of files) {
-    const prefix = mounts.get(file) ?? '';
+    /*
+     * A router mounted in app.js is served at that absolute prefix. Anything
+     * else is mounted inside index.routes.js, whose own prefix is relative to
+     * the API base.
+     */
+    const prefix = appMounts.has(file) ? appMounts.get(file) : API_BASE + (mounts.get(file) ?? '');
+
     const source = fs.readFileSync(path.join(routesDir, file), 'utf8');
 
     for (const block of splitRoutes(source)) {
@@ -158,7 +206,7 @@ export const buildInventory = () => {
 
       inventory.push({
         method: method.toUpperCase(),
-        path: `/api/v1${full}`,
+        path: full,
         guards: parseGuards(block),
         validator: validator ? validator[1] : null,
         controller: controller ? `${controller[1]}.${controller[2]}` : null,

@@ -1,0 +1,56 @@
+# =============================================================================
+# Build context exclusions.
+#
+# The build context is uploaded to the daemon before the build starts, so
+# anything not needed inflates every build. More importantly, an unexcluded
+# `.env` would be copied into an image layer — and image layers are readable by
+# anyone who can pull the image, even if a later layer deletes the file.
+# =============================================================================
+
+# Dependencies are installed inside the image from the lockfile. Copying the
+# host's node_modules would ship platform-specific native binaries.
+node_modules
+**/node_modules
+
+# --- Secrets. Never enter the build context. ---
+.env
+.env.*
+!.env.example
+
+# --- Version control ---
+.git
+.gitignore
+.gitattributes
+
+# --- Runtime data. Belongs in a volume, never in an image. ---
+src/uploads/attachments
+src/uploads/avatars
+logs
+*.log
+
+# --- Not needed at runtime ---
+tests
+coverage
+.nyc_output
+
+# Documentation other than the OpenAPI document, which the API serves.
+# (The Dockerfile copies docs/ deliberately; these are excluded to keep the
+#  context small while openapi.json still gets through.)
+docs/*.md
+
+# --- Local tooling and editor state ---
+.vscode
+.idea
+.eslintcache
+.prettiercache
+
+# --- Container/orchestration files themselves ---
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# --- Miscellaneous ---
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db

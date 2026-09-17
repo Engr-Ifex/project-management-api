@@ -3,17 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 
 import env from './src/config/env.js';
 import ApiError from './src/utils/ApiError.js';
+import logger from './src/utils/logger.js';
 
 import indexRoutes from './src/routes/index.routes.js';
+import healthRoutes from './src/routes/health.routes.js';
 import errorHandler from './src/middlewares/error.middleware.js';
 import notFound from './src/middlewares/notFound.middleware.js';
 import { createRateLimiter } from './src/middlewares/rateLimit.middleware.js';
 
 import { MAX_JSON_BODY_SIZE, MAX_URLENCODED_BODY_SIZE } from './src/constants/security.js';
+import { PUBLIC_AVATARS_DIR } from './src/config/paths.js';
 
 const app = express();
 
@@ -55,8 +57,8 @@ app.use(helmet());
 const allowAnyOrigin = env.corsOrigins.length === 0 && !env.isProduction;
 
 if (allowAnyOrigin) {
-  console.warn(
-    '⚠️  CORS_ORIGINS is not set: allowing any origin without credentials (development only). ' +
+  logger.warn(
+    'CORS_ORIGINS is not set: allowing any origin without credentials. ' +
       'Set CORS_ORIGINS to the client origin(s) before deploying.'
   );
 }
@@ -78,8 +80,26 @@ app.use(express.json({ limit: MAX_JSON_BODY_SIZE }));
 app.use(express.urlencoded({ extended: true, limit: MAX_URLENCODED_BODY_SIZE }));
 app.use(cookieParser());
 
-// Request logging. Verbose format is for development only.
-app.use(morgan(env.isProduction ? 'combined' : 'dev'));
+/*
+ * Request logging.
+ *
+ * Morgan writes into the logger rather than straight to stdout, so access
+ * lines are structured in production like every other log entry.
+ *
+ * Successful health probes are skipped: an orchestrator polling every few
+ * seconds would otherwise produce thousands of identical lines a day and bury
+ * everything else. A FAILING probe is still logged, which is the case that
+ * actually matters.
+ */
+const isHealthProbe = (req) =>
+  req.originalUrl === '/api/v1/health' || req.originalUrl === '/api/v1/health/ready';
+
+app.use(
+  morgan(env.isProduction ? 'combined' : 'dev', {
+    stream: { write: (message) => logger.http(message.trim()) },
+    skip: (req, res) => isHealthProbe(req) && res.statusCode < 400,
+  })
+);
 
 /*
  * Static files.
@@ -92,10 +112,12 @@ app.use(morgan(env.isProduction ? 'combined' : 'dev'));
  *
  * Mounting the public subtree explicitly means a new private storage
  * directory can never become world-readable by accident.
+ *
+ * The path is resolved from the module location (see config/paths.js), not
+ * from `process.cwd()`, so the mount is correct however the process is
+ * launched.
  */
-const publicUploadsPath = path.join(process.cwd(), 'src', 'uploads', 'avatars');
-
-app.use('/uploads/avatars', express.static(publicUploadsPath));
+app.use('/uploads/avatars', express.static(PUBLIC_AVATARS_DIR));
 
 // Anything else under /uploads is not public.
 app.use('/uploads', (req, res, next) => {
@@ -103,8 +125,19 @@ app.use('/uploads', (req, res, next) => {
 });
 
 /*
- * Broad API rate limit. Static assets are mounted above this so serving an
- * avatar never consumes a caller's request budget.
+ * Liveness and readiness probes.
+ *
+ * Mounted BEFORE the rate limiter, deliberately. An orchestrator probes on a
+ * fixed schedule from a single address; if probes shared the request budget
+ * with real traffic, a busy period could throttle a probe, the orchestrator
+ * would conclude the instance is dead and kill it — turning a load spike into
+ * an outage. These routes are cheap and unauthenticated by design.
+ */
+app.use('/api/v1', healthRoutes);
+
+/*
+ * Broad API rate limit. Static assets and health probes are mounted above this
+ * so neither consumes a caller's request budget.
  *
  * Skipped under NODE_ENV=test: the whole suite runs from one address, so the
  * limiter would throttle the tests rather than an attacker. The limiter itself

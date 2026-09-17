@@ -36,11 +36,29 @@ const MAX_SALT_ROUNDS = 15;
 
 const nodeEnv = process.env.NODE_ENV || 'development';
 
+const isProduction = nodeEnv === 'production';
+
+/*
+ * Log level. Defaults to `info` in production so debug noise never reaches a
+ * log store by accident, and `debug` elsewhere so local work is verbose.
+ */
+const LOG_LEVELS = ['error', 'warn', 'info', 'http', 'debug'];
+
+const requestedLogLevel = (process.env.LOG_LEVEL || '').trim().toLowerCase();
+
+const logLevel = LOG_LEVELS.includes(requestedLogLevel)
+  ? requestedLogLevel
+  : isProduction
+    ? 'info'
+    : 'debug';
+
 const env = {
   port: parseNumber(process.env.PORT, 5000),
   nodeEnv,
-  isProduction: nodeEnv === 'production',
+  isProduction,
   isTest: nodeEnv === 'test',
+
+  logLevel,
 
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET,
   jwtAccessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
@@ -48,6 +66,21 @@ const env = {
   cookieMaxAge: parseNumber(process.env.COOKIE_MAX_AGE, 15 * 60 * 1000),
 
   mongoUri: process.env.MONGODB_URI,
+
+  /*
+   * How long the driver waits to find a reachable server before giving up.
+   * The default (30s) makes a misconfigured deployment look like a hang, so
+   * it is shortened to fail fast and loudly.
+   */
+  mongoServerSelectionTimeoutMs: parseNumber(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS, 5000),
+
+  /*
+   * How long to wait for in-flight requests and the database connection to
+   * finish during shutdown before exiting anyway. Must stay below the
+   * orchestrator's own kill timeout, or it will SIGKILL first and the
+   * graceful path never runs.
+   */
+  shutdownTimeoutMs: parseNumber(process.env.SHUTDOWN_TIMEOUT_MS, 10000),
 
   bcryptSaltRounds: parseNumber(process.env.BCRYPT_SALT_ROUNDS, 10),
 
@@ -104,6 +137,19 @@ if (env.isProduction && env.corsOrigins.length === 0) {
   warnings.push('CORS_ORIGINS is empty: cross-origin browser requests will be refused');
 }
 
+if (requestedLogLevel && !LOG_LEVELS.includes(requestedLogLevel)) {
+  warnings.push(
+    `LOG_LEVEL "${requestedLogLevel}" is not recognised; falling back to "${logLevel}". ` +
+      `Valid values: ${LOG_LEVELS.join(', ')}`
+  );
+}
+
+/*
+ * Warnings are written with `console` rather than the logger on purpose: the
+ * logger reads its configuration from this module, so importing it here would
+ * create a cycle. These fire once, at boot, before any application logging
+ * happens.
+ */
 if (warnings.length > 0) {
   for (const warning of warnings) {
     console.warn(`⚠️  Environment warning: ${warning}`);

@@ -4,6 +4,7 @@ import fs from 'fs';
 
 import ApiError from '../utils/ApiError.js';
 import { getSafeExtension } from '../utils/filename.js';
+import { PUBLIC_AVATARS_DIR } from '../config/paths.js';
 
 import {
   ALLOWED_MIME_TYPES_LABEL,
@@ -36,7 +37,7 @@ const AVATAR_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'ima
 const AVATAR_MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Create the upload directory if it doesn't exist
-const avatarUploadPath = path.join(process.cwd(), 'src', 'uploads', 'avatars');
+const avatarUploadPath = PUBLIC_AVATARS_DIR;
 
 if (!fs.existsSync(avatarUploadPath)) {
   fs.mkdirSync(avatarUploadPath, { recursive: true });
