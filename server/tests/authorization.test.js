@@ -776,4 +776,101 @@ describe('Authorization', () => {
       assert.match(response.body.message, /your own comments/i);
     });
   });
+
+  /*
+   * Read scope.
+   *
+   * Workspace membership grants the project *record* and the project list, so a
+   * member can discover what exists in the workspace. Everything inside a
+   * project — tasks, subtasks, comments, labels, attachments, dashboard,
+   * activity — requires a project role.
+   *
+   * This used to be inconsistent: task and subtask reads needed only workspace
+   * membership. Because a task response populates its labels with names and
+   * colours, that let a workspace member read label data through the task route
+   * that the label routes refuse them. These tests pin both tiers.
+   */
+  describe('project content read scope', () => {
+    test('a plain workspace member cannot list a project\u2019s tasks', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { member: 'member' },
+      });
+      await createTask(project, actors.owner);
+
+      const response = await asUser(app, actors.member).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks`
+      );
+
+      assert.equal(response.status, 403);
+    });
+
+    test('a plain workspace member cannot read a single task', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { member: 'member' },
+      });
+      const task = await createTask(project, actors.owner);
+
+      const response = await asUser(app, actors.member).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks/${task._id}`
+      );
+
+      assert.equal(response.status, 403);
+    });
+
+    test('a plain workspace member cannot read a task\u2019s subtasks', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { member: 'member' },
+      });
+      const task = await createTask(project, actors.owner);
+
+      const response = await asUser(app, actors.member).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks/${task._id}/subtasks`
+      );
+
+      assert.equal(response.status, 403);
+    });
+
+    test('a plain workspace member can still read the project record itself', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { member: 'member' },
+      });
+
+      const response = await asUser(app, actors.member).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200, 'project discovery stays at workspace level');
+    });
+
+    test('a project viewer can read tasks', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { viewer: 'member' },
+        projectRoles: { viewer: 'viewer' },
+      });
+      const task = await createTask(project, actors.owner);
+
+      const list = await asUser(app, actors.viewer).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks`
+      );
+      const single = await asUser(app, actors.viewer).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks/${task._id}`
+      );
+
+      assert.equal(list.status, 200);
+      assert.equal(single.status, 200);
+    });
+
+    test('a workspace admin can read tasks without project membership', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { admin: 'admin' },
+      });
+      const task = await createTask(project, actors.owner);
+
+      const response = await asUser(app, actors.admin).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}/tasks/${task._id}`
+      );
+
+      assert.equal(response.status, 200);
+    });
+  });
 });

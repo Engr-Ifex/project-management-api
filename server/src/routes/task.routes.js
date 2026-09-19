@@ -33,11 +33,28 @@ router.post(
   taskController.createTask
 );
 
+/*
+ * Reading a project's work requires a project role.
+ *
+ * These three reads previously required only workspace membership, which made
+ * the read surface inconsistent: comments, labels, attachments, the dashboard
+ * and the activity trail all require `project:view`, while tasks and subtasks
+ * did not. The gap was not theoretical — a task response populates its
+ * `labels` with names and colours, so a workspace member holding no project
+ * role could read label data through the task route that the label routes
+ * deliberately refuse them.
+ *
+ * Workspace membership still grants the project *record* and the project list
+ * (`project.routes.js`), so a member can discover what exists in the workspace.
+ * Everything inside a project needs a project role, or the workspace
+ * owner/admin override that `requireProjectPermission` applies.
+ */
 router.get(
   '/:workspaceId/projects/:projectId/tasks',
   authenticate,
   validate(projectTasksSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   taskController.getProjectTasks
 );
 
@@ -46,6 +63,7 @@ router.get(
   authenticate,
   validate(taskIdSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   taskController.getTaskById
 );
 
@@ -135,6 +153,7 @@ router.get(
   authenticate,
   validate(taskIdSchema),
   requireWorkspaceMember,
+  requireProjectPermission('project:view'),
   taskController.getSubtasks
 );
 

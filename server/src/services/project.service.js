@@ -242,22 +242,14 @@ export const addProjectMember = async (
   performedBy,
   role = PROJECT_ROLES.MEMBER
 ) => {
-  const project = await Project.findOne({
+  const existingProject = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
     isArchived: false,
   });
 
-  if (!project) {
+  if (!existingProject) {
     throw new ApiError(404, 'Project not found');
-  }
-
-  const alreadyMember = project.members.some(
-    (member) => member.user.toString() === userId.toString()
-  );
-
-  if (alreadyMember) {
-    throw new ApiError(409, 'User is already a project member');
   }
 
   const workspace = await Workspace.findOne({
@@ -269,12 +261,37 @@ export const addProjectMember = async (
     throw new ApiError(400, 'User must be a workspace member before joining the project');
   }
 
-  project.members.push({
-    user: userId,
-    role,
-  });
+  /*
+   * Add with a conditional update rather than a read-modify-write.
+   *
+   * `'members.user': { $ne: userId }` is evaluated by the database as part of
+   * the write, so two concurrent adds cannot both pass a check and push — the
+   * second finds no document to update and is reported as a conflict. The
+   * previous version read the project, tested the array in memory and saved the
+   * whole array, which could leave one user listed twice with two different
+   * roles.
+   */
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: false,
+      'members.user': { $ne: userId },
+    },
+    {
+      $push: {
+        members: {
+          user: userId,
+          role,
+        },
+      },
+    },
+    { new: true }
+  );
 
-  await project.save();
+  if (!project) {
+    throw new ApiError(409, 'User is already a project member');
+  }
 
   await createProjectActivity({
     workspaceId,
@@ -310,17 +327,17 @@ export const addProjectMember = async (
 };
 
 export const removeProjectMember = async (workspaceId, projectId, userId, performedBy) => {
-  const project = await Project.findOne({
+  const existingProject = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
     isArchived: false,
   });
 
-  if (!project) {
+  if (!existingProject) {
     throw new ApiError(404, 'Project not found');
   }
 
-  const memberExists = project.members.some(
+  const memberExists = existingProject.members.some(
     (member) => member.user.toString() === userId.toString()
   );
 
@@ -328,15 +345,29 @@ export const removeProjectMember = async (workspaceId, projectId, userId, perfor
     throw new ApiError(404, 'User is not a project member');
   }
 
-  if (project.createdBy.toString() === userId.toString()) {
+  if (existingProject.createdBy.toString() === userId.toString()) {
     throw new ApiError(400, 'Project creator cannot be removed from the project');
   }
 
-  project.members = project.members.filter(
-    (member) => member.user.toString() !== userId.toString()
+  /*
+   * Remove with an atomic pull, guarded on the membership still being there, so
+   * a concurrent removal cannot produce a second, contradictory audit entry —
+   * and so a concurrent add cannot be silently discarded by a whole-array save.
+   */
+  const project = await Project.findOneAndUpdate(
+    {
+      _id: projectId,
+      workspace: workspaceId,
+      isArchived: false,
+      'members.user': userId,
+    },
+    { $pull: { members: { user: userId } } },
+    { new: true }
   );
 
-  await project.save();
+  if (!project) {
+    throw new ApiError(404, 'User is not a project member');
+  }
 
   await createProjectActivity({
     workspaceId,

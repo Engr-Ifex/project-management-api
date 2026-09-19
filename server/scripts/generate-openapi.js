@@ -625,7 +625,7 @@ const buildOperations = async (inventory, validators) => {
       continue;
     }
 
-    const [tag, summary, returns, bodyOverride] = meta;
+    const [tag, summary, returns, bodyOverride, statusOverride] = meta;
     const method = route.method.toLowerCase();
     const pathTemplate = route.path.replace(/:([A-Za-z]+)/g, '{$1}');
 
@@ -659,8 +659,16 @@ const buildOperations = async (inventory, validators) => {
 
     if (parameters.length) operation.parameters = parameters;
 
-    // Success response.
-    const status = method === 'post' ? '201' : '200';
+    /*
+     * Success response.
+     *
+     * 201 for POST is the convention, not a rule: login, logout, adding a
+     * project member and assigning a label are POSTs that do not create a
+     * resource and answer 200. Those declare their status explicitly in
+     * `openapi-operations.js`; the default would publish a contract the API
+     * does not honour.
+     */
+    const status = statusOverride ?? (method === 'post' ? '201' : '200');
 
     if (returns === 'openapi') {
       operation.responses[status] = {

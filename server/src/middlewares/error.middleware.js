@@ -1,6 +1,7 @@
 import logger from '../utils/logger.js';
+import ApiError from '../utils/ApiError.js';
 
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
   let errors = err.errors || [];
@@ -109,6 +110,28 @@ const errorHandler = (err, req, res, next) => {
     statusCode = 400;
     message = messages[err.code] || 'File upload failed';
     errors = [{ field: err.field || 'file', message }];
+  }
+
+  /*
+   * Unexpected server errors.
+   *
+   * Anything still carrying a 5xx at this point that is NOT an ApiError was
+   * not written for the client: it is an unhandled bug, and `err.message` can
+   * carry driver text, a file path or a fragment of a query — including the
+   * connection details in some MongoDB errors. Returning it verbatim leaks
+   * internals to whoever triggered the fault.
+   *
+   * The client gets a generic message; the real error is still logged below
+   * with its stack. Deliberate 5xx ApiErrors keep their message, because those
+   * are authored for the caller (for example the 503 telling an operator to
+   * run `npm run docs:generate`).
+   *
+   * The field-level `errors` array is cleared for the same reason — a raw
+   * driver error's `errors` is not the API's shape and may name internals.
+   */
+  if (statusCode >= 500 && !(err instanceof ApiError)) {
+    message = 'Internal Server Error';
+    errors = [];
   }
 
   /*

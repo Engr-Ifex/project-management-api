@@ -21,6 +21,7 @@
     "start:prod": "node scripts/preflight.js && node server.js",
     "migrate:task-comments": "node src/migrations/migrateTaskComments.js",
     "migrate:project-member-roles": "node src/migrations/migrateProjectMemberRoles.js",
+    "migrate:drop-indexes": "node src/migrations/dropRedundantIndexes.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

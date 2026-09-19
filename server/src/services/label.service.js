@@ -198,20 +198,36 @@ export const deleteLabel = async (workspaceId, projectId, labelId, userId) => {
 export const assignLabelToTask = async (workspaceId, projectId, taskId, labelId, userId) => {
   await getActiveProject(workspaceId, projectId);
 
-  const task = await getActiveTask(projectId, taskId);
-
   // Project-scoped lookup blocks cross-project label assignment.
   const label = await getProjectLabel(projectId, labelId);
 
-  const isAssigned = task.labels.some((taskLabel) => taskLabel.toString() === label._id.toString());
+  /*
+   * Attach with an atomic conditional update.
+   *
+   * The `labels: { $nin: [...] }` guard is evaluated by the database as part of
+   * the write and `$addToSet` cannot create a duplicate, so two concurrent
+   * assigns cannot both report success and cannot leave the label attached
+   * twice. The previous version read the task, tested the array in memory and
+   * saved the whole array back — a lost update, where the slower request
+   * silently discarded the faster one's change.
+   */
+  const task = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      project: projectId,
+      isArchived: false,
+      labels: { $nin: [label._id] },
+    },
+    { $addToSet: { labels: label._id } },
+    { new: true }
+  );
 
-  if (isAssigned) {
+  if (!task) {
+    // Distinguish "no such task" (404) from "already attached" (400).
+    await getActiveTask(projectId, taskId);
+
     throw new ApiError(400, 'Label is already assigned to this task');
   }
-
-  task.labels.push(label._id);
-
-  await task.save();
 
   await createProjectActivity({
     workspaceId,
@@ -233,19 +249,30 @@ export const assignLabelToTask = async (workspaceId, projectId, taskId, labelId,
 export const removeLabelFromTask = async (workspaceId, projectId, taskId, labelId, userId) => {
   await getActiveProject(workspaceId, projectId);
 
-  const task = await getActiveTask(projectId, taskId);
-
   const label = await getProjectLabel(projectId, labelId);
 
-  const isAssigned = task.labels.some((taskLabel) => taskLabel.toString() === label._id.toString());
+  /*
+   * Detach with an atomic conditional update, for the same reason the attach
+   * uses one: `labels: { $in: [...] }` makes "was attached" part of the write
+   * rather than a separate read, so a concurrent attach and detach cannot
+   * interleave into a lost update.
+   */
+  const task = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      project: projectId,
+      isArchived: false,
+      labels: { $in: [label._id] },
+    },
+    { $pull: { labels: label._id } },
+    { new: true }
+  );
 
-  if (!isAssigned) {
+  if (!task) {
+    await getActiveTask(projectId, taskId);
+
     throw new ApiError(400, 'Label is not assigned to this task');
   }
-
-  task.labels.pull(label._id);
-
-  await task.save();
 
   await createProjectActivity({
     workspaceId,

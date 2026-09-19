@@ -46,7 +46,6 @@ const workspaceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'Workspace owner is required'],
-      index: true,
     },
 
     members: {

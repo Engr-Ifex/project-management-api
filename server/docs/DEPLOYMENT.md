@@ -48,11 +48,30 @@ included. Substitute your own host names and secrets.
 
 ### Properties that matter for how you deploy
 
-**The API is stateless.** No sessions are stored server-side: the JWT lives in
-the client's cookie, and every request is authenticated from the token alone.
-Any instance can serve any request, so horizontal scaling needs no sticky
-sessions. (The one exception is the rate limiter — see
-[Known limitations](#8-known-limitations).)
+### Deployment model: one instance, one host
+
+**This deployment is single-instance and single-host, and that is a deliberate
+constraint rather than an accident.** Two components do not scale out as they
+stand, and both are documented in
+[Known limitations](#8-known-limitations):
+
+- **Rate limiting is per-process.** Each instance keeps its own counters, so
+  running N instances multiplies the effective limit by N and lets a client
+  that is throttled on one instance continue on another. There is no shared
+  store.
+- **Uploads are on local disk.** A file written by instance A is invisible to
+  instance B, so a second instance serves broken downloads for half the
+  requests.
+
+Running more than one API instance therefore requires replacing the rate-limit
+store with a shared one (Redis) and the storage provider with object storage.
+Until both are done, treat the API as **one instance behind one proxy**, and
+size it vertically.
+
+**The API is otherwise stateless.** No sessions are stored server-side: the JWT
+lives in the client's cookie, and every request is authenticated from the token
+alone — so nothing _else_ prevents running several instances, and a restart
+loses no user state.
 
 **Two stores must persist.** MongoDB, and the upload volume. A container
 replacement that loses the upload volume silently discards every avatar and
@@ -85,18 +104,28 @@ host is replaced. `npm run preflight` warns about this.
 
 ## 2. Required environment variables
 
-The app validates its configuration at startup and **refuses to boot** on a
-fatal mistake. `npm run preflight` checks the same values, plus the things that
-are legal but wrong for production, before you start.
+The app validates its configuration at startup. Two mistakes are **fatal** and
+stop the process before it listens; the rest are wrong-but-legal, and
+`npm run preflight` is what catches those.
 
-### Required
+### Fatal at boot — the process refuses to start
 
-| Variable            | Notes                                                                                          |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| `NODE_ENV`          | Must be `production`.                                                                          |
-| `MONGODB_URI`       | Connection string. Include credentials.                                                        |
-| `JWT_ACCESS_SECRET` | **At least 32 characters.** `openssl rand -hex 32`. Must not be a placeholder.                 |
-| `CORS_ORIGINS`      | Comma-separated browser origins. **Empty in production = no browser client can call the API.** |
+| Variable             | Notes                                                                                           |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`        | Connection string. Include credentials.                                                         |
+| `JWT_ACCESS_SECRET`  | Required, and **at least 32 characters when `NODE_ENV=production`**. Must not be a placeholder. |
+| `BCRYPT_SALT_ROUNDS` | Must be between 10 and 15.                                                                      |
+
+### Required in practice — the app boots, but the deployment is wrong
+
+| Variable       | Notes                                                                                                                                                                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NODE_ENV`     | Must be `production`. It defaults to `development`, and the difference is not cosmetic: in development the cookies are **not** `Secure`, CORS falls back to a wildcard when `CORS_ORIGINS` is unset, and logging is verbose. `npm run preflight` fails on anything else. |
+| `CORS_ORIGINS` | Comma-separated browser origins. Empty in production refuses every cross-origin browser request, so a browser client cannot call the API at all. Leave it empty only for a server-to-server deployment with no browser client.                                           |
+
+Neither is boot-fatal, so a process started with `node server.js` and a
+forgotten `NODE_ENV` will run — degraded, and silently. That is why
+`npm run start:prod` exists and why the Docker image sets `NODE_ENV` itself.
 
 ### Strongly recommended
 
@@ -146,8 +175,8 @@ chmod 600 .env.production
 #    Fill in: JWT_ACCESS_SECRET, MONGODB_URI, CORS_ORIGINS, TRUST_PROXY
 #    Generate the secret with: openssl rand -hex 32
 
-# 3. Add the compose-only variables
-#    MONGO_ROOT_PASSWORD=<a strong password>   (only if you use the bundled mongo)
+# 3. Add the compose-only variables (see below) — MONGO_ROOT_PASSWORD is required
+#    MONGO_ROOT_PASSWORD=<a strong password>
 
 # 4. Check the configuration before building
 npm ci
@@ -164,6 +193,24 @@ docker compose exec api npm run migrate:project-member-roles
 curl -fsS https://your-api-host/api/v1/health
 curl -fsS https://your-api-host/api/v1/health/ready
 ```
+
+### Compose-only variables
+
+`docker-compose.yml` reads five variables that the application itself never
+sees. They configure the bundled MongoDB and how compose wires the two
+containers together, so they belong in the environment file used by
+`docker compose` and are not part of the app's configuration.
+
+| Variable              | Required | Default              | Purpose                                                                                                                                                   |
+| --------------------- | -------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MONGO_ROOT_PASSWORD` | **yes**  | —                    | Declared with `:?`, so compose stops with a clear message rather than starting a database with an empty password.                                         |
+| `MONGO_ROOT_USER`     | no       | `pm`                 | Root user for the bundled MongoDB.                                                                                                                        |
+| `MONGO_DATABASE`      | no       | `project_management` | Database created inside the container.                                                                                                                    |
+| `API_PORT`            | no       | `5000`               | Host port the API is published on.                                                                                                                        |
+| `MONGO_PORT`          | no       | `27017`              | Host port the database is published on. **Remove this mapping on a public host** — the database should not be reachable from outside the compose network. |
+
+Only `MONGO_ROOT_PASSWORD` is mandatory. The rest have defaults, and setting
+them is only necessary to avoid a clash on the host.
 
 ### Option B — Platform build (managed container host)
 
@@ -229,9 +276,16 @@ so the upload directory must be listed explicitly or uploads fail.
 
 ### Zero-downtime deploys
 
-The API is stateless, so a rolling replace works: start the new instance, wait
-for `/api/v1/health/ready` to return 200, move traffic, then stop the old one.
-The old instance drains in-flight requests on SIGTERM.
+A rolling replace works: start the new instance, wait for
+`/api/v1/health/ready` to return 200, move traffic, then stop the old one. The
+old instance drains in-flight requests on SIGTERM.
+
+This is a **replace**, not a scale-out. During the overlap there are briefly two
+instances, which is the state the two constraints above describe: each has its
+own rate-limit counters, and an upload that lands on the new instance is not
+visible to the old one for the few seconds both are serving. That is acceptable
+for a deploy window and not acceptable as a steady state — see
+[Deployment model](#deployment-model-one-instance-one-host).
 
 **The one thing that breaks this** is a schema change that is not
 backward-compatible. Migrations that add fields are safe; ones that rename or
@@ -286,9 +340,20 @@ docker compose exec api npm run migrate:task-comments
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `npm run migrate:task-comments`        | Backfills the Phase 10 comment model: `user` → `author`, derives `project` from the task, and sets the soft-delete defaults. |
 | `npm run migrate:project-member-roles` | Backfills project member roles.                                                                                              |
+| `npm run migrate:drop-indexes`         | Drops twelve single-field indexes that duplicate the prefix of a compound index. Idempotent, and safe to re-run.             |
 
-Both read `MONGODB_URI` directly from the environment. They deliberately do not
-load the application config, so they can run without a full production
+`migrate:drop-indexes` exists because **removing an index from a Mongoose schema
+does not remove it from the database** — Mongoose only ever creates. The
+declarations are gone from the models, so a fresh database never grows them, but
+an existing one keeps paying a write on every insert and update until they are
+dropped. Run it once after deploying this change. It reports each index as
+dropped or skipped, and it deliberately does **not** touch `{ isArchived: 1 }`,
+`{ isDeleted: 1 }`, `{ isRead: 1 }`, `{ uploader: 1 }` or the
+`projectactivities.workspace` index — none of those is provably redundant, and
+deciding they are unused needs query-plan analysis against a real database.
+
+All three read `MONGODB_URI` directly from the environment. They deliberately do
+not load the application config, so they can run without a full production
 environment (no JWT secret needed) — which also means **`MONGODB_URI` must be
 set explicitly** when you run them.
 
@@ -459,6 +524,48 @@ infrastructure change.
 
 Stated plainly, because each one affects how you should operate this service.
 
+### Multi-document atomicity depends on the deployment topology
+
+Operations that write more than one document — accepting an invitation (the
+membership plus the invitation status), and the audit record written alongside
+most mutations — run inside a MongoDB transaction **when the deployment
+supports one**. A replica set or a sharded cluster does; a standalone `mongod`
+does not, and the application detects which it is talking to at first use and
+says so in the log.
+
+On a standalone server those writes still run, in order, and every invariant
+still holds — because each one is enforced by a _single-document_ atomic
+operation (a conditional `findOneAndUpdate`, `$addToSet`, `$pull`, or a unique
+index), not by the rollback. What the transaction removes is the window in which
+a partial failure can leave two documents disagreeing.
+
+**Use a replica set in production.** It is also what gives you a failover and
+backups worth the name, and it is what Atlas provides by default.
+
+### Concurrent writes are guarded at the database level
+
+Two requests that overlap used to be able to both pass a check and both write —
+producing a duplicate workspace member, two owners, or a lost label. Every such
+operation now puts its precondition in the write itself, so the database picks
+the winner:
+
+| Operation                        | Guard                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| Accept an invitation             | `findOneAndUpdate({ 'members.user': { $ne: userId } }, { $push: … })`          |
+| Add a project member             | same shape, scoped to the project                                              |
+| Attach / detach a label          | `$addToSet` / `$pull` with the attachment state in the filter                  |
+| Remove a workspace member        | `$pull` guarded by `$elemMatch` so the owner cannot be matched                 |
+| Change a member role             | `$set` on `members.$[target].role` with `arrayFilters`                         |
+| Transfer ownership               | one `$set` of both roles and the `owner` field, compare-and-swapped on `owner` |
+| Append / edit / delete a subtask | `$push`, `$set` on `subtasks.$[subtask]`, `$pull`                              |
+| Create an invitation             | partial unique index on `{workspace, email}` for pending invitations           |
+
+One collision is deliberately tolerated: a task's `position` is assigned from
+the current maximum, so two concurrent creates can share a position. `position`
+is an ordering hint, not an identifier, and a unique index would turn a benign
+collision into a failed request. The task list sorts by `position`, then
+`createdAt`, then `_id`, so the order stays total and pagination stays stable.
+
 ### Rate limiting is per-process
 
 The limiter keeps counters in the memory of each process. With **N** instances,
@@ -495,6 +602,18 @@ Scaling beyond one host requires replacing the storage provider with object
 storage (S3 or equivalent). The interface in `src/storage/storageProvider.js`
 exists to make that swap contained.
 
+The upload directories are created and write-checked **at startup**, so a
+missing or read-only volume stops the process with a clear message instead of
+surfacing as a 500 on the first upload. Stored filenames are always generated
+(UUID plus a validated extension) — the name a user supplies never reaches the
+filesystem — and the resolved path is re-checked for containment, so a storage
+key cannot escape the upload directory.
+
+Attachments are private: only `/uploads/avatars` is served statically, and
+everything else under `/uploads` returns 404. An attachment is reachable only
+through the authenticated download endpoint, which applies the project
+permission check.
+
 ### Graceful shutdown cannot be exercised on Windows
 
 The shutdown handler is registered for `SIGTERM` and `SIGINT`. Node on Windows
@@ -512,11 +631,20 @@ normally, and both shutdown paths have been verified there:
 If you develop on Windows, do not conclude from a local `Ctrl+C` that the
 handler is broken — test shutdown in the container.
 
-### No pagination on some lists
+### Some embedded lists are returned in full
 
-Labels, subtasks, workspace members and comment lists are returned in full.
-They are naturally bounded in practice, but a project with tens of thousands of
-labels would return them all in one response.
+Collections that have their own endpoint — tasks, projects, labels, comments,
+attachments, notifications, activity — are paginated.
+
+The lists that are **not** are the ones embedded in a parent document:
+a task's `subtasks`, a project's `members` and a workspace's `members`. They
+come back in full with the parent, so their size is bounded by the document
+limit rather than by pagination. A single task with thousands of subtasks, or a
+workspace with thousands of members, would return all of them in one response —
+and, for members, in one document that is loaded on nearly every request.
+
+Neither is a problem at realistic sizes. If one becomes one, the fix is to give
+the embedded list its own paginated endpoint rather than to raise limits.
 
 ### Search is a regex scan
 

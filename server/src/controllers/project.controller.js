@@ -133,9 +133,11 @@ export const changeProjectMemberRoleController = asyncHandler(async (req, res) =
     req.user._id
   );
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, project, 'Project member role updated successfully'));
+  return res.status(200).json(
+    new ApiResponse(200, 'Project member role updated successfully', {
+      project,
+    })
+  );
 });
 
 const projectController = {

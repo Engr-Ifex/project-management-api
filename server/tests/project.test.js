@@ -207,6 +207,15 @@ describe('Project', () => {
 
     assert.equal(response.status, 200);
 
+    /*
+     * The envelope is asserted, not just the status. This endpoint previously
+     * passed the arguments to ApiResponse in the wrong order, so `message` held
+     * the project document and `data` held the string — a broken response that
+     * a status-only assertion cannot catch.
+     */
+    assert.equal(response.body.message, 'Project member role updated successfully');
+    assert.equal(typeof response.body.data.project, 'object');
+
     const reloaded = await import('../src/models/Project.js').then((m) =>
       m.default.findById(project._id)
     );

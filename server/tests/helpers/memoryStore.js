@@ -148,6 +148,17 @@ const matchesCondition = (value, condition) => {
           return !isNullish(value) && compareValues(value, operand) <= 0;
         case '$exists':
           return operand ? !isNullish(value) : isNullish(value);
+        case '$elemMatch': {
+          /*
+           * "At least one element matches all of these conditions" — the only
+           * way to constrain two fields of the SAME array element, which a
+           * dotted path cannot express (it would let one element satisfy `user`
+           * and another satisfy `role`).
+           */
+          if (!Array.isArray(value)) return false;
+
+          return value.some((element) => matchesFilter(element, operand));
+        }
         default:
           throw new Error(`MemoryStore: unsupported operator ${operator}`);
       }
@@ -156,6 +167,26 @@ const matchesCondition = (value, condition) => {
 
   return looseEq(value, condition);
 };
+
+/*
+ * Negative operators, and the positive form each one negates.
+ *
+ * MongoDB reads `{ field: { $ne: x } }` as "the field does not contain x": for
+ * an array field it holds only when NO element equals x. Evaluating the
+ * operator per element instead — the previous behaviour — turned it into "some
+ * element differs from x", which is true for almost every non-empty array.
+ *
+ * That mattered as soon as the services started relying on
+ * `{ 'members.user': { $ne: userId } }` to make a membership insert atomic: the
+ * double matched workspaces that already contained the user, so the guard
+ * looked broken in tests while being correct against MongoDB.
+ */
+const NEGATED_OPERATORS = { $ne: '$eq', $nin: '$in' };
+
+const isNegationOnly = (condition) =>
+  isOperatorObject(condition) &&
+  Object.keys(condition).length > 0 &&
+  Object.keys(condition).every((operator) => operator in NEGATED_OPERATORS);
 
 const matchesFilter = (doc, filter) =>
   Object.entries(filter ?? {}).every(([key, condition]) => {
@@ -168,8 +199,80 @@ const matchesFilter = (doc, filter) =>
     // `{ assignee: null }` style filters.
     if (values.length === 0) values.push(undefined);
 
+    if (isNegationOnly(condition)) {
+      /*
+       * A plain array field (`labels`) arrives as one value that IS the array,
+       * while a dotted path (`members.user`) arrives already flattened. Expand
+       * so both are tested element-wise, which is what `$ne`/`$nin` mean for an
+       * array in MongoDB.
+       */
+      const elements = values.flatMap((value) => (Array.isArray(value) ? value : [value]));
+
+      const positive = Object.fromEntries(
+        Object.entries(condition).map(([operator, operand]) => [
+          NEGATED_OPERATORS[operator],
+          operand,
+        ])
+      );
+
+      return !elements.some((element) => matchesCondition(element, positive));
+    }
+
     return values.some((value) => matchesCondition(value, condition));
   });
+
+/*
+ * A document array gives every element an `_id`, and Mongoose assigns one when
+ * it casts a `$push`. The subtask routes address a subtask by that id
+ * afterwards, so a raw append would produce an element that can never be
+ * updated or deleted.
+ */
+const withSubdocumentId = (Model, path, value) => {
+  if (!isPlainObject(value) || value._id) return value;
+
+  const schemaType = Model.schema.path(path);
+  const elementSchema = schemaType?.schema ?? schemaType?.caster?.schema;
+
+  if (!elementSchema?.path('_id')) return value;
+
+  return { _id: new mongoose.Types.ObjectId(), ...value };
+};
+
+/*
+ * `$pull` accepts either a value to compare against each element or a condition
+ * document. MongoDB reads `{ members: { user: id } }` as "remove the elements
+ * whose `user` is id", which is how the services remove a member from an
+ * embedded array; comparing the condition with equality would match nothing.
+ */
+const pullMatches = (item, value) => {
+  if (isPlainObject(value) && !(value instanceof mongoose.Types.ObjectId)) {
+    return matchesFilter(item, value);
+  }
+
+  return looseEq(item, value);
+};
+
+/*
+ * Resolve an `$[identifier]` array marker to an element index, using the
+ * update's `arrayFilters` — e.g. `arrayFilters: [{ 'target.user': id }]` for
+ * the path `members.$[target].role`. Returns -1 when nothing matches, which
+ * makes the caller refuse the update, as MongoDB does.
+ */
+const resolveArrayFilter = (array, name, arrayFilters) => {
+  const spec = (arrayFilters ?? []).find((filter) =>
+    Object.keys(filter).some((key) => key.startsWith(`${name}.`))
+  );
+
+  if (!spec) return -1;
+
+  const condition = {};
+
+  for (const [key, value] of Object.entries(spec)) {
+    condition[key.slice(name.length + 1)] = value;
+  }
+
+  return array.findIndex((item) => matchesFilter(item, condition));
+};
 
 /* ------------------------------------------------------------------ *
  * Sorting
@@ -771,24 +874,19 @@ export const installModel = (Model) => {
     return found ? { _id: found._id } : null;
   };
 
-  Model.updateMany = async (filter, update) => {
+  Model.updateMany = async (filter, update, options = {}) => {
     assertCastable(Model, filter);
 
     let modified = 0;
 
-    for (const doc of entry.docs) {
-      if (!matchesFilter(doc, filter)) continue;
+    for (let index = 0; index < entry.docs.length; index += 1) {
+      if (!matchesFilter(entry.docs[index], filter)) continue;
 
-      if (update.$set) Object.assign(doc, update.$set);
+      const after = applyUpdate(deepCopy(entry.docs[index]), update, options.arrayFilters);
 
-      if (update.$pull) {
-        for (const [field, value] of Object.entries(update.$pull)) {
-          if (Array.isArray(doc[field])) {
-            doc[field] = doc[field].filter((item) => !looseEq(item, value));
-          }
-        }
-      }
+      if (after === null) continue;
 
+      entry.docs[index] = after;
       modified += 1;
     }
 
@@ -812,20 +910,75 @@ export const installModel = (Model) => {
     );
 
   /*
-   * Apply a plain update document. Supports the shapes the codebase actually
-   * uses: a bare field map, `$set`, and `$pull`.
+   * Apply an update document.
+   *
+   * Supports the shapes the codebase uses: a bare field map, `$set`, `$pull`,
+   * `$push` and `$addToSet`, with dotted paths and `$[identifier]` array
+   * filters.
+   *
+   * `$push`/`$addToSet`/dotted `$set` are how the services avoid
+   * read-modify-write races, so the double has to apply them the way MongoDB
+   * does or those tests prove nothing. `arrayFilters` is what makes an
+   * ownership transfer touch two different array elements in one update.
+   *
+   * Returns null when a path cannot be resolved — an array filter that matched
+   * nothing — mirroring MongoDB refusing the update rather than silently
+   * writing something else.
    */
-  const applyUpdate = (target, update) => {
+  const applyUpdate = (target, update, arrayFilters = []) => {
     const next = { ...target };
 
-    if (update.$set) Object.assign(next, update.$set);
+    const assign = (path, value) => {
+      const parts = path.split('.');
+      let node = next;
 
-    if (update.$pull) {
-      for (const [field, value] of Object.entries(update.$pull)) {
-        if (Array.isArray(next[field])) {
-          next[field] = next[field].filter((item) => !looseEq(item, value));
+      for (let i = 0; i < parts.length - 1; i += 1) {
+        const key = parts[i];
+        const following = parts[i + 1];
+        const container = node[key];
+
+        if (Array.isArray(container) && following.startsWith('$[')) {
+          const index = resolveArrayFilter(container, following.slice(2, -1), arrayFilters);
+
+          if (index < 0) return false;
+
+          node = container[index];
+          i += 1;
+        } else if (Array.isArray(container) && /^\d+$/.test(following)) {
+          node = container[Number(following)];
+          i += 1;
+        } else {
+          node = container;
         }
+
+        if (isNullish(node)) return false;
       }
+
+      node[parts[parts.length - 1]] = value;
+
+      return true;
+    };
+
+    for (const [path, value] of Object.entries(update.$set ?? {})) {
+      if (!assign(path, value)) return null;
+    }
+
+    for (const [path, value] of Object.entries(update.$pull ?? {})) {
+      if (Array.isArray(next[path])) {
+        next[path] = next[path].filter((item) => !pullMatches(item, value));
+      }
+    }
+
+    for (const [path, value] of Object.entries(update.$push ?? {})) {
+      const pushed = withSubdocumentId(Model, path, value);
+
+      next[path] = Array.isArray(next[path]) ? [...next[path], pushed] : [pushed];
+    }
+
+    for (const [path, value] of Object.entries(update.$addToSet ?? {})) {
+      const current = Array.isArray(next[path]) ? next[path] : [];
+
+      next[path] = current.some((item) => looseEq(item, value)) ? current : [...current, value];
     }
 
     for (const [field, value] of Object.entries(update)) {
@@ -856,7 +1009,10 @@ export const installModel = (Model) => {
       if (index < 0) return null;
 
       const before = deepCopy(entry.docs[index]);
-      const after = applyUpdate(before, update);
+      const after = applyUpdate(before, update, options.arrayFilters);
+
+      // An array filter that matched nothing: MongoDB refuses the update.
+      if (after === null) return null;
 
       if (options.runValidators) {
         const candidate = makeDocument(Model, deepCopy(after));

@@ -47,7 +47,21 @@ export const TASK_SORT_FIELDS = Object.freeze([
 export const TASK_SEARCH_FIELDS = Object.freeze(['title', 'description']);
 
 // Matches the ordering the task list has always used.
-export const TASK_DEFAULT_SORT = Object.freeze({ position: 1, createdAt: 1 });
+/*
+ * `_id` is the final tie-break, and it is not decorative.
+ *
+ * A task's `position` is assigned by reading the current maximum and adding
+ * one. Two concurrent creates can read the same maximum and therefore share a
+ * position — a benign collision, because `position` is an ordering hint rather
+ * than an identifier, and a unique index would turn it into a failed request
+ * instead. `createdAt` breaks most of those ties, but two requests can land in
+ * the same millisecond.
+ *
+ * Without a total order, a paginated read can return the same task on two
+ * pages, or skip one, purely because the database chose a different order for
+ * equal keys. `_id` is unique, so the order is total and pagination is stable.
+ */
+export const TASK_DEFAULT_SORT = Object.freeze({ position: 1, createdAt: 1, _id: 1 });
 
 export const COMMENT_SORT_FIELDS = Object.freeze(['createdAt', 'updatedAt']);
 

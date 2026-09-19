@@ -1,5 +1,4 @@
 import Workspace from '../models/Workspace.js';
-import ApiError from '../utils/ApiError.js';
 
 import { buildSearchFilter, buildSort, findPaginated, mergeFilters } from '../utils/query.js';
 

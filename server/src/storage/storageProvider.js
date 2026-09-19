@@ -40,4 +40,20 @@ export const getStorageProvider = (name = STORAGE_PROVIDERS.LOCAL) => {
   return provider;
 };
 
+/**
+ * Give the active provider a chance to prepare its backing store at startup.
+ *
+ * Optional by design: a provider whose backend needs no local preparation (an
+ * object store, say) simply does not implement it. Local disk storage uses it
+ * to create and write-check the upload directories so a misconfigured volume
+ * fails the boot rather than the first upload.
+ */
+export const ensureStorageReady = async (name = STORAGE_PROVIDERS.LOCAL) => {
+  const provider = getStorageProvider(name);
+
+  if (typeof provider.ensureReady === 'function') {
+    await provider.ensureReady();
+  }
+};
+
 export default getStorageProvider;

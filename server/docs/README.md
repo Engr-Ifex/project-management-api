@@ -188,16 +188,23 @@ The objectives of this project are to:
 project-management-api/
 
 client/
-server/
-docs/
+server/            the API — everything below lives here
+  src/             application code
+  tests/           the automated suite
+  scripts/         route inventory, OpenAPI generation, preflight
+  docs/            this directory
+  Dockerfile       production image
+  docker-compose.yml
 
 README.md
-LICENSE
 ```
+
+The repository root holds `README.md` and `client/`; there is no `LICENSE` file
+and no root-level `docs/` — the API's documentation is `server/docs/`.
 
 A more detailed architecture can be found in:
 
-> docs/ARCHITECTURE.md
+> server/docs/ARCHITECTURE.md
 
 ---
 
@@ -205,17 +212,23 @@ A more detailed architecture can be found in:
 
 Project documentation is located inside the **docs** directory.
 
-- VISION.md
-- FEATURES.md
-- ROADMAP.md
+- DEPLOYMENT.md — production deployment, health checks, and the operational limitations
+- API.md — every endpoint, role, permission and status code
+- openapi.json — the machine-readable OpenAPI 3.1 contract
 - ARCHITECTURE.md
 - DATABASE.md
-- API.md
 - SECURITY.md
+- ENVIRONMENT.md
+- FEATURES.md
+- ROADMAP.md
+- VISION.md
 - SETUP.md
 - CHANGELOG.md
 - CONTRIBUTING.md
-- ENVIRONMENT.md
+
+The first three are current. The rest predate the implementation and have not
+been brought up to date — treat `API.md`, `DEPLOYMENT.md`, `.env.example` and
+the code as authoritative.
 
 ---
 
@@ -241,11 +254,17 @@ Create a `.env` file inside the server directory.
 Example:
 
 ```env
+NODE_ENV=development
 PORT=5000
 MONGODB_URI=
-JWT_SECRET=
-JWT_EXPIRES_IN=
+JWT_ACCESS_SECRET=
+JWT_ACCESS_EXPIRES_IN=15m
+CORS_ORIGINS=
 ```
+
+The full list, with defaults and notes, is in `.env.example`. The names above
+must match exactly — `JWT_SECRET` is not read by anything, and a misnamed
+variable fails at boot rather than being silently ignored.
 
 ### Run the development server
 
@@ -328,26 +347,33 @@ docs/ROADMAP.md
 
 **Current Phase**
 
-🟢 Planning & Documentation
+Backend feature-complete and prepared for deployment: authentication,
+workspaces, projects, tasks, comments, labels, attachments, notifications,
+dashboards, the activity trail, generated API documentation, an automated test
+suite, and container/deployment configuration.
 
-Project progress will be updated as development continues.
+**Not yet launched.** No deployment has been performed, so the API has not
+served real traffic.
+
+This section is a summary, not the source of truth. `docs/ROADMAP.md` holds the
+phase plan, and the repository history records what each phase changed.
 
 ---
 
 # Future Improvements
 
-Future versions may include:
+Not implemented:
 
-- Real-time notifications
-- Email notifications
-- File storage
-- Activity timeline
-- WebSockets
-- Docker support
+- Real-time notifications (WebSockets)
+- Email delivery for invitations and notifications
+- Object storage for uploads, to allow more than one API host
+- A shared rate-limit store, for the same reason
+- A frontend and a mobile client
 - CI/CD pipeline
-- API versioning
-- Frontend application
-- Mobile application
+
+Delivered since this list was first written, and no longer future work:
+file storage, the activity timeline, Docker support, and URL-versioned
+endpoints (`/api/v1`).
 
 ---
 

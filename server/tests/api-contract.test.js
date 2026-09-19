@@ -1,8 +1,11 @@
 import { before, after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import request from 'supertest';
+import express from 'express';
 
 import { startTestDatabase, stopTestDatabase } from './helpers/setup.js';
+import errorHandler from '../src/middlewares/error.middleware.js';
+import ApiError from '../src/utils/ApiError.js';
 
 /*
  * Response envelope contract.
@@ -98,5 +101,45 @@ describe('response envelope contract', () => {
       `expected 400 or 401, got ${response.status}`
     );
     assert.notEqual(response.status, 500);
+  });
+
+  /*
+   * A 5xx that nobody wrote on purpose is a bug, and its message is not
+   * authored for a client: driver errors can embed a connection string, a
+   * file path or a fragment of a query. These two tests pin both halves of
+   * the rule — unexpected errors are masked, deliberate ones are not.
+   */
+  test('an unexpected server error does not leak its message', async () => {
+    const synthetic = express();
+
+    synthetic.get('/boom', (req, res, next) => {
+      next(new Error('failed to connect to mongodb://admin:hunter2@db.internal:27017'));
+    });
+    synthetic.use(errorHandler);
+
+    const response = await request(synthetic).get('/boom');
+
+    assert.equal(response.status, 500);
+    assert.equal(response.body.message, 'Internal Server Error');
+    assert.equal(response.body.errors.length, 0);
+
+    const body = JSON.stringify(response.body);
+
+    assert.ok(!body.includes('hunter2'), 'the credential must not appear in the response');
+    assert.ok(!body.includes('db.internal'), 'the host must not appear in the response');
+  });
+
+  test('a deliberate 5xx keeps the message written for the caller', async () => {
+    const synthetic = express();
+
+    synthetic.get('/unavailable', (req, res, next) => {
+      next(new ApiError(503, 'OpenAPI document is unavailable. Run `npm run docs:generate`.'));
+    });
+    synthetic.use(errorHandler);
+
+    const response = await request(synthetic).get('/unavailable');
+
+    assert.equal(response.status, 503);
+    assert.match(response.body.message, /docs:generate/);
   });
 });

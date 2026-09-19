@@ -40,13 +40,13 @@ this repository is the backend.
 - Workspace and project dashboards with task statistics
 
 **Platform concerns**
-- Zod validation on body, params and query for every route
+- Zod validation of body, params and query on every route that accepts input
 - Layered authorization with object-level rules
 - Security headers, CORS allow-list, per-IP rate limiting, body size limits
 - Fail-fast environment validation
 - Uploads restricted by MIME type **and** extension, stored privately
 - Standard success and error envelopes, consistent pagination
-- 254 automated tests, generated OpenAPI 3.1 documentation
+- 308 automated tests, generated OpenAPI 3.1 documentation
 
 **Production readiness**
 - Fail-fast environment validation plus a `preflight` readiness check
@@ -232,7 +232,7 @@ cd server
 npm test
 ```
 
-254 tests across 45 suites, covering authentication, authorization, workspaces,
+308 tests across 64 suites, covering authentication, authorization, workspaces,
 projects, tasks, subtasks, comments, labels, notifications, activity,
 attachments, dashboards, query behaviour, the health/readiness probes and the
 response envelope contract.

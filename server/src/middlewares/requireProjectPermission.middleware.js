@@ -3,8 +3,6 @@ import Project from '../models/Project.js';
 
 import { hasProjectPermission } from '../constants/projectRolePermissions.js';
 
-import PROJECT_ROLES from '../constants/projectRoles.js';
-
 import { hasProjectOverride } from '../constants/rolePermissions.js';
 
 const requireProjectPermission = (permission) => {

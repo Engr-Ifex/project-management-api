@@ -28,7 +28,22 @@ Curated, long-lived notes. Daily detail lives in `YYYY-MM-DD.md`.
 - `npm run preflight` (also run by `start:prod`) validates the *production* environment and exits 1 on the development `.env` — that failure is expected locally, not a bug.
 - **Docker is not installed on this machine.** `Dockerfile` / `docker-compose.yml` have never been built or run; treat them as unverified code. Graceful shutdown likewise cannot be exercised on Windows (Node does not deliver POSIX signals).
 
+## Audit findings that must not be re-derived (Phase 21, `server/docs/AUDIT.md`)
+- **RESOLVED 2026-09-19 — see `server/docs/REMEDIATION.md`.** The permission tables now list only what is enforced, and `tests/permissions.test.js` derives the truth from the route inventory and fails on drift. The ROUTES were right; the TABLES were wrong. Do not "fix" this by widening guards.
+- **Read scope is now uniform:** workspace membership grants the workspace, its member list, the project list and a single project's record (discovery). Everything inside a project — tasks, subtasks, comments, labels, attachments, dashboard, activity — requires `project:view`. Task/subtask reads were the exception and are fixed.
+- **Duplicate membership CANNOT be prevented by a unique index.** A unique index on `{'members.user': 1}` enforces uniqueness *across documents* (one user, one workspace). The invariant is intra-document, which no MongoDB index can express — the conditional `findOneAndUpdate` is the only mechanism.
+- **Task `position` may repeat** under concurrent creates; deliberately tolerated, because `position` is an ordering hint and a unique index would turn a benign collision into a failed request. `TASK_DEFAULT_SORT` is `{position, createdAt, _id}` so the order is total.
+- **One transaction only**, in `acceptInvitation` (`src/utils/transactions.js`). Everything else is single-document atomic. Transactions need a replica set; the fallback is detected, logged once, and documented.
+- **`tests/helpers/memoryStore.js` is a real dependency** — it emulates `$ne`/`$nin` on arrays, `$push`, `$addToSet`, `$pull` by condition, `$elemMatch` and `$set` with `arrayFilters`. Extend it when you use a new operator, or the tests prove nothing.
+- **Indexes: prefix redundancy is provable, "unused" is not.** Twelve single-field indexes were removed because each is a prefix of a compound index on the same collection (if `{a:1,b:1}` exists, `{a:1}` can never be the better choice). Removing a schema declaration does **not** drop the index — Mongoose only creates — so `npm run migrate:drop-indexes` exists to drop them from an existing database. `tests/indexes.test.js` derives redundancy from the definitions and fails if one comes back.
+- **`{isArchived:1}`, `{isDeleted:1}`, `{isRead:1}`, `attachments.uploader` and `projectactivities.workspace` are NOT provably redundant** and were deliberately left alone — deciding they are unused needs `explain()` against a real database. Do not remove them without that evidence.
+- **`members.user` must never get a unique index.** It would enforce uniqueness *across documents* (one user, one workspace). Pinned by a test.
+- **Docker is NOT installed on this machine.** Never claim a build/compose/startup was run. Static validation only.
+- **`npm run migrate:drop-indexes` has never been executed** — `.env` points at the real Atlas cluster, so running it would be destructive. It is syntax-checked only. Do not run it without being asked.
+- `eslint` is **0 errors / 0 warnings**. `next` in `error.middleware.js` is `_next` on purpose (Express identifies error handlers by arity 4) — the ESLint config has `argsIgnorePattern: '^_'`. Do not "fix" it by dropping the parameter.
+- **Unexpected 5xx are masked** to `Internal Server Error`; deliberate 5xx `ApiError`s keep their message. Both halves are pinned by tests.
+
 ## Known inconsistencies (documented, deliberately unfixed)
 - `POST /subtasks` returns the parent task under the `subtask` key; `PATCH` returns the subtask.
 - An archived project remains retrievable by id; an archived task 404s.
-- `src/middlewares/authorize.middleware.js` is dead code.
+- `src/middlewares/authorize.middleware.js` is dead code; `reorderTaskSchema` (`task.validator.js`) is an unused validator.

@@ -6,8 +6,6 @@ import authenticate from '../middlewares/authenticate.middleware.js';
 
 import { requireWorkspaceMember } from '../middlewares/workspace.middleware.js';
 
-import requireWorkspaceRole from '../middlewares/workspaceRole.middleware.js';
-
 import validate from '../middlewares/validate.middleware.js';
 
 import {
@@ -20,7 +18,6 @@ import requireWorkspacePermission from '../middlewares/requireWorkspacePermissio
 
 import { WORKSPACE_PERMISSIONS } from '../constants/workspacePermissions.js';
 
-import { WORKSPACE_ROLES } from '../constants/workspaceRoles.js';
 import { workspaceIdSchema } from '../validators/workspace.validator.js';
 
 const router = Router();

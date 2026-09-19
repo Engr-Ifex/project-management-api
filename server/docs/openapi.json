@@ -2901,7 +2901,7 @@
         "summary": "Log in and receive a session cookie",
         "operationId": "postAuthentication",
         "responses": {
-          "201": {
+          "200": {
             "description": "Success.",
             "content": {
               "application/json": {
@@ -2975,7 +2975,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Success.",
             "content": {
               "application/json": {
@@ -3965,7 +3965,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Success.",
             "content": {
               "application/json": {
@@ -5559,7 +5559,7 @@
           }
         ],
         "responses": {
-          "201": {
+          "200": {
             "description": "Success.",
             "content": {
               "application/json": {
@@ -6477,6 +6477,16 @@
               }
             }
           },
+          "403": {
+            "description": "Authenticated, but without the required workspace or project authority.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "404": {
             "description": "The resource does not exist, or is outside the caller’s scope.",
             "content": {
@@ -6707,6 +6717,16 @@
           },
           "401": {
             "description": "Missing, expired, malformed or revoked session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but without the required workspace or project authority.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7959,6 +7979,16 @@
           },
           "401": {
             "description": "Missing, expired, malformed or revoked session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated, but without the required workspace or project authority.",
             "content": {
               "application/json": {
                 "schema": {

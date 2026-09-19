@@ -1,6 +1,7 @@
 import env from './src/config/env.js';
 import app from './app.js';
 import { connectDB, closeDatabase } from './src/config/database.js';
+import { ensureStorageReady } from './src/storage/storageProvider.js';
 import registerGracefulShutdown from './src/utils/gracefulShutdown.js';
 import logger from './src/utils/logger.js';
 
@@ -37,6 +38,25 @@ const HEADERS_TIMEOUT_MS = 66000;
 const REQUEST_TIMEOUT_MS = 120000;
 
 const startServer = async () => {
+  /*
+   * Prepare the upload directories first.
+   *
+   * A deployment whose uploads volume is missing, or mounted read-only, cannot
+   * accept a single upload — and on a fresh host that is the normal state until
+   * the volume is attached and chowned. Failing here reports it at boot, with
+   * the fix, rather than as a 500 to the first user who uploads something.
+   */
+  try {
+    await ensureStorageReady();
+  } catch (error) {
+    logger.error('Upload directory is not usable; refusing to start', {
+      error,
+      hint: 'Mount the uploads volume and make it writable by the process user.',
+    });
+
+    process.exit(1);
+  }
+
   try {
     await connectDB();
   } catch (error) {

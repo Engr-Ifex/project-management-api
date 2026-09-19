@@ -17,7 +17,14 @@ export default [
     },
 
     rules: {
-      'no-unused-vars': 'warn',
+      /*
+       * Function arguments prefixed with `_` are intentionally unused. The
+       * case that needs this is Express's error handler, which MUST declare
+       * four parameters — `(err, req, res, next)` — because Express identifies
+       * it by arity. Dropping `next` silently turns it into ordinary
+       * middleware that never runs, so it is kept and prefixed instead.
+       */
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-console': 'off',
       'no-undef': 'error',
     },

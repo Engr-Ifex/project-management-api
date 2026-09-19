@@ -267,9 +267,24 @@ anyone else.
 
 ### Reads versus writes
 
-Reads of project content are scoped to the **workspace** — any workspace member
-can read any project's tasks, subtasks and comments. Writes are scoped to the
-**project** and carry a project permission.
+Writes are scoped to the **project** and always carry a project permission.
+Reads fall into two tiers:
+
+| Read                                                                                                          | Requirement                                                                            |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| The workspace itself, its member list, the project list, and a single project's record                        | **workspace membership only** — this is discovery: seeing what exists in the workspace |
+| Everything inside a project: its tasks, subtasks, comments, labels, attachments, dashboard and activity trail | `project:view` — a project role is required, or the workspace owner/admin override     |
+
+So a workspace member holding no project role can see that a project exists and
+read its metadata, but not its work. Reading a project's content requires a
+project role.
+
+This used to be inconsistent: tasks and subtasks required only workspace
+membership while comments, labels, attachments, the dashboard and the activity
+trail required `project:view`. Because a task response populates its `labels`
+with names and colours, that let a workspace member read label data through the
+task route that the label routes refuse them. Task and subtask reads now carry
+the same `project:view` requirement as the rest of a project's content.
 
 ---
 
@@ -293,15 +308,20 @@ Three roles, defined in `src/constants/workspaceRoles.js`.
 | `invite_members`     |  yes  |  yes  |   —    |
 | `remove_members`     |  yes  |  yes  |   —    |
 | `change_roles`       |  yes  |   —   |   —    |
-| `archive_workspace`  |  yes  |  yes  |   —    |
-| `restore_workspace`  |  yes  |  yes  |   —    |
+| `archive_workspace`  |  yes  |   —   |   —    |
+| `restore_workspace`  |  yes  |   —   |   —    |
 | `delete_workspace`   |  yes  |   —   |   —    |
 | `transfer_ownership` |  yes  |   —   |   —    |
 
-> **Implementation note.** Archiving and restoring a workspace are enforced by
-> `requireWorkspaceRole(OWNER)` on the route, which is **stricter** than the
-> permission table above (which grants `archive_workspace` to admins too). The
-> route wins: only the owner can archive or restore.
+This matrix is the enforcement contract: every `yes` is consulted by a route
+guard, and nothing is listed that no route checks.
+
+> **Archiving and restoring a workspace are owner-only.** They are enforced by
+> `requireWorkspaceRole(OWNER)` on the route rather than by the permission
+> table. Admins were previously granted `archive_workspace` and
+> `restore_workspace` in the table, which no route consulted — so the table
+> advertised a capability the API refuses. The grant has been removed so the
+> two agree.
 
 Additional guards from the route layer:
 
@@ -325,44 +345,49 @@ Four roles, defined in `src/constants/projectRoles.js`.
 
 ## 10. Project permissions
 
-| Permission              | owner | admin | member | viewer |
-| ----------------------- | :---: | :---: | :----: | :----: |
-| `project:view`          |  yes  |  yes  |  yes   |  yes   |
-| `project:update`        |  yes  |  yes  |   —    |   —    |
-| `project:archive`       |  yes  |  yes  |   —    |   —    |
-| `project:restore`       |  yes  |  yes  |   —    |   —    |
-| `project:view_members`  |  yes  |  yes  |  yes   |  yes   |
-| `project:add_member`    |  yes  |  yes  |   —    |   —    |
-| `project:remove_member` |  yes  |  yes  |   —    |   —    |
-| `project:change_role`   |  yes  |  yes  |   —    |   —    |
-| `task:create`           |  yes  |  yes  |  yes   |   —    |
-| `task:update`           |  yes  |  yes  |  yes   |   —    |
-| `task:assign`           |  yes  |  yes  |  yes   |   —    |
-| `task:delete`           |  yes  |  yes  |   —    |   —    |
-| `task:archive`          |  yes  |  yes  |   —    |   —    |
-| `task:restore`          |  yes  |  yes  |   —    |   —    |
-| `subtask:create`        |  yes  |  yes  |  yes   |   —    |
-| `subtask:update`        |  yes  |  yes  |  yes   |   —    |
-| `subtask:delete`        |  yes  |  yes  |  yes   |   —    |
-| `comment:create`        |  yes  |  yes  |  yes   |   —    |
-| `comment:update`        |  yes  |  yes  |  yes   |   —    |
-| `comment:delete`        |  yes  |  yes  |  yes   |   —    |
-| `comment:moderate`      |  yes  |  yes  |   —    |   —    |
-| `label:create`          |  yes  |  yes  |   —    |   —    |
-| `label:update`          |  yes  |  yes  |   —    |   —    |
-| `label:delete`          |  yes  |  yes  |   —    |   —    |
-| `label:assign`          |  yes  |  yes  |  yes   |   —    |
-| `attachment:create`     |  yes  |  yes  |  yes   |   —    |
-| `attachment:delete`     |  yes  |  yes  |  yes   |   —    |
-| `attachment:moderate`   |  yes  |  yes  |   —    |   —    |
+| Permission            | owner | admin | member | viewer |
+| --------------------- | :---: | :---: | :----: | :----: |
+| `project:view`        |  yes  |  yes  |  yes   |  yes   |
+| `project:change_role` |  yes  |  yes  |   —    |   —    |
+| `task:create`         |  yes  |  yes  |  yes   |   —    |
+| `task:update`         |  yes  |  yes  |  yes   |   —    |
+| `task:assign`         |  yes  |  yes  |  yes   |   —    |
+| `task:archive`        |  yes  |  yes  |   —    |   —    |
+| `task:restore`        |  yes  |  yes  |   —    |   —    |
+| `subtask:create`      |  yes  |  yes  |  yes   |   —    |
+| `subtask:update`      |  yes  |  yes  |  yes   |   —    |
+| `subtask:delete`      |  yes  |  yes  |  yes   |   —    |
+| `comment:create`      |  yes  |  yes  |  yes   |   —    |
+| `comment:update`      |  yes  |  yes  |  yes   |   —    |
+| `comment:delete`      |  yes  |  yes  |  yes   |   —    |
+| `comment:moderate`    |  yes  |  yes  |   —    |   —    |
+| `label:create`        |  yes  |  yes  |   —    |   —    |
+| `label:update`        |  yes  |  yes  |   —    |   —    |
+| `label:delete`        |  yes  |  yes  |   —    |   —    |
+| `label:assign`        |  yes  |  yes  |  yes   |   —    |
+| `attachment:create`   |  yes  |  yes  |  yes   |   —    |
+| `attachment:delete`   |  yes  |  yes  |  yes   |   —    |
+| `attachment:moderate` |  yes  |  yes  |   —    |   —    |
+
+This matrix lists only what a project role can actually do — every row is
+consulted by `requireProjectPermission`, or by the comment and attachment
+services for the `*:moderate` capabilities.
 
 Notes:
 
 - `comment:update` / `comment:delete` / `attachment:delete` grant the ability to
   act on **your own** items. Acting on someone else's requires the matching
   `*:moderate` capability (owner/admin, or a workspace owner/admin).
-- `task:delete` exists in the table but **no delete endpoint is exposed** — tasks
-  are archived instead.
+- **Project lifecycle is not a project permission.** Creating, updating,
+  archiving, restoring and re-status-ing a project, and adding or removing
+  project members, are workspace-level operations gated by
+  `update_workspace` — see [Project endpoints](#16-project-endpoints). A
+  project role governs the work inside a project, not the project's existence
+  or its membership. Changing a member's _role_ is the one exception, and it is
+  the `project:change_role` row above.
+- **`task:delete` is not granted to anyone.** No delete endpoint is exposed —
+  tasks are archived and restored — so there is no capability to grant. The
+  name still exists in `PROJECT_PERMISSIONS` as vocabulary.
 
 ---
 
@@ -523,7 +548,9 @@ Stack traces are attached only when `NODE_ENV=development`.
 | `POST` | `/auth/login`    | public   | Start a session                       |
 | `POST` | `/auth/logout`   | required | Clear the session cookie              |
 
-All three are rate limited to **10 requests / 15 minutes per IP**.
+`POST /auth/register` and `POST /auth/login` are rate limited to **10 requests /
+15 minutes per IP**. `POST /auth/logout` is **not** — it is authenticated and
+only clears a cookie, so throttling it would lock a user out of logging out.
 
 `POST /auth/register` and `POST /auth/login` set the cookie and return the user.
 The token is **never** in the response body.
@@ -597,19 +624,19 @@ roles are one of `owner`, `admin`, `member`, `viewer`.
 
 ## 18. Task endpoints
 
-| Method  | Path                         | Project permission   | Purpose                                 |
-| ------- | ---------------------------- | -------------------- | --------------------------------------- |
-| `POST`  | `…/tasks`                    | `task:create`        | Create                                  |
-| `GET`   | `…/tasks`                    | _(workspace member)_ | List, filter, sort, paginate            |
-| `GET`   | `…/tasks/:taskId`            | _(workspace member)_ | Get one                                 |
-| `PATCH` | `…/tasks/:taskId`            | `task:update`        | Update title/description/dates/estimate |
-| `PATCH` | `…/tasks/:taskId/archive`    | `task:archive`       | Archive                                 |
-| `PATCH` | `…/tasks/:taskId/restore`    | `task:restore`       | Restore                                 |
-| `PATCH` | `…/tasks/:taskId/status`     | `task:update`        | Change status                           |
-| `PATCH` | `…/tasks/:taskId/priority`   | `task:update`        | Change priority                         |
-| `PATCH` | `…/tasks/:taskId/assignee`   | `task:assign`        | Assign or unassign                      |
-| `PATCH` | `…/tasks/:taskId/due-date`   | `task:update`        | Set or clear the due date               |
-| `PATCH` | `…/tasks/:taskId/start-date` | `task:update`        | Set or clear the start date             |
+| Method  | Path                         | Project permission | Purpose                                 |
+| ------- | ---------------------------- | ------------------ | --------------------------------------- |
+| `POST`  | `…/tasks`                    | `task:create`      | Create                                  |
+| `GET`   | `…/tasks`                    | `project:view`     | List, filter, sort, paginate            |
+| `GET`   | `…/tasks/:taskId`            | `project:view`     | Get one                                 |
+| `PATCH` | `…/tasks/:taskId`            | `task:update`      | Update title/description/dates/estimate |
+| `PATCH` | `…/tasks/:taskId/archive`    | `task:archive`     | Archive                                 |
+| `PATCH` | `…/tasks/:taskId/restore`    | `task:restore`     | Restore                                 |
+| `PATCH` | `…/tasks/:taskId/status`     | `task:update`      | Change status                           |
+| `PATCH` | `…/tasks/:taskId/priority`   | `task:update`      | Change priority                         |
+| `PATCH` | `…/tasks/:taskId/assignee`   | `task:assign`      | Assign or unassign                      |
+| `PATCH` | `…/tasks/:taskId/due-date`   | `task:update`      | Set or clear the due date               |
+| `PATCH` | `…/tasks/:taskId/start-date` | `task:update`      | Set or clear the start date             |
 
 **There is no delete endpoint for tasks.** They are archived.
 
@@ -636,12 +663,12 @@ Create payload:
 
 ## 19. Subtask endpoints
 
-| Method   | Path                                  | Project permission   | Purpose       |
-| -------- | ------------------------------------- | -------------------- | ------------- |
-| `POST`   | `…/tasks/:taskId/subtasks`            | `subtask:create`     | Add a subtask |
-| `GET`    | `…/tasks/:taskId/subtasks`            | _(workspace member)_ | List subtasks |
-| `PATCH`  | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:update`     | Update        |
-| `DELETE` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:delete`     | Delete        |
+| Method   | Path                                  | Project permission | Purpose       |
+| -------- | ------------------------------------- | ------------------ | ------------- |
+| `POST`   | `…/tasks/:taskId/subtasks`            | `subtask:create`   | Add a subtask |
+| `GET`    | `…/tasks/:taskId/subtasks`            | `project:view`     | List subtasks |
+| `PATCH`  | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:update`   | Update        |
+| `DELETE` | `…/tasks/:taskId/subtasks/:subtaskId` | `subtask:delete`   | Delete        |
 
 Subtasks are embedded in the parent task and support `title` and
 `isCompleted`. Setting `isCompleted` stamps `completedAt`.
@@ -819,7 +846,7 @@ Project dashboard:
   denominator is zero.
 - `overdue` counts open tasks (not `completed`/`cancelled`) with a past due date.
 - `unassigned` counts tasks with no assignee — including a cancelled one.
-- `upcomingDueDays` defaults to 7 and accepts 1–90.
+- `upcomingDueDays` defaults to 7 and accepts 1–365.
 
 ---
 
@@ -945,7 +972,7 @@ Rejections return **400**.
 
 | Code    | Meaning here                                                                                                                                                                                               |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **200** | Success (`GET`, `PATCH`, `DELETE`).                                                                                                                                                                        |
+| **200** | Success (`GET`, `PATCH`, `DELETE`), and the `POST`s that do not create a resource: login, logout, adding a project member, assigning a label.                                                              |
 | **201** | Resource created (`POST`).                                                                                                                                                                                 |
 | **400** | Validation failed, or the request is not actionable (bad ObjectId, invalid date range, assigning a non-member, unsupported file type).                                                                     |
 | **401** | Missing, expired, malformed or revoked session cookie; wrong current password.                                                                                                                             |
@@ -1116,6 +1143,8 @@ requirements without project membership.
 | -------- | ----------------------------------------------- | ---------------------------------------- |
 | `GET`    | `/workspaces/:workspaceId`                      | —                                        |
 | `GET`    | `/workspaces/:workspaceId/members`              | —                                        |
+| `GET`    | `/workspaces/:workspaceId/projects`             | — (project discovery)                    |
+| `GET`    | `/workspaces/:workspaceId/projects/:projectId`  | — (project discovery)                    |
 | `GET`    | `/workspaces/:workspaceId/dashboard`            | `view_workspace`                         |
 | `PATCH`  | `/workspaces/:workspaceId`                      | role `owner` or `admin`                  |
 | `PATCH`  | `/workspaces/:workspaceId/archive`              | role `owner`                             |
@@ -1148,12 +1177,12 @@ Workspace owner/admin satisfy all of these.
 | `GET`                  | `…/projects/:projectId/dashboard`                                    | `project:view`                                       |
 | `GET`                  | `…/projects/:projectId/activities`                                   | `project:view`                                       |
 | `PATCH`                | `…/projects/:projectId/members/:userId/role`                         | `project:change_role`                                |
-| `GET` `POST`           | `…/tasks`                                                            | `project:view` / `task:create`                       |
-| `GET` `PATCH`          | `…/tasks/:taskId`                                                    | `project:view` / `task:update`                       |
+| `GET` `POST`           | `…/tasks`                                                            | _(workspace member)_ / `task:create`                 |
+| `GET` `PATCH`          | `…/tasks/:taskId`                                                    | _(workspace member)_ / `task:update`                 |
 | `PATCH`                | `…/tasks/:taskId/archive` \| `restore`                               | `task:archive` / `task:restore`                      |
 | `PATCH`                | `…/tasks/:taskId/status` \| `priority` \| `due-date` \| `start-date` | `task:update`                                        |
 | `PATCH`                | `…/tasks/:taskId/assignee`                                           | `task:assign`                                        |
-| `GET` `POST`           | `…/tasks/:taskId/subtasks`                                           | `project:view` / `subtask:create`                    |
+| `GET` `POST`           | `…/tasks/:taskId/subtasks`                                           | _(workspace member)_ / `subtask:create`              |
 | `PATCH` `DELETE`       | `…/tasks/:taskId/subtasks/:subtaskId`                                | `subtask:update` / `subtask:delete`                  |
 | `GET` `POST`           | `…/tasks/:taskId/comments`                                           | `project:view` / `comment:create`                    |
 | `GET` `PATCH` `DELETE` | `…/tasks/:taskId/comments/:commentId`                                | `project:view` / `comment:update` / `comment:delete` |

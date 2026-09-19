@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 import ApiError from '../utils/ApiError.js';
 import { OBJECT_ID_REGEX } from '../constants/regex.js';
-import { PRIVATE_ATTACHMENTS_DIR } from '../config/paths.js';
+import { PUBLIC_AVATARS_DIR, PRIVATE_ATTACHMENTS_DIR } from '../config/paths.js';
 
 /*
  * Local disk storage provider.
@@ -98,6 +98,26 @@ const resolveScopeSegment = (scope) => {
 
 const localStorageProvider = {
   name: 'local',
+
+  /**
+   * Verify the storage layout is usable, creating it if necessary.
+   *
+   * Called once at startup. Without it a missing or read-only upload directory
+   * surfaces only on the first upload, as a 500 to whoever happens to try —
+   * which is exactly the case a fresh deployment hits, because the volume is
+   * mounted empty and owned by the host rather than by the container user.
+   * Failing at startup turns that into an immediate, actionable error.
+   *
+   * Both directories are checked: avatars are served statically from one, and
+   * attachments are written to the other. A read-only avatar directory breaks
+   * profile pictures just as surely as a missing attachment one.
+   */
+  async ensureReady() {
+    for (const directory of [PUBLIC_AVATARS_DIR, PRIVATE_ATTACHMENTS_DIR]) {
+      await fsp.mkdir(directory, { recursive: true });
+      await fsp.access(directory, fs.constants.W_OK);
+    }
+  },
 
   /**
    * Persist a buffer and return its provider key.

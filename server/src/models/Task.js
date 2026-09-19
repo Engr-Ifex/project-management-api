@@ -31,7 +31,6 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project',
       required: true,
-      index: true,
     },
 
     createdBy: {
@@ -192,6 +191,18 @@ taskSchema.index({
 taskSchema.index({
   project: 1,
   dueDate: 1,
+});
+
+/*
+ * Start-date range filtering (`startDateFrom` / `startDateTo`).
+ *
+ * The sibling of the due-date index above. Task listing supports the same
+ * from/to pair on both dates, so without this one the start-date half of that
+ * feature scans every task in the project while the due-date half is indexed.
+ */
+taskSchema.index({
+  project: 1,
+  startDate: 1,
 });
 
 /*

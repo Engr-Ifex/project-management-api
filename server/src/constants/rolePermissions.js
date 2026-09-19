@@ -32,8 +32,19 @@ export const ROLE_PERMISSIONS = Object.freeze({
     WORKSPACE_PERMISSIONS.INVITE_MEMBERS,
     WORKSPACE_PERMISSIONS.REMOVE_MEMBERS,
 
-    WORKSPACE_PERMISSIONS.ARCHIVE_WORKSPACE,
-    WORKSPACE_PERMISSIONS.RESTORE_WORKSPACE,
+    /*
+     * Archive, restore, delete and transfer-ownership are deliberately absent.
+     *
+     * They are enforced by `requireWorkspaceRole(WORKSPACE_ROLES.OWNER)` on the
+     * routes, which is stricter than this table. An admin previously held
+     * `ARCHIVE_WORKSPACE` and `RESTORE_WORKSPACE` here — a grant no route
+     * consults, so the table advertised a capability the API refuses. A table
+     * that disagrees with the guards is worse than no table: it is read as the
+     * authorization answer and is wrong.
+     *
+     * `ROLE_PERMISSIONS` now lists exactly what a role can actually do. If a
+     * capability is added to a route, add the grant here in the same change.
+     */
   ],
 
   [WORKSPACE_ROLES.MEMBER]: [

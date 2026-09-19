@@ -11,6 +11,12 @@
  *   returns resource key returned in `data`, or 'message' for a bare message
  *   body    'auto' (default) takes the request body from the route's Zod
  *           validator; set to null to force "no request body"
+ *   status  success status code. Defaults to 201 for POST and 200 for
+ *           everything else, which is the convention almost every route
+ *           follows. The handful of POSTs that are not "create a resource"
+ *           return 200 and declare it here; pass `undefined` for `body` to
+ *           reach this field. Getting it wrong publishes a contract that
+ *           disagrees with the running API.
  *
  * Everything else — path, method, guards, parameters, request schema, error
  * responses — is derived from the implementation.
@@ -45,12 +51,19 @@ export const OPERATIONS = {
 
   // ---- Authentication ----
   'POST /api/v1/auth/register': ['Authentication', 'Register a new account', 'auth'],
-  'POST /api/v1/auth/login': ['Authentication', 'Log in and receive a session cookie', 'auth'],
+  'POST /api/v1/auth/login': [
+    'Authentication',
+    'Log in and receive a session cookie',
+    'auth',
+    undefined,
+    '200',
+  ],
   'POST /api/v1/auth/logout': [
     'Authentication',
     'Log out and clear the session cookie',
     'message',
     null,
+    '200',
   ],
 
   // ---- Users ----
@@ -143,6 +156,8 @@ export const OPERATIONS = {
     'Projects',
     'Add a project member',
     'project',
+    undefined,
+    '200',
   ],
   'DELETE /api/v1/workspaces/:workspaceId/projects/:projectId/members/:userId': [
     'Projects',
@@ -294,6 +309,8 @@ export const OPERATIONS = {
     'Labels',
     'Assign a label to a task',
     'task',
+    undefined,
+    '200',
   ],
   'DELETE /api/v1/workspaces/:workspaceId/projects/:projectId/tasks/:taskId/labels/:labelId': [
     'Labels',

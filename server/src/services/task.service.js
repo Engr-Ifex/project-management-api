@@ -724,21 +724,29 @@ export const createSubtask = async (
     throw new ApiError(403, 'You must be a project member');
   }
 
-  const task = await Task.findOne({
-    _id: taskId,
-    project: projectId,
-    isArchived: false,
-  });
+  /*
+   * Append with a single atomic operation.
+   *
+   * Reading the task, pushing onto the array and saving the whole document back
+   * lost any concurrent append: the slower request wrote a copy that predated
+   * the faster one's subtask. `$push` applies to the stored document, so both
+   * survive.
+   */
+  const task = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      project: projectId,
+      isArchived: false,
+    },
+    { $push: { subtasks: { title } } },
+    { new: true }
+  );
 
   if (!task) {
     throw new ApiError(404, 'Task not found');
   }
 
-  task.subtasks.push({
-    title,
-  });
-
-  await task.save();
+  const subtask = task.subtasks[task.subtasks.length - 1];
 
   await createProjectActivity({
     workspaceId,
@@ -747,7 +755,7 @@ export const createSubtask = async (
     action: 'subtask_created',
     metadata: {
       taskId: task._id,
-      subtaskId: task.subtasks[task.subtasks.length - 1]._id,
+      subtaskId: subtask._id,
       subtaskTitle: title,
     },
   });
@@ -823,17 +831,36 @@ export const updateSubtask = async (
     throw new ApiError(404, 'Subtask not found');
   }
 
+  /*
+   * Address the single element with `arrayFilters` rather than rewriting the
+   * array. Saving the whole document back overwrote any concurrent edit —
+   * including one to a different subtask on the same task.
+   */
+  const fields = {};
+
   if (data.title !== undefined) {
-    subtask.title = data.title;
+    fields['subtasks.$[subtask].title'] = data.title;
   }
 
   if (data.isCompleted !== undefined) {
-    subtask.isCompleted = data.isCompleted;
-
-    subtask.completedAt = data.isCompleted ? new Date() : null;
+    fields['subtasks.$[subtask].isCompleted'] = data.isCompleted;
+    fields['subtasks.$[subtask].completedAt'] = data.isCompleted ? new Date() : null;
   }
 
-  await task.save();
+  const updated = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      project: projectId,
+      isArchived: false,
+      'subtasks._id': subtaskId,
+    },
+    { $set: fields },
+    { new: true, arrayFilters: [{ 'subtask._id': subtaskId }] }
+  );
+
+  if (!updated) {
+    throw new ApiError(404, 'Subtask not found');
+  }
 
   await createProjectActivity({
     workspaceId,
@@ -841,13 +868,13 @@ export const updateSubtask = async (
     userId,
     action: 'subtask_updated',
     metadata: {
-      taskId: task._id,
-      subtaskId: subtask._id,
+      taskId: updated._id,
+      subtaskId,
       fields: Object.keys(data),
     },
   });
 
-  return subtask;
+  return updated.subtasks.id(subtaskId);
 };
 
 export const deleteSubtask = async (
@@ -893,9 +920,25 @@ export const deleteSubtask = async (
     throw new ApiError(404, 'Subtask not found');
   }
 
-  subtask.deleteOne();
+  /*
+   * Pull the element in one operation, guarded on it still being present. A
+   * whole-array save discarded a concurrent append, and a second concurrent
+   * delete would otherwise log a second deletion of something already gone.
+   */
+  const updated = await Task.findOneAndUpdate(
+    {
+      _id: taskId,
+      project: projectId,
+      isArchived: false,
+      'subtasks._id': subtaskId,
+    },
+    { $pull: { subtasks: { _id: subtaskId } } },
+    { new: true }
+  );
 
-  await task.save();
+  if (!updated) {
+    throw new ApiError(404, 'Subtask not found');
+  }
 
   await createProjectActivity({
     workspaceId,
@@ -903,10 +946,10 @@ export const deleteSubtask = async (
     userId,
     action: 'subtask_deleted',
     metadata: {
-      taskId: task._id,
+      taskId: updated._id,
       subtaskId,
     },
   });
 
-  return task;
+  return updated;
 };
