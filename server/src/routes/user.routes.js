@@ -17,7 +17,7 @@ import {
   changePasswordSchema,
   updateSettingsSchema,
 } from '../validators/user.validator.js';
-import upload from '../middlewares/upload.middleware.js';
+import upload, { validateAvatarContent } from '../middlewares/upload.middleware.js';
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/profile', authenticate, getProfile);
 
 router.patch('/profile', authenticate, validate(updateProfileSchema), updateProfile);
 
-router.patch('/avatar', authenticate, upload.single('avatar'), updateAvatar);
+router.patch('/avatar', authenticate, upload.single('avatar'), validateAvatarContent, updateAvatar);
 
 router.patch('/change-password', authenticate, validate(changePasswordSchema), changePassword);
 

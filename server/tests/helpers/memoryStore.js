@@ -488,8 +488,21 @@ const makeDocument = (Model, raw, { hydrated = true } = {}) => {
       populateOne(target, path, select);
 
       if (path.includes('.')) {
-        // Nested array populate (e.g. members.user) is not required by the
-        // suite; the plain reference is left in place.
+        /*
+         * A reference inside an embedded array (`members.user`) is left as the
+         * plain id.
+         *
+         * This is a limitation of the double, not a choice: `makeDocument`
+         * hydrates the row through `Model.hydrate`, which casts the array
+         * against its subdocument schema, and a populated object cannot survive
+         * that cast — it comes back as `undefined`. Assigning the populated
+         * value produced a WORSE result than leaving the id, so the id stays.
+         *
+         * Consequence for tests: a populated `members[].user` cannot be
+         * asserted here. Test the decision (is the array present?) rather than
+         * its contents, or the test proves nothing. `TEST_DB=mongodb` is what
+         * exercises the real population.
+         */
         continue;
       }
 

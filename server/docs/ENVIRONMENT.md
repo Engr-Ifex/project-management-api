@@ -2,356 +2,248 @@
 
 ## Overview
 
-The Project Management API uses environment variables to store configuration values and sensitive information.
+The API is configured entirely through environment variables. They are read
+once, at startup, by `src/config/env.js`, which validates them and either starts
+or refuses to start.
 
-Environment variables allow the application to behave differently depending on the environment (development, testing, or production) without changing the source code.
-
-Sensitive values such as database connection strings, JWT secrets, and API keys must never be hardcoded or committed to version control.
+`server/.env.example` is the authoritative list. This document explains what
+each variable does and what happens when it is missing or wrong.
 
 ---
 
 # Environment Files
 
-The project uses the following environment files:
+### `.env`
 
+Holds local values. It is gitignored and must never be committed — in
+particular never commit a JWT secret or a database URI containing credentials.
+
+### `.env.example`
+
+The template, committed, with placeholder values. Copy it to get started:
+
+```bash
+cp .env.example .env
 ```
-.env
-.env.example
-```
-
-### .env
-
-Contains the actual environment variable values used during development.
-
-> This file **must not** be committed to Git.
-
-### .env.example
-
-Contains placeholder values for all required environment variables.
-
-This file should always be committed so other developers know which variables are required.
 
 ---
 
 # Environment Types
 
-The application supports the following environments:
+`NODE_ENV` selects one of three modes and changes behaviour beyond logging:
 
-- development
-- test
-- production
+| Value         | Effect                                                                                                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `development` | Session cookies are **not** `Secure`. An empty `CORS_ORIGINS` allows any origin, without credentials. Human-readable logs at `debug`. A short JWT secret is a warning, not a failure. |
+| `test`        | Rate limiting is skipped, so the suite is not throttled by its own requests.                                                                                                          |
+| `production`  | Cookies are `Secure`. An empty `CORS_ORIGINS` refuses every cross-origin browser request. One JSON object per log line at `info`. A short JWT secret is fatal.                        |
 
-Example:
-
-```env
-NODE_ENV=development
-```
+`NODE_ENV` defaults to `development`. It is **not** fatal to omit it, which is
+exactly why it is easy to forget: the app will run, with cookies that are not
+`Secure` and a CORS policy you did not intend. `npm run preflight` fails on
+anything other than `production`, and `npm run start:prod` runs that check
+before starting.
 
 ---
 
-# Required Variables
+# Variables
 
 ## Application
 
 ### PORT
 
-Description
-
-The port on which the Express server runs.
-
-Example
-
-```env
-PORT=5000
-```
-
-Required
-
-✅ Yes
-
----
+Port the HTTP server listens on. Default `5000`. One port serves everything —
+API, health endpoints and public avatars.
 
 ### NODE_ENV
 
-Description
-
-Specifies the current runtime environment.
-
-Allowed Values
-
-- development
-- test
-- production
-
-Example
-
-```env
-NODE_ENV=development
-```
-
-Required
-
-✅ Yes
-
----
+See [Environment Types](#environment-types). Default `development`.
 
 ## Database
 
 ### MONGODB_URI
 
-Description
-
-MongoDB connection string.
-
-Development Example
+**Required.** The application refuses to start without it.
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/project-management-api
+# Local
+MONGODB_URI=mongodb://127.0.0.1:27017/project_management
+
+# Atlas
+MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority
 ```
 
-Production Example
+### MONGODB_SERVER_SELECTION_TIMEOUT_MS
 
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/project-management-api
-```
-
-Required
-
-✅ Yes
-
----
+How long the driver searches for a reachable server before giving up. Default
+`5000`. The driver's own default is 30s, which makes a misconfigured host look
+like a hang rather than a failure.
 
 ## Authentication
 
-### JWT_SECRET
+### JWT_ACCESS_SECRET
 
-Description
+**Required.** The HS256 signing key. Must be **at least 32 characters** — HS256
+security is bounded by the key's entropy, so a short secret is brute-forceable
+offline if a token is ever captured.
 
-Secret key used to sign JSON Web Tokens.
+A secret that is missing, or shorter than 32 characters **in production**, stops
+the process. In development a short secret only warns, so the placeholder in
+`.env.example` does not block local work.
 
-Example
-
-```env
-JWT_SECRET=your-super-secret-key
+```bash
+openssl rand -hex 32
 ```
 
-Required
+The value is never logged and never returned in a response.
 
-✅ Yes
+### JWT_ACCESS_EXPIRES_IN
 
----
+Token lifetime. Default `15m`. There is no refresh token: when it expires, the
+user logs in again.
 
-### JWT_EXPIRES_IN
+### COOKIE_MAX_AGE
 
-Description
+Session cookie lifetime, in **milliseconds**. Default `900000` (15 minutes).
+Keep it in step with `JWT_ACCESS_EXPIRES_IN`, or the cookie outlives the token
+it carries and the browser keeps sending a token that is already dead.
 
-Defines how long access tokens remain valid.
+### BCRYPT_SALT_ROUNDS
 
-Example
-
-```env
-JWT_EXPIRES_IN=7d
-```
-
-Required
-
-✅ Yes
-
----
-
-## Logging
-
-### LOG_LEVEL
-
-Description
-
-Controls the amount of log output.
-
-Allowed Values
-
-- error
-- warn
-- info
-- debug
-
-Example
-
-```env
-LOG_LEVEL=info
-```
-
-Required
-
-❌ Optional
-
----
+bcrypt cost factor, `10`–`15`. Default `10`. Outside that range the application
+refuses to start: too low weakens the hash, too high makes every login
+noticeably slow.
 
 ## CORS
 
-### CLIENT_URL
+### CORS_ORIGINS
 
-Description
-
-Frontend application URL allowed by CORS.
-
-Example
+Comma-separated browser origins allowed to call the API **with credentials**.
 
 ```env
-CLIENT_URL=http://localhost:5173
+CORS_ORIGINS=https://app.example.com,https://staging.example.com
 ```
 
-Required
+Empty means no cross-origin browser client can call the API in production. That
+is the safe default and it is deliberate — a wildcard cannot be combined with
+credentialed requests, so an empty list is refused rather than widened. Leave it
+empty only for a server-to-server deployment.
 
-✅ Yes
+## Proxy
 
----
+### TRUST_PROXY
 
-# Future Variables
+Number of trusted reverse-proxy hops in front of the application. Default `0`,
+for a directly exposed app.
 
-These variables are reserved for future features.
+Set this correctly or rate limiting is broken: `req.ip` becomes the proxy's
+address, so every client shares a single budget and one abusive client locks
+everyone out. Use `1` for a single nginx or load balancer in front.
 
----
+## Rate limiting
 
-## Email
+### RATE_LIMIT_MAX
 
-```env
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=
-```
+Requests per IP per window across the whole API. Default `1000`.
 
----
+### RATE_LIMIT_WINDOW_MS
 
-## Cloud Storage
+Window length in milliseconds. Default `900000` (15 minutes).
 
-```env
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-```
+The authentication endpoints have a separate, stricter limit — 10 requests per
+15 minutes per IP — which is not configurable here.
 
----
+Counters live in **process memory**. With N instances the effective limit is
+N × `RATE_LIMIT_MAX`. See `DEPLOYMENT.md` → Known limitations.
 
-## Redis
+## Operations
 
-```env
-REDIS_URL=
-```
+### LOG_LEVEL
 
----
+One of `error`, `warn`, `info`, `http`, `debug`. Defaults to `info` in
+production and `debug` elsewhere. An unrecognised value warns and falls back.
+Production output is one JSON object per line; other environments are
+human-readable.
 
-## Monitoring
+### SHUTDOWN_TIMEOUT_MS
 
-```env
-SENTRY_DSN=
-```
+How long to wait for in-flight requests and the database connection during
+shutdown before exiting anyway. Default `10000`.
 
----
-
-## Rate Limiting
-
-```env
-RATE_LIMIT_WINDOW_MS=900000
-
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
----
-
-# Variable Naming Guidelines
-
-All environment variables should:
-
-- Use uppercase letters.
-- Use underscores to separate words.
-- Have descriptive names.
-- Follow a consistent naming convention.
-
-Examples
-
-```env
-JWT_SECRET
-
-MONGODB_URI
-
-CLIENT_URL
-
-LOG_LEVEL
-```
-
----
-
-# Security Guidelines
-
-- Never commit `.env` to Git.
-- Never expose secrets in logs.
-- Never hardcode sensitive values.
-- Rotate secrets periodically.
-- Use strong, randomly generated values for production.
+**Must be lower than the orchestrator's own grace period** — Docker's
+`stop_grace_period`, Kubernetes' `terminationGracePeriodSeconds`. If it is
+higher, the platform sends `SIGKILL` first and the graceful path never runs.
 
 ---
 
 # Validation
 
-The application validates required environment variables during startup.
+Configuration is validated at boot by `src/config/env.js`, before the server
+listens. Problems are one of two kinds.
 
-If any required variable is missing, the application should fail to start and display a clear error message.
-
-Example:
+**Fatal** — the process exits with a list of everything that is wrong, rather
+than failing later on the first request that needs the value:
 
 ```
-❌ Missing required environment variable: JWT_SECRET
+Invalid environment configuration:
+  - MONGODB_URI is required
+  - JWT_ACCESS_SECRET must be at least 32 characters (currently 12). Generate one with: openssl rand -hex 32
 ```
+
+| Condition                                                    | Result |
+| ------------------------------------------------------------ | ------ |
+| `MONGODB_URI` missing                                        | fatal  |
+| `JWT_ACCESS_SECRET` missing                                  | fatal  |
+| `JWT_ACCESS_SECRET` shorter than 32 characters in production | fatal  |
+| `BCRYPT_SALT_ROUNDS` outside 10–15                           | fatal  |
+
+**Warning** — the process starts, and the problem is printed once with a `⚠️`
+prefix. These are legal but wrong for production:
+
+| Condition                                                         | Result  |
+| ----------------------------------------------------------------- | ------- |
+| `JWT_ACCESS_SECRET` shorter than 32 characters outside production | warning |
+| `CORS_ORIGINS` empty in production                                | warning |
+| `LOG_LEVEL` not recognised                                        | warning |
+
+`npm run preflight` checks a production environment before you start, including
+things that are legal but wrong — `NODE_ENV` not set to `production`, an empty
+`CORS_ORIGINS`, a `TRUST_PROXY` that looks unset. Run it as part of a deploy.
 
 ---
 
-# Example `.env.example`
+# Security Guidelines
 
-```env
-# Application
-PORT=5000
-NODE_ENV=development
+- Never commit `.env`. It is gitignored; keep it that way.
+- Never log secrets, and never return them in a response.
+- Never hardcode a secret in source.
+- Use a secret manager in production rather than shipping a file.
+- Generate secrets with a CSPRNG: `openssl rand -hex 32`.
+- Rotate secrets periodically. Changing `JWT_ACCESS_SECRET` invalidates every
+  issued token, which is also the fastest way to force a global re-login.
 
-# Database
-MONGODB_URI=
+---
 
-# Authentication
-JWT_SECRET=
-JWT_EXPIRES_IN=7d
+# Not Implemented
 
-# Client
-CLIENT_URL=http://localhost:5173
+These appear in older revisions of this document and in some planning notes.
+They are **not** configuration options — the application does not read them, and
+setting them has no effect:
 
-# Logging
-LOG_LEVEL=info
+`CLIENT_URL` (superseded by `CORS_ORIGINS`), `JWT_SECRET` and
+`JWT_EXPIRES_IN` (renamed to `JWT_ACCESS_SECRET` and `JWT_ACCESS_EXPIRES_IN`),
+`RATE_LIMIT_MAX_REQUESTS` (renamed to `RATE_LIMIT_MAX`), `SMTP_*`,
+`CLOUDINARY_*`, `REDIS_URL`, `SENTRY_DSN`.
 
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Email (Future)
-SMTP_HOST=
-SMTP_PORT=
-SMTP_USER=
-SMTP_PASS=
-
-# Cloud Storage (Future)
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-# Redis (Future)
-REDIS_URL=
-
-# Monitoring (Future)
-SENTRY_DSN=
-```
+Email delivery, cloud storage, a shared rate-limit store and error reporting are
+not features of this API. They are listed in `DEPLOYMENT.md` as things a future
+version might add, not as things that exist.
 
 ---
 
 # Summary
 
-Environment variables separate configuration from application code, making the Project Management API easier to configure, deploy, and secure across different environments.
-
-All required variables are documented in this file and mirrored in `.env.example`.
+Every variable the application reads is documented above and present in
+`.env.example` — fourteen in total, with no orphans in either direction. The
+code is the source of truth: if this document and `src/config/env.js` ever
+disagree, the code is right and this file is the bug.

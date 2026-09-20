@@ -1,6 +1,19 @@
 import * as projectService from '../services/project.service.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import ApiResponse from '../utils/ApiResponse.js';
+import { hasProjectOverride } from '../constants/rolePermissions.js';
+
+/*
+ * Who is asking, for the two reads a plain workspace member can reach.
+ *
+ * The elevation rule lives in `hasProjectOverride`, shared with
+ * `requireProjectPermission`, so the response shaping and the guard cannot
+ * disagree about who counts as a workspace owner/admin.
+ */
+const viewerOf = (req) => ({
+  userId: req.user._id,
+  isWorkspaceElevated: hasProjectOverride(req.workspaceMember.role),
+});
 
 export const createProject = asyncHandler(async (req, res) => {
   const project = await projectService.createProject(
@@ -19,14 +32,19 @@ export const createProject = asyncHandler(async (req, res) => {
 export const getWorkspaceProjects = asyncHandler(async (req, res) => {
   const result = await projectService.getWorkspaceProjects(
     req.params.workspaceId,
-    req.validatedQuery ?? {}
+    req.validatedQuery ?? {},
+    viewerOf(req)
   );
 
   return res.status(200).json(new ApiResponse(200, 'Projects retrieved successfully', result));
 });
 
 export const getProjectById = asyncHandler(async (req, res) => {
-  const project = await projectService.getProjectById(req.params.workspaceId, req.params.projectId);
+  const project = await projectService.getProjectById(
+    req.params.workspaceId,
+    req.params.projectId,
+    viewerOf(req)
+  );
 
   return res.status(200).json(
     new ApiResponse(200, 'Project retrieved successfully', {

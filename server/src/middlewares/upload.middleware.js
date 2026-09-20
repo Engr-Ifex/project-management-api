@@ -1,9 +1,16 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import fsp from 'fs/promises';
 
 import ApiError from '../utils/ApiError.js';
+import asyncHandler from '../utils/asyncHandler.js';
 import { getSafeExtension } from '../utils/filename.js';
+import {
+  CONTENT_MISMATCH_MESSAGE,
+  isContentAllowedForMimeType,
+  readFileHeader,
+} from '../utils/fileSignature.js';
 import { PUBLIC_AVATARS_DIR } from '../config/paths.js';
 
 import {
@@ -77,6 +84,54 @@ const upload = multer({
   },
 
   fileFilter: avatarFileFilter,
+});
+
+/** Remove a file multer has already written. A missing file is the desired state. */
+const discardUploadedFile = async (filePath) => {
+  if (!filePath) return;
+
+  await fsp.unlink(filePath).catch(() => {});
+};
+
+/*
+ * Avatar content check.
+ *
+ * `avatarFileFilter` can only see the MIME type the client declared, and multer
+ * writes the file into the public avatars directory before anything can look at
+ * it — so the bytes are read back here and compared with the image type the
+ * file claims to be.
+ *
+ * This closes a real hole rather than a theoretical one: a file that is not an
+ * image at all was stored, under its original extension, in a directory served
+ * statically. An HTML document sent as `image/png` and named `.html` was
+ * accepted and served.
+ *
+ * The file is already on disk by this point, so a rejection deletes it. Nothing
+ * else has happened yet — no service call, no database write — so there is
+ * nothing else to undo.
+ */
+export const validateAvatarContent = asyncHandler(async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  let header;
+
+  try {
+    header = await readFileHeader(req.file.path);
+  } catch (error) {
+    await discardUploadedFile(req.file.path);
+
+    throw error;
+  }
+
+  if (!isContentAllowedForMimeType(header, req.file.mimetype)) {
+    await discardUploadedFile(req.file.path);
+
+    throw new ApiError(400, CONTENT_MISMATCH_MESSAGE);
+  }
+
+  return next();
 });
 
 /* ================================================================== *

@@ -170,7 +170,16 @@ const SCHEMAS = {
       status: { type: 'string', enum: ['planning', 'active', 'on_hold', 'completed', 'cancelled'] },
       deadline: dateTime(),
       color: nullable(str()),
-      members: { type: 'array', items: ref('ProjectMember') },
+      members: {
+        type: 'array',
+        items: ref('ProjectMember'),
+        description:
+          'Present only for a caller with access to the project — a project member, ' +
+          'or a workspace owner/admin. A workspace member who is not on the project ' +
+          'can still read the project record (discovery), but the membership list is ' +
+          'omitted: it carries member identities and is project-internal. ' +
+          '`createdBy` is likewise reduced to an id for such a caller.',
+      },
       isArchived: bool(),
       archivedAt: dateTime(),
       archivedBy: ref('ObjectId'),

@@ -36,9 +36,14 @@ The API uses JSON Web Tokens (JWT) for authentication.
 1. User registers an account.
 2. Password is hashed before storage.
 3. User logs in with valid credentials.
-4. Server generates an access token.
-5. Client includes the token in subsequent requests.
+4. Server generates an access token and returns it in an **httpOnly cookie** —
+   it is never placed in the response body, so no script can read it.
+5. The browser sends the cookie automatically on subsequent requests.
 6. Protected routes verify the token before processing requests.
+
+There is no refresh token. When the access token expires the user logs in
+again, and logging out clears the cookie — the token itself stays valid until
+it expires.
 
 ---
 
@@ -66,13 +71,16 @@ Passwords must never be stored in plain text.
 
 Passwords are hashed using bcrypt before being saved.
 
-Password requirements include:
+The only password rule enforced is a **minimum length of 8 characters**,
+checked by the Zod validator on registration and on password change and again
+by the model's `minlength`. There is deliberately no composition rule — no
+required uppercase letter, digit or symbol.
 
-- Minimum length: 8 characters
-- At least one uppercase letter
-- At least one lowercase letter
-- At least one number
-- At least one special character
+The strength of a password here rests on bcrypt's cost factor
+(`BCRYPT_SALT_ROUNDS`, validated to 10–15 at boot) and on rate limiting the
+login endpoint, not on character-class requirements. A composition rule would
+reject passphrases that are stronger than `Passw0rd!` while adding nothing
+against an offline attack on the hash.
 
 Passwords are never returned in API responses.
 

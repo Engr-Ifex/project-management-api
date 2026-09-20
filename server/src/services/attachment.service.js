@@ -5,6 +5,7 @@ import TaskComment from '../models/TaskComment.js';
 
 import ApiError from '../utils/ApiError.js';
 import { getSafeExtension, sanitizeOriginalFilename } from '../utils/filename.js';
+import { assertContentMatchesType } from '../utils/fileSignature.js';
 import { buildSort, findPaginated } from '../utils/query.js';
 
 import { ATTACHMENT_DEFAULT_SORT, ATTACHMENT_SORT_FIELDS } from '../constants/query.js';
@@ -146,6 +147,13 @@ const assertCanDeleteAttachment = (attachment, project, userId, isWorkspaceEleva
  * Multer already filtered it, but this second pass makes the service safe to
  * call from anywhere (a future CLI import, a different transport) and means the
  * storage layer is never handed something the policy forbids.
+ *
+ * The final check reads the bytes. The MIME type and the extension are both
+ * client-supplied, so on their own they cannot tell a real PNG from an
+ * executable that has been renamed and relabelled. This runs before the storage
+ * provider is called and before any database record exists, so a rejected file
+ * leaves nothing behind — and attachments use memory storage, so there is not
+ * even a temporary file to clean up.
  */
 const assertFileIsAllowed = (file) => {
   if (!file || !Buffer.isBuffer(file.buffer) || file.buffer.length === 0) {
@@ -166,6 +174,8 @@ const assertFileIsAllowed = (file) => {
   if (!isExtensionAllowedForMimeType(mimeType, extension)) {
     throw new ApiError(400, 'File extension does not match its declared file type');
   }
+
+  assertContentMatchesType(file.buffer, mimeType);
 
   return { mimeType, extension };
 };

@@ -19,6 +19,54 @@ import {
   PROJECT_SORT_FIELDS,
 } from '../constants/query.js';
 
+/*
+ * Member visibility on the two reads a plain workspace member can reach.
+ *
+ * A workspace member who holds no project role may discover a project — the
+ * list and the project record are readable with workspace membership alone.
+ * Discovery does not extend to the people on it: `members` carries names,
+ * email addresses and avatars, and the array itself is project-internal
+ * membership data. Returning it meant any workspace member could enumerate
+ * every project's membership, including addresses, without being on any of
+ * them.
+ *
+ * The caller keeps the full response when they are on the project, or when
+ * they are a workspace owner/admin — Policy A, read from `hasProjectOverride`
+ * via the controller so this cannot drift from the guard.
+ */
+const canSeeProjectMembers = (project, viewer) => {
+  if (viewer?.isWorkspaceElevated) return true;
+
+  if (!viewer?.userId) return false;
+
+  return project.members.some(
+    (member) => String(member.user?._id ?? member.user) === String(viewer.userId)
+  );
+};
+
+/*
+ * Reduce a project to what a caller without project access may see.
+ *
+ * `members` is dropped rather than trimmed: the identities, the roles and the
+ * join dates are all membership data, and a caller who is not on the project
+ * has no use for any of it. `createdBy` is kept as a plain reference — an id
+ * identifies nobody without the user record, and keeping the field means the
+ * response keeps its shape for clients that read it.
+ */
+const shapeProjectForViewer = (project, viewer) => {
+  if (canSeeProjectMembers(project, viewer)) return project;
+
+  const shaped = typeof project.toObject === 'function' ? project.toObject() : { ...project };
+
+  delete shaped.members;
+
+  if (shaped.createdBy && typeof shaped.createdBy === 'object') {
+    shaped.createdBy = shaped.createdBy._id;
+  }
+
+  return shaped;
+};
+
 export const createProject = async (workspaceId, userId, projectData) => {
   const project = await Project.create({
     workspace: workspaceId,
@@ -42,7 +90,7 @@ export const createProject = async (workspaceId, userId, projectData) => {
   return project;
 };
 
-export const getWorkspaceProjects = async (workspaceId, query = {}) => {
+export const getWorkspaceProjects = async (workspaceId, query = {}, viewer = null) => {
   const deadlineRange = buildDateRange(query.deadlineFrom, query.deadlineTo);
 
   const filter = mergeFilters(
@@ -71,10 +119,13 @@ export const getWorkspaceProjects = async (workspaceId, query = {}) => {
     ],
   });
 
-  return { projects: items, pagination };
+  return {
+    projects: items.map((project) => shapeProjectForViewer(project, viewer)),
+    pagination,
+  };
 };
 
-export const getProjectById = async (workspaceId, projectId) => {
+export const getProjectById = async (workspaceId, projectId, viewer = null) => {
   const project = await Project.findOne({
     _id: projectId,
     workspace: workspaceId,
@@ -86,7 +137,7 @@ export const getProjectById = async (workspaceId, projectId) => {
     throw new ApiError(404, 'Project not found');
   }
 
-  return project;
+  return shapeProjectForViewer(project, viewer);
 };
 
 export const updateProject = async (workspaceId, projectId, updateData, userId) => {

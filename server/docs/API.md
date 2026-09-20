@@ -603,6 +603,18 @@ Project **lifecycle** is a workspace-level concern, so these routes require the
 The creator becomes the project's `owner`. Project status is one of `planning`,
 `active`, `on_hold`, `completed`, `cancelled`.
 
+> **The member list is not part of project discovery.** `GET …/projects` and
+> `GET …/projects/:projectId` are readable with workspace membership alone, but
+> a caller who is **not** on the project does not receive `members`, and their
+> `createdBy` is an id rather than a populated user. Membership carries names,
+> email addresses and avatars, and the array itself is project-internal — a
+> workspace member has no business enumerating it for projects they are not on.
+>
+> A caller keeps the full record when they are a project member, or when they
+> are a workspace owner/admin (Policy A). This is what the read-scope table
+> above means by "the project record is discovery": you can see that a project
+> exists and read its metadata, not who is on it.
+
 > An archived project disappears from the listing but **remains retrievable by
 > id**. Archived _tasks_, by contrast, return 404.
 
@@ -947,16 +959,42 @@ Enforced by `src/middlewares/upload.middleware.js` and
 | Files per request | 1           | 1        |
 | Form field        | `file`      | `avatar` |
 
-A file must satisfy **both** checks: its declared MIME type must be allow-listed
-**and** its extension must be one mapped to that MIME type. This blocks a renamed
-executable (`payload.exe` sent as `image/png`) as well as a lying MIME type on a
-permitted extension.
+A file must satisfy **three** checks: its declared MIME type must be
+allow-listed, its extension must be one mapped to that MIME type, **and its
+content must actually be that type**. The first two are supplied by the client,
+so on their own they cannot tell a real PNG from an executable that has been
+renamed and relabelled; the third reads the bytes.
 
 **Allowed MIME types:** `image/jpeg`, `image/png`, `image/webp`, `image/gif`,
 `application/pdf`, `text/plain`, `text/csv`, `text/markdown`,
 `application/json`, `application/msword`, `.docx`,
 `application/vnd.ms-excel`, `.xlsx`, `.ppt`, `.pptx`, `application/zip`,
 `application/x-zip-compressed`.
+
+### Content validation
+
+| Declared type                                                 | Checked by                                                                                                                                          |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `image/jpeg`                                                  | `FF D8 FF`                                                                                                                                          |
+| `image/png`                                                   | the 8-byte PNG signature                                                                                                                            |
+| `image/gif`                                                   | `GIF87a` / `GIF89a`                                                                                                                                 |
+| `image/webp`                                                  | `RIFF` … `WEBP`                                                                                                                                     |
+| `application/pdf`                                             | `%PDF-`                                                                                                                                             |
+| `application/zip`, `.docx`, `.xlsx`, `.pptx`                  | a ZIP container (`PK` plus a local-file, empty-archive or spanned marker) — the OOXML formats are ZIP archives                                      |
+| `application/msword`, `.xls`, `.ppt`                          | an OLE2 compound file (`D0 CF 11 E0 A1 B1 1A E1`)                                                                                                   |
+| `text/plain`, `text/csv`, `text/markdown`, `application/json` | **no magic number exists** — checked only for being plausibly text: no NUL bytes, no control characters other than tab, newline and carriage return |
+
+A file whose content does not match the type it claims is rejected with **400**.
+The check runs before the file is persisted and before any database record is
+created, so a rejected upload leaves nothing behind.
+
+For text formats this is deliberately a weak check, and it is documented rather
+than dressed up: a `.txt` file is confirmed to _be_ text, not to be _safe_. The
+protection for those formats is the allow-list — `.svg`, `.html`, `.xml` and
+`.js` are refused outright, so no active markup reaches the store.
+
+This is not malware scanning. A valid PNG can contain anything in its pixels,
+and nothing inspects a file's payload.
 
 Executables, scripts, HTML and other markup are rejected by default — the list is
 an allow-list, not a deny-list.

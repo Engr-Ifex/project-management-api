@@ -119,10 +119,14 @@ NODE_ENV=development
 
 MONGODB_URI=
 
-JWT_SECRET=
+JWT_ACCESS_SECRET=
 
-JWT_EXPIRES_IN=7d
+JWT_ACCESS_EXPIRES_IN=15m
 ```
+
+The full list, with defaults and what each one does, is in `.env.example` and
+`ENVIRONMENT.md`. The names must match exactly — a misspelled variable is not
+read at all, and a missing required one stops the process at boot.
 
 ---
 

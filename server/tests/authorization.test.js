@@ -873,4 +873,154 @@ describe('Authorization', () => {
       assert.equal(response.status, 200);
     });
   });
+
+  /*
+   * Project detail privacy.
+   *
+   * A workspace member who holds no project role may discover a project — the
+   * list and the record are readable with workspace membership alone. They must
+   * not, however, receive the people on it: `members` carries names, email
+   * addresses and avatars, and the array itself is project-internal membership
+   * data. Before this was shaped, any workspace member could enumerate every
+   * project's membership and read every member's address without being on any
+   * of those projects.
+   *
+   * The full response is preserved for anyone with project access, and for a
+   * workspace owner/admin under Policy A.
+   */
+  describe('project detail privacy', () => {
+    /** A project the given user is NOT a member of, with one other member on it. */
+    const outsiderScenario = async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { outsider: 'member', insider: 'member' },
+        projectRoles: { insider: 'member' },
+      });
+
+      return { actors, workspace, project };
+    };
+
+    test('a workspace member sees no members on the project record', async () => {
+      const { actors, workspace, project } = await outsiderScenario();
+
+      const response = await asUser(app, actors.outsider).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200, 'discovery must keep working');
+      assert.equal(response.body.data.project.members, undefined);
+    });
+
+    test('a workspace member receives no member email anywhere in the record', async () => {
+      const { actors, workspace, project } = await outsiderScenario();
+
+      const response = await asUser(app, actors.outsider).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      const serialized = JSON.stringify(response.body);
+
+      assert.ok(
+        !serialized.includes('@'),
+        `no email address may appear in the response: ${serialized}`
+      );
+    });
+
+    test('the creator is reduced to a reference, not a user record', async () => {
+      const { actors, workspace, project } = await outsiderScenario();
+
+      const response = await asUser(app, actors.outsider).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      const { createdBy } = response.body.data.project;
+
+      assert.equal(typeof createdBy, 'string', 'createdBy must be an id, not a populated user');
+    });
+
+    test('a workspace member sees no members on the project list either', async () => {
+      const { actors, workspace } = await outsiderScenario();
+
+      const response = await asUser(app, actors.outsider).get(
+        `${API}/workspaces/${workspace._id}/projects`
+      );
+
+      assert.equal(response.status, 200, 'listing must keep working');
+      assert.ok(response.body.data.projects.length > 0, 'the project is still discoverable');
+
+      for (const listed of response.body.data.projects) {
+        assert.equal(listed.members, undefined, 'no membership data on a discovered project');
+      }
+
+      assert.ok(!JSON.stringify(response.body).includes('@'), 'no email may appear');
+    });
+
+    /*
+     * For the authorized cases below, the assertion is that the response was
+     * NOT redacted — `createdBy` is still a populated user with an address, and
+     * `members` is still present. The populated CONTENTS of `members[].user`
+     * cannot be asserted here: the in-process store hydrates rows through
+     * `Model.hydrate`, which cannot represent a populated reference inside an
+     * embedded array (see `tests/helpers/memoryStore.js`). Asserting on
+     * `createdBy` proves the same thing — that the shaping did not run.
+     */
+    const assertNotRedacted = (project) => {
+      assert.ok(Array.isArray(project.members), 'members must still be present');
+      assert.ok(project.members.length > 0, 'members must not be emptied');
+      assert.equal(typeof project.createdBy, 'object', 'createdBy must still be populated');
+      assert.equal(
+        typeof project.createdBy.email,
+        'string',
+        'an authorized caller still receives user details'
+      );
+    };
+
+    test('a project member still receives the member details', async () => {
+      const { actors, workspace, project } = await outsiderScenario();
+
+      const response = await asUser(app, actors.insider).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200);
+      assertNotRedacted(response.body.data.project);
+    });
+
+    test('a project viewer still receives the member details', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { viewer: 'member' },
+        projectRoles: { viewer: 'viewer' },
+      });
+
+      const response = await asUser(app, actors.viewer).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200);
+      assertNotRedacted(response.body.data.project);
+    });
+
+    test('a workspace admin keeps the member details without project membership', async () => {
+      const { actors, workspace, project } = await buildScenario({
+        workspaceRoles: { admin: 'admin' },
+      });
+
+      const response = await asUser(app, actors.admin).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200);
+      assertNotRedacted(response.body.data.project);
+    });
+
+    test('the project owner keeps the member details', async () => {
+      const { actors, workspace, project } = await outsiderScenario();
+
+      const response = await asUser(app, actors.owner).get(
+        `${API}/workspaces/${workspace._id}/projects/${project._id}`
+      );
+
+      assert.equal(response.status, 200);
+      assertNotRedacted(response.body.data.project);
+    });
+  });
 });
