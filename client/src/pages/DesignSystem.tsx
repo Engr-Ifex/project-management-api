@@ -20,7 +20,7 @@ import {
   AppShell,
   PageHeader,
   type NavItem,
-} from '@/components/layout/AppShell';
+} from '@/layouts/AppShell';
 import {
   Avatar,
   AvatarGroup,
@@ -81,7 +81,7 @@ import {
   WorkspaceRoleBadge,
   useToast,
 } from '@/components/ui';
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 
 /*
  * Design-system showcase.

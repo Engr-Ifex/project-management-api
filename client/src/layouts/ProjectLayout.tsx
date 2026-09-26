@@ -14,16 +14,9 @@ import {
 import type { ProjectStatus } from '@/components/ui';
 import type { Project } from '@/lib/api';
 import { projectsApi } from '@/lib/api';
+import { PROJECT_STATUS_OPTIONS } from '@/lib/constants';
 import { useAsync, useDocumentTitle, useMutation, usePermission } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
-  { value: 'planning', label: 'Planning' },
-  { value: 'active', label: 'Active' },
-  { value: 'on_hold', label: 'On hold' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
 
 /** What the project's child routes receive. */
 export interface ProjectOutletContext {
@@ -134,7 +127,7 @@ export const ProjectLayout = () => {
                 aria-label="Project status"
                 size="sm"
                 value={project.status}
-                options={STATUS_OPTIONS}
+                options={PROJECT_STATUS_OPTIONS}
                 onValueChange={(value) => {
                   void setStatus.run(value as ProjectStatus).then((outcome) => {
                     if (outcome.ok) applyProject(outcome.data.project);

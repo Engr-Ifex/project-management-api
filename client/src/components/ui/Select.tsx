@@ -2,7 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { CaretDown, Check } from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 import { FieldShell, useFieldControl } from './Field';
 
 /*

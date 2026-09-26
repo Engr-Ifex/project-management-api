@@ -1,6 +1,6 @@
 import { CircleNotch } from '@phosphor-icons/react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 
 /*
  * Skeleton

@@ -7,7 +7,7 @@ import { AttachmentsTab } from '@/components/project/AttachmentsTab';
 import { LabelsTab } from '@/components/project/LabelsTab';
 import { MembersTab } from '@/components/project/MembersTab';
 import { TasksTab } from '@/components/project/TasksTab';
-import { useProjectContext } from '@/routes/ProjectLayout';
+import { useProjectContext } from '@/layouts/ProjectLayout';
 
 const TABS = [
   { value: 'tasks', label: 'Tasks' },

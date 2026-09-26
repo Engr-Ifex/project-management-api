@@ -14,6 +14,8 @@ import {
   SkeletonList,
 } from '@/components/ui';
 import { notificationsApi } from '@/lib/api';
+import { NOTIFICATION_SCOPE_OPTIONS } from '@/lib/constants';
+import type { NotificationScope } from '@/lib/constants';
 import { useAsync, useDocumentTitle, useMutation } from '@/lib/hooks';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
@@ -34,7 +36,7 @@ export const Notifications = () => {
 
   const { workspaceId } = useWorkspace();
 
-  const [scope, setScope] = useState<'all' | 'unread'>('all');
+  const [scope, setScope] = useState<NotificationScope>('all');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
 
@@ -86,10 +88,7 @@ export const Notifications = () => {
               setScope(value);
               setPage(1);
             }}
-            options={[
-              { value: 'all', label: 'All' },
-              { value: 'unread', label: 'Unread' },
-            ]}
+            options={NOTIFICATION_SCOPE_OPTIONS}
           />
 
           <Button

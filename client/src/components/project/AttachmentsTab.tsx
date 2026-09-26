@@ -19,26 +19,13 @@ import {
 } from '@/components/ui';
 import type { Attachment, Project } from '@/lib/api';
 import { attachmentsApi, downloadBlob, refName } from '@/lib/api';
+import {
+  ALLOWED_ATTACHMENT_EXTENSIONS,
+  MAX_ATTACHMENT_BYTES,
+} from '@/lib/constants';
+import { extensionOf, formatBytes } from '@/lib/utils';
 import { useAsync, useMutation } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-/** The API's own limits. Enforced here so the user is not given a 400 for a file we could have refused. */
-const MAX_BYTES = 10 * 1024 * 1024;
-
-const ALLOWED_EXTENSIONS = [
-  'jpg', 'jpeg', 'png', 'webp', 'gif',
-  'pdf', 'txt', 'csv', 'md', 'json',
-  'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'zip',
-];
-
-const formatBytes = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
-
-const extensionOf = (filename: string): string =>
-  filename.includes('.') ? (filename.split('.').pop() ?? '').toLowerCase() : '';
 
 /**
  * Project attachments.
@@ -84,12 +71,14 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
     setLocalError(undefined);
     if (!file) return;
 
-    if (file.size > MAX_BYTES) {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
       setLocalError(`"${file.name}" is ${formatBytes(file.size)}. The limit is 10 MB.`);
       return;
     }
 
-    if (!ALLOWED_EXTENSIONS.includes(extensionOf(file.name))) {
+    if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(
+        extensionOf(file.name) as (typeof ALLOWED_ATTACHMENT_EXTENSIONS)[number]
+      )) {
       setLocalError(`".${extensionOf(file.name)}" is not an allowed file type.`);
       return;
     }

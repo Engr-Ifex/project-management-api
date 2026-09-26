@@ -1,7 +1,7 @@
 import { CaretDown, CaretUp, CaretUpDown } from '@phosphor-icons/react';
 import type { HTMLAttributes, ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 
 /*
  * Table

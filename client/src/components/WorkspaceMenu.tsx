@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
   Skeleton,
 } from '@/components/ui';
-import { WorkspaceSwitcher } from '@/components/layout/AppShell';
+import { WorkspaceSwitcher } from '@/layouts/AppShell';
 import { workspacesApi } from '@/lib/api';
 import { useAsync } from '@/lib/hooks';
 

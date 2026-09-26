@@ -30,22 +30,9 @@ import {
   TR,
 } from '@/components/ui';
 import { projectsApi } from '@/lib/api';
+import { PROJECT_ARCHIVE_FILTER_OPTIONS, PROJECT_STATUS_FILTER_OPTIONS } from '@/lib/constants';
 import { useAsync, useDebounced, useDocumentTitle, useMutation, usePermission } from '@/lib/hooks';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'planning', label: 'Planning' },
-  { value: 'active', label: 'Active' },
-  { value: 'on_hold', label: 'On hold' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
-
-const ARCHIVE_OPTIONS = [
-  { value: 'false', label: 'Active projects' },
-  { value: 'true', label: 'Archived only' },
-];
 
 /**
  * The project list.
@@ -167,7 +154,7 @@ export const Projects = () => {
                 setStatus(value);
                 setPage(1);
               }}
-              options={STATUS_OPTIONS}
+              options={PROJECT_STATUS_FILTER_OPTIONS}
               className="w-40"
             />
 
@@ -178,7 +165,7 @@ export const Projects = () => {
                 setIsArchived(value);
                 setPage(1);
               }}
-              options={ARCHIVE_OPTIONS}
+              options={PROJECT_ARCHIVE_FILTER_OPTIONS}
               className="w-40"
             />
           </CardBody>

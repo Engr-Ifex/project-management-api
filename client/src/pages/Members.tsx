@@ -33,6 +33,7 @@ import {
 } from '@/components/ui';
 import type { WorkspaceRole } from '@/components/ui';
 import { refId, refName, workspacesApi } from '@/lib/api';
+import { ASSIGNABLE_WORKSPACE_ROLE_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useAsync, useDocumentTitle, useMutation, usePermission } from '@/lib/hooks';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
@@ -195,10 +196,7 @@ export const Members = () => {
                               aria-label={`Role for ${name}`}
                               size="sm"
                               value={member.role}
-                              options={[
-                                { value: 'admin', label: 'Admin' },
-                                { value: 'member', label: 'Member' },
-                              ]}
+                              options={ASSIGNABLE_WORKSPACE_ROLE_OPTIONS}
                               onValueChange={(value) => {
                                 void changeRole
                                   .run({ userId: id, role: value as WorkspaceRole })
@@ -318,10 +316,7 @@ export const Members = () => {
                     label="Role"
                     value={role}
                     onValueChange={(value) => setRole(value as 'admin' | 'member')}
-                    options={[
-                      { value: 'member', label: 'Member' },
-                      { value: 'admin', label: 'Admin' },
-                    ]}
+                    options={ASSIGNABLE_WORKSPACE_ROLE_OPTIONS}
                     hint="Owners are made by transferring ownership, not by invitation."
                   />
                 </>

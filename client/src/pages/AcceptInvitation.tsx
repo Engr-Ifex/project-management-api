@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { AuthShell } from '@/components/AuthShell';
-import { FullPageLoader } from '@/components/RequireAuth';
+import { AuthShell } from '@/layouts/AuthShell';
+import { FullPageLoader } from '@/routes/guards';
 import { Button, ErrorState } from '@/components/ui';
 import { workspacesApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth/AuthProvider';

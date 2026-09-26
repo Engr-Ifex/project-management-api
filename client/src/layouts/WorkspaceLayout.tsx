@@ -4,8 +4,8 @@ import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-rou
 
 import { AccountMenu } from '@/components/AccountMenu';
 import { WorkspaceMenu } from '@/components/WorkspaceMenu';
-import { AppShell } from '@/components/layout/AppShell';
-import type { NavItem } from '@/components/layout/AppShell';
+import { AppShell } from '@/layouts/AppShell';
+import type { NavItem } from '@/layouts/AppShell';
 import { ErrorState, Skeleton } from '@/components/ui';
 import { useUnreadCount } from '@/lib/hooks';
 import { WorkspaceProvider, useWorkspace } from '@/lib/workspace/WorkspaceProvider';

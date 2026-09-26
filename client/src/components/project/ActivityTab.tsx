@@ -10,24 +10,10 @@ import {
 } from '@/components/ui';
 import type { Project } from '@/lib/api';
 import { activityApi, refName } from '@/lib/api';
+import { ACTIVITY_ACTION_FILTER_OPTIONS } from '@/lib/constants';
 import { useAsync } from '@/lib/hooks';
+import { humaniseEnum } from '@/lib/utils';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-const ACTION_OPTIONS = [
-  { value: 'all', label: 'All actions' },
-  { value: 'task_created', label: 'Task created' },
-  { value: 'subtask_created', label: 'Subtask created' },
-  { value: 'subtask_updated', label: 'Subtask updated' },
-  { value: 'subtask_deleted', label: 'Subtask deleted' },
-  { value: 'label_assigned', label: 'Label assigned' },
-  { value: 'label_removed', label: 'Label removed' },
-];
-
-/** Turns `subtask_created` into "Subtask created" without a lookup table. */
-const humanise = (action: string): string => {
-  const words = action.replace(/_/g, ' ');
-  return words.charAt(0).toUpperCase() + words.slice(1);
-};
 
 /**
  * The project's activity trail.
@@ -83,7 +69,7 @@ export const ActivityTab = ({ project }: { project: Project }) => {
               setAction(value);
               setPage(1);
             }}
-            options={ACTION_OPTIONS}
+            options={ACTIVITY_ACTION_FILTER_OPTIONS}
             className="w-48"
           />
         </div>
@@ -108,7 +94,7 @@ export const ActivityTab = ({ project }: { project: Project }) => {
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <p className="text-sm text-body">
                     <span className="font-medium">{refName(entry.user, 'Someone')}</span>{' '}
-                    <span className="text-body-muted">{humanise(entry.action)}</span>
+                    <span className="text-body-muted">{humaniseEnum(entry.action)}</span>
                   </p>
 
                   <time

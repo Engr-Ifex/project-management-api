@@ -2,7 +2,7 @@ import * as ToastPrimitive from '@radix-ui/react-toast';
 import { CheckCircle, Info, WarningCircle, X, XCircle } from '@phosphor-icons/react';
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 import { IconButton } from './Button';
 
 /*

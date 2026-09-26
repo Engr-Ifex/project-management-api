@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { AuthShell } from '@/components/AuthShell';
+import { AuthShell } from '@/layouts/AuthShell';
 import { Button, Input } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useDocumentTitle, useMutation } from '@/lib/hooks';

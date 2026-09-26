@@ -21,6 +21,7 @@ import {
   Textarea,
 } from '@/components/ui';
 import { usersApi, workspacesApi } from '@/lib/api';
+import { AVATAR_MIME_TYPES, MAX_AVATAR_BYTES } from '@/lib/constants';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useAsync, useDocumentTitle, useMutation, usePermission } from '@/lib/hooks';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
@@ -113,12 +114,14 @@ export const Settings = () => {
     setAvatarError(undefined);
     if (!file) return;
 
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    // Widened to string[] for the lookup: the constant is a readonly tuple, and
+    // `file.type` is an arbitrary string from the File API.
+    if (!(AVATAR_MIME_TYPES as readonly string[]).includes(file.type)) {
       setAvatarError('Use a JPEG, PNG or WEBP image.');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_AVATAR_BYTES) {
       setAvatarError('Images must be 5 MB or smaller.');
       return;
     }
@@ -161,7 +164,7 @@ export const Settings = () => {
                         <input
                           ref={avatarInput}
                           type="file"
-                          accept="image/jpeg,image/png,image/webp"
+                          accept={AVATAR_MIME_TYPES.join(',')}
                           className="hidden"
                           onChange={(event) => void onAvatarChosen(event.target.files?.[0])}
                         />

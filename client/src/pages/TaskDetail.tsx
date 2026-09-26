@@ -26,24 +26,10 @@ import type { Comment, Subtask, Task } from '@/lib/api';
 import { commentsApi, labelsApi, refId, refName, tasksApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useAsync, useMutation, useDocumentTitle } from '@/lib/hooks';
+import { TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS } from '@/lib/constants';
 import { canDeleteComment, canEditComment } from '@/lib/permissions';
-import { useProjectContext } from '@/routes/ProjectLayout';
+import { useProjectContext } from '@/layouts/ProjectLayout';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'todo', label: 'To do' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'in_review', label: 'In review' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
-
-const PRIORITY_OPTIONS: { value: TaskPriority; label: string }[] = [
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
 
 /**
  * A single task.
@@ -570,7 +556,7 @@ export const TaskDetail = () => {
                     <Select
                       aria-label="Status"
                       value={current.status}
-                      options={STATUS_OPTIONS}
+                      options={TASK_STATUS_OPTIONS}
                       onValueChange={(value) => {
                         void setStatus.run(value as TaskStatus).then((outcome) => {
                           if (outcome.ok) task.setData(() => outcome.data.task);
@@ -588,7 +574,7 @@ export const TaskDetail = () => {
                     <Select
                       aria-label="Priority"
                       value={current.priority}
-                      options={PRIORITY_OPTIONS}
+                      options={TASK_PRIORITY_OPTIONS}
                       onValueChange={(value) => {
                         void setPriority.run(value as TaskPriority).then((outcome) => {
                           if (outcome.ok) task.setData(() => outcome.data.task);

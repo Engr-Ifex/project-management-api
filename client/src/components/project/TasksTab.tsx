@@ -35,30 +35,19 @@ import {
   TR,
   Textarea,
 } from '@/components/ui';
-import type { TaskPriority, TaskStatus } from '@/components/ui';
+import type { TaskPriority } from '@/components/ui';
 import type { Project, Task } from '@/lib/api';
 import { refId, refName, tasksApi } from '@/lib/api';
+import {
+  FILTER_ALL,
+  TASK_ARCHIVE_FILTER_OPTIONS,
+  TASK_ASSIGNMENT_FILTER_OPTIONS,
+  TASK_PRIORITY_FILTER_OPTIONS,
+  TASK_PRIORITY_OPTIONS,
+  TASK_STATUS_FILTER_OPTIONS,
+} from '@/lib/constants';
 import { useAsync, useDebounced, useMutation } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'todo', label: 'To do' },
-  { value: 'in_progress', label: 'In progress' },
-  { value: 'in_review', label: 'In review' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'cancelled', label: 'Cancelled' },
-];
-
-const PRIORITY_OPTIONS = [
-  { value: 'all', label: 'Any priority' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'urgent', label: 'Urgent' },
-];
-
-const CREATE_PRIORITY = PRIORITY_OPTIONS.filter((option) => option.value !== 'all');
 
 /**
  * The task list for a project.
@@ -221,7 +210,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
                 setStatus(value);
                 setPage(1);
               }}
-              options={STATUS_OPTIONS}
+              options={TASK_STATUS_FILTER_OPTIONS}
               className="w-36"
             />
 
@@ -232,21 +221,18 @@ export const TasksTab = ({ project }: { project: Project }) => {
                 setPriority(value);
                 setPage(1);
               }}
-              options={PRIORITY_OPTIONS}
+              options={TASK_PRIORITY_FILTER_OPTIONS}
               className="w-36"
             />
 
             <Select
               aria-label="Assignment"
-              value={unassignedOnly ? 'unassigned' : 'all'}
+              value={unassignedOnly ? 'unassigned' : FILTER_ALL}
               onValueChange={(value) => {
                 setUnassignedOnly(value === 'unassigned');
                 setPage(1);
               }}
-              options={[
-                { value: 'all', label: 'Anyone' },
-                { value: 'unassigned', label: 'Unassigned' },
-              ]}
+              options={TASK_ASSIGNMENT_FILTER_OPTIONS}
               className="w-36"
             />
 
@@ -257,10 +243,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
                 setArchivedOnly(value === 'archived');
                 setPage(1);
               }}
-              options={[
-                { value: 'active', label: 'Active' },
-                { value: 'archived', label: 'Archived' },
-              ]}
+              options={TASK_ARCHIVE_FILTER_OPTIONS}
               className="w-32"
             />
 
@@ -489,10 +472,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
                   label="Priority"
                   value={createPriority}
                   onValueChange={(value) => setCreatePriority(value as TaskPriority)}
-                  options={CREATE_PRIORITY.map((option) => ({
-                    value: option.value,
-                    label: option.label,
-                  }))}
+                  options={TASK_PRIORITY_OPTIONS}
                 />
 
                 <Input
@@ -560,8 +540,3 @@ export const TasksTab = ({ project }: { project: Project }) => {
     </>
   );
 };
-
-/** Re-exported so the task detail screen shares the status vocabulary. */
-export const TASK_STATUS_OPTIONS: { value: TaskStatus; label: string }[] = STATUS_OPTIONS.filter(
-  (option) => option.value !== 'all'
-) as { value: TaskStatus; label: string }[];

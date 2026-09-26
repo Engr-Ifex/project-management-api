@@ -36,20 +36,78 @@ exercised locally against the real API.
 
 ## Layout
 
+Each folder has one job, and the split between `routes/`, `layouts/` and `pages/`
+is deliberate:
+
 ```
 src/
-  lib/
-    api/          types.ts · client.ts · endpoints.ts   ← the contract, in types
-    auth/         AuthProvider — session, 401 teardown
-    workspace/    WorkspaceProvider — the active workspace and the caller's role
-    hooks/        useAsync · useMutation · useDebounced · useUnreadCount · usePermission
-    permissions.ts   capability tables (what to SHOW; the API decides what is ALLOWED)
+  main.tsx              mounts <App/>
+
+  app/
+    App.tsx             composition root — providers + routes, nothing else
+    providers.tsx       the global provider stack, in nesting order
+
+  routes/
+    index.tsx           the route table: what URLs exist
+    guards.tsx          RequireAuth / RequireAnonymous
+
+  layouts/
+    AppShell.tsx        sidebar · drawer · topbar · content — the shell
+    AuthShell.tsx       the frame for login/register
+    WorkspaceLayout.tsx resolves the workspace, renders the shell, <Outlet/>
+    ProjectLayout.tsx   resolves the project, <Outlet/>
+
+  pages/                one file per screen; no routing logic inside
+
   components/
-    ui/           the design system (Phase 2) — pages import from the barrel only
-    layout/       AppShell, PageHeader, AccountMenuTrigger, WorkspaceSwitcher
-    project/      the project tabs
-  routes/         one file per screen
+    ui/                 design-system primitives (pages import the barrel only)
+    project/            the project tabs
+    AccountMenu · WorkspaceMenu · PageContainer · CopyField
+
+  lib/
+    api/                types · client · endpoints  ← the contract, in types
+    auth/               AuthProvider — session, 401 teardown
+    workspace/          WorkspaceProvider — active workspace + caller's role
+    hooks/              useAsync · useMutation · useDebounced · useUnreadCount · usePermission
+    constants/          option lists, limits, page sizes
+    utils/              cn · formatBytes · formatDate · humaniseEnum
+    permissions.ts      capability tables (what to SHOW; the API decides what is ALLOWED)
 ```
+
+Why the three-way split rather than "pages hold everything":
+
+- **`routes/`** is the only file you read to answer *"what URLs exist"*. It is
+  also where the lazy imports live, so code splitting is visible in one place.
+- **`layouts/`** own structure — a shell, an outlet, a provider scoped to a
+  route. They render `<Outlet/>` and never page content.
+- **`pages/`** own a screen and nothing else. A page that starts importing a
+  guard or declaring a route has drifted.
+
+`lib/constants/` exists because the option lists were previously copy-pasted —
+task statuses appeared in **four** files, so a status added server-side could be
+wired into one screen and silently missing from the others. They are now declared
+once. The filter variants (`*_FILTER_OPTIONS`) are separate exports from the
+form variants on purpose: a filter has a legitimate "all" state, a create form
+does not, and one list for both makes it possible to *save* "All statuses".
+
+### Routes
+
+| Path | Access | Screen |
+| --- | --- | --- |
+| `/login`, `/register` | public, redirect away when signed in | `RequireAnonymous` |
+| `/invitations/:token` | **public on purpose** | an invitee usually has no account yet |
+| `/design` | public | the design-system showcase |
+| `/workspaces` | protected | the user's workspaces |
+| `/workspaces/:workspaceId` | protected | dashboard (index) |
+| `…/projects`, `…/projects/:projectId` | protected | project list, then the project |
+| `…/projects/:projectId/tasks/:taskId` | protected | task detail |
+| `…/members`, `…/notifications`, `…/settings` | protected | |
+| `*` | public | not found |
+
+**There is no forgot-password or reset-password route**, because the backend has
+no such endpoint. `server/src/routes/auth.routes.js` registers exactly three —
+`register`, `login`, `logout` — and the generated `openapi.json` contains no
+reset path. A screen here would be a form that cannot work.
 
 ### Data flow
 
@@ -107,6 +165,20 @@ Route-level code splitting is real: each screen is its own chunk (`Login`
   measurement, which is how the `AppShell` change was checked for regression.
 - `/favicon.ico` → the **404 is fixed** (an SVG favicon is now declared).
 - Deep links (`/workspaces/x/projects`) fall back to the SPA.
+
+Routing behaviour, verified with the API deliberately down (so the session probe
+fails and the app is genuinely anonymous):
+
+| Requested | Landed on | Meaning |
+| --- | --- | --- |
+| `/login` | `/login` | public route renders |
+| `/register` | `/register` | public route renders |
+| `/` | `/login` | index redirects, then auth guard catches it |
+| `/workspaces/<id>/projects` | `/login` | **protected route redirects** |
+| `/invitations/abc123` | `/invitations/abc123` | stays public while anonymous, by design |
+
+With a session present, `/login` correctly bounces to `/workspaces` instead —
+`RequireAnonymous` working in the other direction.
 
 ### Authenticated screens, against `dev/mock-api.mjs`
 

@@ -2,7 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { CaretUpDown, List, X } from '@phosphor-icons/react';
 import { forwardRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 import { Avatar, IconButton } from '@/components/ui';
 
 /*

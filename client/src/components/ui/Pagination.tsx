@@ -1,6 +1,6 @@
 import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 
-import { cn } from '@/lib/cn';
+import { cn } from '@/lib/utils/cn';
 import { Button } from './Button';
 import { Select } from './Select';
 

@@ -15,15 +15,10 @@ import {
 import type { ProjectRole } from '@/components/ui';
 import type { Project } from '@/lib/api';
 import { projectsApi, refId, refName, workspacesApi } from '@/lib/api';
+import { ASSIGNABLE_PROJECT_ROLE_OPTIONS } from '@/lib/constants';
 import { useAsync, useMutation } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
-import { useProjectContext } from '@/routes/ProjectLayout';
-
-const ROLE_OPTIONS: { value: ProjectRole; label: string }[] = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'member', label: 'Member' },
-  { value: 'viewer', label: 'Viewer' },
-];
+import { useProjectContext } from '@/layouts/ProjectLayout';
 
 /**
  * Project membership.
@@ -161,7 +156,7 @@ export const MembersTab = ({ project }: { project: Project }) => {
                       aria-label={`Role for ${name}`}
                       size="sm"
                       value={member.role}
-                      options={ROLE_OPTIONS}
+                      options={ASSIGNABLE_PROJECT_ROLE_OPTIONS}
                       onValueChange={(value) => {
                         void changeRole
                           .run({ userId: id, role: value as ProjectRole })

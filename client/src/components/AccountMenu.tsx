@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui';
-import { AccountMenuTrigger } from '@/components/layout/AppShell';
+import { AccountMenuTrigger } from '@/layouts/AppShell';
 import { useAuth } from '@/lib/auth/AuthProvider';
 
 /**
