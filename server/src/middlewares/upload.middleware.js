@@ -191,5 +191,10 @@ const attachmentUpload = multer({
   fileFilter: attachmentFileFilter,
 });
 
-export { attachmentUpload, AVATAR_MAX_FILE_SIZE, ATTACHMENT_MAX_FILE_SIZE };
+export {
+  attachmentUpload,
+  AVATAR_ALLOWED_MIME_TYPES,
+  AVATAR_MAX_FILE_SIZE,
+  ATTACHMENT_MAX_FILE_SIZE,
+};
 export default upload;

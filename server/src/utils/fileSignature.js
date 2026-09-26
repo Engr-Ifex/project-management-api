@@ -101,6 +101,14 @@ export const detectContentType = (buffer) => {
  */
 export const CONTENT_FOR_MIME_TYPE = Object.freeze({
   'image/jpeg': ['jpeg'],
+
+  /*
+   * Not a registered type, but clients send it and the avatar allow-list
+   * accepts it — so it needs a rule here too, or a real JPEG would be rejected
+   * for declaring itself with the wrong-but-common spelling.
+   */
+  'image/jpg': ['jpeg'],
+
   'image/png': ['png'],
   'image/webp': ['webp'],
   'image/gif': ['gif'],

@@ -7,6 +7,7 @@ import { asUser, createProject, createUser, createWorkspace } from './helpers/fa
 
 import { PUBLIC_AVATARS_DIR } from '../src/config/paths.js';
 import { MIME_TYPE_EXTENSIONS } from '../src/constants/attachment.js';
+import { AVATAR_ALLOWED_MIME_TYPES } from '../src/middlewares/upload.middleware.js';
 import { MIME_TYPES_WITH_CONTENT_RULES } from '../src/utils/fileSignature.js';
 
 /*
@@ -234,16 +235,74 @@ describe('upload content validation', () => {
   });
 
   describe('the content rules cover every allowed type', () => {
-    test('every allowed MIME type has a declared content expectation', () => {
-      const declared = Object.keys(MIME_TYPE_EXTENSIONS).sort();
-      const covered = [...MIME_TYPES_WITH_CONTENT_RULES].sort();
+    test('every allowed attachment MIME type has a declared content expectation', () => {
+      const missing = Object.keys(MIME_TYPE_EXTENSIONS).filter(
+        (mimeType) => !MIME_TYPES_WITH_CONTENT_RULES.includes(mimeType)
+      );
 
       assert.deepEqual(
-        covered,
-        declared,
-        'adding an allowed MIME type requires deciding what its content looks like, ' +
-          'or the content check silently skips it'
+        missing,
+        [],
+        `allowed attachment MIME types with no content rule:\n  ${missing.join('\n  ')}\n` +
+          'Adding an allowed type requires deciding what its content looks like, or ' +
+          'the content check silently skips it.'
       );
+    });
+
+    test('every allowed avatar MIME type has a declared content expectation', () => {
+      /*
+       * Avatars use a SEPARATE allow-list from attachments, so this is not
+       * covered by the test above — and the gap was real: `image/jpg` (the
+       * common misspelling of `image/jpeg`) was accepted by the avatar filter
+       * but had no content rule, so a genuine JPEG sent with that type was
+       * rejected. Both lists must be covered.
+       */
+      const missing = AVATAR_ALLOWED_MIME_TYPES.filter(
+        (mimeType) => !MIME_TYPES_WITH_CONTENT_RULES.includes(mimeType)
+      );
+
+      assert.deepEqual(
+        missing,
+        [],
+        `avatar MIME types with no content rule:\n  ${missing.join('\n  ')}\n` +
+          'Add a rule in CONTENT_FOR_MIME_TYPE, or the upload will be refused.'
+      );
+    });
+
+    test('no content rule is dead', () => {
+      /*
+       * The reverse direction: a rule for a MIME type no allow-list accepts can
+       * never run. Not harmful, but it hides the fact that a type was removed
+       * from a list and the rule was left behind.
+       */
+      const accepted = new Set([
+        ...Object.keys(MIME_TYPE_EXTENSIONS),
+        ...AVATAR_ALLOWED_MIME_TYPES,
+      ]);
+
+      const orphans = MIME_TYPES_WITH_CONTENT_RULES.filter((mimeType) => !accepted.has(mimeType));
+
+      assert.deepEqual(
+        orphans,
+        [],
+        `content rules for types nothing accepts:\n  ${orphans.join('\n  ')}`
+      );
+    });
+
+    test('a JPEG sent as image/jpg is accepted', async () => {
+      const owner = await createUser({ name: 'Owner' });
+      const before = avatarFiles();
+
+      const response = await asUser(app, owner)
+        .patch(`${API}/users/avatar`)
+        .attach('avatar', JPEG, { filename: 'photo.jpg', contentType: 'image/jpg' });
+
+      assert.equal(response.status, 200, response.body.message);
+
+      // Remove the accepted avatar so the test leaves no file behind.
+      for (const file of avatarFiles().filter((file) => !before.includes(file))) {
+        fs.unlinkSync(`${PUBLIC_AVATARS_DIR}/${file}`);
+      }
     });
   });
 });
