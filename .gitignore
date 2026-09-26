@@ -1,2 +1,5 @@
 # Temporary logs and editor scratch files
 *.log
+
+# Throwaway browser-verification scratch (screenshots, CDP scripts, profiles)
+.tmp-shots/

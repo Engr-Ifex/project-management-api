@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Project Management">
+  <!--
+    Colours are the design system's own tokens, not arbitrary hexes:
+    ink-950 (#121110) for the plate, accent-500 (#348579) for the mark.
+    A favicon is the one asset that cannot read CSS variables, so the two
+    values are duplicated here deliberately — if the palette moves, this
+    file moves with it.
+  -->
+  <rect width="32" height="32" rx="7" fill="#121110" />
+  <path
+    d="M9.5 16.75l4.25 4.25L22.5 11.5"
+    fill="none"
+    stroke="#348579"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
