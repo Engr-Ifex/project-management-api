@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link, Outlet, useOutletContext, useParams } from 'react-router-dom';
 
 import { PageContainer } from '@/components/PageContainer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import {
   Button,
   ConfirmDialog,
@@ -177,7 +178,9 @@ export const ProjectLayout = () => {
       </div>
 
       {project ? (
-        <Outlet context={{ project, reloadProject: reload, setProject: applyProject }} />
+        <ErrorBoundary variant="panel">
+          <Outlet context={{ project, reloadProject: reload, setProject: applyProject }} />
+        </ErrorBoundary>
       ) : (
         <PageContainer>
           <div className="flex flex-col gap-3">

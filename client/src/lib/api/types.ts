@@ -308,6 +308,20 @@ export interface ProjectActivity {
 
 /* ----------------------------------------------------------------- dashboard */
 
+/*
+ * The dashboards return **aggregates, not documents**.
+ *
+ * This is worth stating loudly because the first version of these types declared
+ * `projects: Project[]` and `tasks: Task[]`, and that was simply wrong. The
+ * service runs `$facet` aggregations and returns counts and bucket breakdowns —
+ * there are no project or task records in the payload at all.
+ *
+ * The lie was not harmless. `Dashboard.tsx` read `data.projects` expecting an
+ * array, so `projects.length` was `undefined`, which made both `=== 0` and `> 0`
+ * false — the Projects panel rendered neither its empty state nor its list, and
+ * the bug was invisible to the compiler. Correct types are the fix.
+ */
+
 /** Counts, computed server-side. Do not recompute these on the client. */
 export interface MyTasks {
   assigned: number;
@@ -315,14 +329,53 @@ export interface MyTasks {
   overdue: number;
 }
 
+/**
+ * Every status is present with a count of zero when nothing matches, so these
+ * are exhaustive records rather than partial ones — `fillBuckets` on the server
+ * guarantees the shape. Keys mirror `PROJECT_STATUS_OPTIONS`.
+ */
+export type ProjectStatusCounts = Record<ProjectStatus, number>;
+export type TaskStatusCounts = Record<TaskStatus, number>;
+export type TaskPriorityCounts = Record<TaskPriority, number>;
+
+export interface WorkspaceProjectStats {
+  total: number;
+  active: number;
+  archived: number;
+  byStatus: ProjectStatusCounts;
+}
+
 export interface WorkspaceDashboard {
-  workspace: Workspace;
-  projects: Project[];
+  /** `id` and `name` only — not a full `Workspace`. */
+  workspace: { id: Id; name: string };
+  projects: WorkspaceProjectStats;
   myTasks: MyTasks;
 }
 
+export interface ProjectTaskStats {
+  total: number;
+  byStatus: TaskStatusCounts;
+  byPriority: TaskPriorityCounts;
+  completed: number;
+  cancelled: number;
+  overdue: number;
+  upcoming: number;
+  /** Echoes the window used for `upcoming`, in days. */
+  upcomingDueDays: number;
+  unassigned: number;
+  /** 0–100, computed server-side. Not a ratio. */
+  completionPercentage: number;
+  estimatedTime: {
+    unit: 'minutes';
+    total: number;
+    completed: number;
+    remaining: number;
+  };
+}
+
 export interface ProjectDashboard {
-  project: Project;
-  tasks: Task[];
+  /** `id`, `name` and `status` only — not a full `Project`. */
+  project: { id: Id; name: string; status: ProjectStatus };
+  tasks: ProjectTaskStats;
   myTasks: MyTasks;
 }

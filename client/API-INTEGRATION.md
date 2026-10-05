@@ -99,7 +99,7 @@ in again.
 
 | Method | Path | Body / Params | Who |
 | --- | --- | --- | --- |
-| `GET` | `/workspaces` | `page,limit,sortBy,order,search` | any authenticated user (their own) |
+| `GET` | `/workspaces` | `page,limit,sortBy,order,search,isArchived` | any authenticated user (their own) |
 | `POST` | `/workspaces` | `name`, `description?` | any authenticated user |
 | `GET` | `/workspaces/:workspaceId` | — | member |
 | `PATCH` | `/workspaces/:workspaceId` | `name?`, `description?` | owner / admin |
@@ -501,6 +501,14 @@ what is *allowed*.
 | **503** | `GET /health/ready` only: the database is unreachable | Show a maintenance state |
 
 `errors` is an array of `{ field?, message }` on validation failures.
+
+> **`field` is namespaced by the part of the request it came from.** The server's
+> validators parse `{ body, params, query }` as one object, so a bad email in a
+> request body is reported as **`body.email`**, a bad page number as
+> `query.page`, a bad path id as `params.taskId`. Field names in a form are
+> bare (`email`), so `lib/api/client.ts` strips the prefix as the error is built —
+> `fieldError('email')` is the only form a call site should ever use. Reading
+> `error.errors[0].field` directly gives you the raw, prefixed name.
 
 **404 is used deliberately where 403 would leak existence** — a project in
 another workspace, another user's notification. Do not surface a distinction the

@@ -12,6 +12,9 @@ export type { ButtonProps, IconButtonProps } from './Button';
 export { Input, Textarea, controlBase, invalidStyles } from './Input';
 export type { InputProps, TextareaProps } from './Input';
 
+export { PasswordInput } from './PasswordInput';
+export type { PasswordInputProps } from './PasswordInput';
+
 export { FieldShell, useFieldControl } from './Field';
 export type { FieldShellProps, FieldIds } from './Field';
 

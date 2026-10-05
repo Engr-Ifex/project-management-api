@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
+  Avatar,
   Card,
   CardBody,
   ErrorState,
@@ -10,9 +11,11 @@ import {
 } from '@/components/ui';
 import type { Project } from '@/lib/api';
 import { activityApi, refName } from '@/lib/api';
+import { describeActivity } from '@/lib/activity';
 import { ACTIVITY_ACTION_FILTER_OPTIONS } from '@/lib/constants';
 import { useAsync } from '@/lib/hooks';
-import { humaniseEnum } from '@/lib/utils';
+import { groupByDay } from '@/lib/notifications';
+import { useSearchParams } from 'react-router-dom';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
 /**
@@ -22,12 +25,33 @@ import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
  * service layer**, so it only ever contains changes made through the API. There
  * is nothing here to edit, and a direct database write would not appear — which
  * is worth knowing before treating this as a complete audit log.
+ *
+ * Each row names the actor, says what they did, and names the thing they did it
+ * to — with a link when the metadata identifies a task. `describeActivity` owns
+ * that mapping, including the fallback for an action this build has never heard
+ * of, since `ActivityAction` is an open union.
+ *
+ * The filter and page live in the query string so a filtered trail survives a
+ * reload, matching the task list.
  */
 export const ActivityTab = ({ project }: { project: Project }) => {
   const { workspaceId } = useWorkspace();
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [action, setAction] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = Math.max(1, Number(searchParams.get('aPage') ?? '1') || 1);
+  const limit = Number(searchParams.get('aLimit') ?? '20') || 20;
+  const action = searchParams.get('aAction') ?? 'all';
+
+  const setParams = (patch: Record<string, string | number | undefined>) => {
+    const next = new URLSearchParams(searchParams);
+
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === undefined || value === '' || value === 'all') next.delete(key);
+      else next.set(key, String(value));
+    }
+
+    setSearchParams(next, { replace: true });
+  };
 
   const { data, error, loading, reload } = useAsync(
     () =>
@@ -43,6 +67,7 @@ export const ActivityTab = ({ project }: { project: Project }) => {
 
   const activities = data?.activities ?? [];
   const pagination = data?.pagination;
+  const groups = groupByDay(activities);
 
   if (error) {
     return (
@@ -65,10 +90,7 @@ export const ActivityTab = ({ project }: { project: Project }) => {
             aria-label="Filter by action"
             size="sm"
             value={action}
-            onValueChange={(value) => {
-              setAction(value);
-              setPage(1);
-            }}
+            onValueChange={(value) => setParams({ aAction: value, aPage: undefined })}
             options={ACTIVITY_ACTION_FILTER_OPTIONS}
             className="w-48"
           />
@@ -78,46 +100,79 @@ export const ActivityTab = ({ project }: { project: Project }) => {
 
         {!loading && activities.length === 0 && (
           <p className="py-8 text-center text-sm text-body-muted">
-            Nothing has been recorded yet.
+            {action === 'all'
+              ? 'Nothing has been recorded yet.'
+              : 'Nothing matches that action.'}
           </p>
         )}
 
-        {!loading && activities.length > 0 && (
-          <ol className="flex flex-col divide-y divide-line-subtle">
-            {activities.map((entry) => (
-              <li key={entry._id} className="flex items-start gap-3 py-3">
-                <span
-                  aria-hidden
-                  className="mt-1.5 size-1.5 shrink-0 rounded-full bg-ink-300"
-                />
+        {!loading &&
+          groups.map((group) => (
+            <section key={group.key} className="flex flex-col gap-1">
+              <h3 className="text-2xs uppercase tracking-wide text-body-subtle">
+                {group.label}
+              </h3>
 
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <p className="text-sm text-body">
-                    <span className="font-medium">{refName(entry.user, 'Someone')}</span>{' '}
-                    <span className="text-body-muted">{humaniseEnum(entry.action)}</span>
-                  </p>
+              <ol className="flex flex-col divide-y divide-line-subtle">
+                {group.items.map((entry) => {
+                  const actor = refName(entry.user, 'Someone');
+                  const { text, resource, href } = describeActivity(
+                    entry,
+                    workspaceId,
+                    project._id
+                  );
 
-                  <time
-                    dateTime={entry.createdAt}
-                    className="text-2xs text-body-subtle"
-                    data-numeric
-                  >
-                    {new Date(entry.createdAt).toLocaleString()}
-                  </time>
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
+                  const body = (
+                    <>
+                      <Avatar name={actor} size="sm" />
+
+                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <p className="text-sm text-body">
+                          <span className="font-medium">{actor}</span>{' '}
+                          <span className="text-body-muted">{text}</span>
+                          {resource && (
+                            <>
+                              {' '}
+                              <span className="font-medium text-body">{resource}</span>
+                            </>
+                          )}
+                        </p>
+
+                        <time
+                          dateTime={entry.createdAt}
+                          className="text-2xs text-body-subtle"
+                          data-numeric
+                        >
+                          {new Date(entry.createdAt).toLocaleString()}
+                        </time>
+                      </div>
+                    </>
+                  );
+
+                  return (
+                    <li key={entry._id}>
+                      {href ? (
+                        <Link
+                          to={href}
+                          className="-mx-2 flex items-start gap-3 rounded-md px-2 py-3 transition-colors duration-[120ms] ease-standard hover:bg-surface-hover"
+                        >
+                          {body}
+                        </Link>
+                      ) : (
+                        <div className="flex items-start gap-3 py-3">{body}</div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
 
         {pagination && pagination.total > 0 && (
           <Pagination
             {...pagination}
-            onPageChange={setPage}
-            onLimitChange={(next) => {
-              setLimit(next);
-              setPage(1);
-            }}
+            onPageChange={(next) => setParams({ aPage: next })}
+            onLimitChange={(next) => setParams({ aLimit: next, aPage: undefined })}
           />
         )}
       </CardBody>

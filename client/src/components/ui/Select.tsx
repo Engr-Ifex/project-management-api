@@ -45,6 +45,16 @@ export interface SelectProps {
   /** Height matches the Button and Input components. */
   size?: 'sm' | 'md' | 'lg';
   name?: string;
+  /**
+   * Accessible name for the trigger, for a select whose purpose is not carried
+   * by a visible `label` — a role picker inside a table row, say.
+   *
+   * Declared explicitly because TypeScript permits a hyphenated attribute on a
+   * component without checking it against the props type. Before this existed,
+   * `<Select aria-label="…">` compiled cleanly and was then dropped on the
+   * floor, leaving the control with no accessible name at all.
+   */
+  'aria-label'?: string;
 }
 
 export const Select = ({
@@ -62,6 +72,7 @@ export const Select = ({
   containerClassName,
   size = 'md',
   name,
+  'aria-label': ariaLabel,
 }: SelectProps) => {
   const field = useFieldControl(id, hint, error);
 
@@ -77,6 +88,7 @@ export const Select = ({
     >
       <SelectPrimitive.Trigger
         id={field.controlId}
+        aria-label={ariaLabel}
         aria-invalid={field.invalid || undefined}
         aria-describedby={field.describedBy}
         className={cn(

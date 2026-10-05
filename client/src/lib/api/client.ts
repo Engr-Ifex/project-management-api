@@ -79,6 +79,27 @@ export const onUnauthorized = (listener: UnauthorizedListener): (() => void) => 
   return () => unauthorizedListeners.delete(listener);
 };
 
+/* --------------------------------------------------------- field-error names */
+
+/**
+ * Strips the request-part prefix from a validation error's field name.
+ *
+ * The API's validators parse `{ body, params, query }` as a single object, so a
+ * zod issue's path starts with the part it came from: a bad email in a request
+ * body is reported as `body.email`, a bad page number as `query.page`. Forms
+ * address their fields by the field's own name, and every call site in the app
+ * asks for `fieldError('email')`.
+ *
+ * Normalising here — once, as the error is built — is what makes those lookups
+ * match. Before this, `fieldError()` never found anything for a 400 and every
+ * inline field error silently failed to render, leaving the user with only the
+ * generic "Validation failed" and no indication of which field was wrong.
+ */
+const normalizeFieldError = (error: ApiFieldError): ApiFieldError => ({
+  ...error,
+  field: error.field?.replace(/^(?:body|params|query)\./, ''),
+});
+
 /* ------------------------------------------------------------------- queries */
 
 /**
@@ -174,12 +195,89 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
       for (const listener of unauthorizedListeners) listener();
     }
 
-    throw new ApiError(response.status, message, envelope?.errors ?? []);
+    throw new ApiError(
+      response.status,
+      message,
+      (envelope?.errors ?? []).map(normalizeFieldError)
+    );
   }
 
   const envelope = parsed as { data?: T } | null;
   return (envelope?.data ?? (undefined as T)) as T;
 };
+
+/* ---------------------------------------------------------------- uploads */
+
+/**
+ * Uploads a multipart body and reports progress.
+ *
+ * `fetch` cannot report upload progress — there is no request-side stream to
+ * observe — so this one call site uses `XMLHttpRequest`, the only browser API
+ * that emits `upload.onprogress`. Everything else stays on `fetch`.
+ *
+ * The session and error contracts match `request`: the cookie is sent
+ * explicitly, a 401 still broadcasts, and a non-2xx becomes an `ApiError`
+ * carrying the server's own message (which is what surfaces a file rejected on
+ * its magic bytes rather than its extension).
+ */
+export const uploadWithProgress = <T>(
+  path: string,
+  formData: FormData,
+  onProgress?: (percent: number) => void,
+  signal?: AbortSignal
+): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST', `${API_BASE}${path}`);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    // Content-Type is deliberately not set — the browser must add the multipart
+    // boundary itself, and setting it by hand omits the boundary.
+
+    xhr.upload.onprogress = (event) => {
+      if (!onProgress || !event.lengthComputable) return;
+
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+
+    xhr.onload = () => {
+      let parsed: { data?: T; message?: string; errors?: ApiFieldError[] } | null = null;
+
+      try {
+        parsed = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+      } catch {
+        parsed = null;
+      }
+
+      if (xhr.status === 401) {
+        for (const listener of unauthorizedListeners) listener();
+      }
+
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(
+          new ApiError(
+            xhr.status,
+            parsed?.message ?? `Upload failed with status ${xhr.status}`,
+            (parsed?.errors ?? []).map(normalizeFieldError)
+          )
+        );
+
+        return;
+      }
+
+      resolve((parsed?.data ?? (undefined as T)) as T);
+    };
+
+    xhr.onerror = () =>
+      reject(new ApiError(0, 'Could not reach the server. Check your connection and try again.'));
+
+    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
+
+    signal?.addEventListener('abort', () => xhr.abort());
+
+    xhr.send(formData);
+  });
 
 /* ---------------------------------------------------------------- downloads */
 

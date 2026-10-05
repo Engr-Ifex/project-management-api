@@ -1,6 +1,7 @@
 import { EnvelopeSimple, UserPlus, X } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { PageContainer } from '@/components/PageContainer';
 import { CopyField } from '@/components/CopyField';
@@ -56,7 +57,9 @@ export const Members = () => {
   const { user } = useAuth();
   const { can, isOwner: callerIsOwner } = usePermission();
 
-  const [inviteOpen, setInviteOpen] = useState(false);
+  /* `?invite=1` opens the invite modal on arrival — the dashboard's quick action. */
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [inviteOpen, setInviteOpen] = useState(searchParams.get('invite') === '1');
   const [email, setEmail] = useState('');
   /* An invitation can only ever be admin or member — ownership is transferred, not invited. */
   const [role, setRole] = useState<'admin' | 'member'>('member');
@@ -267,6 +270,8 @@ export const Members = () => {
           if (!open) {
             setInviteLink(undefined);
             setRole('member');
+            // Drop `?invite=1`, so a reload does not reopen the modal.
+            setSearchParams({}, { replace: true });
           }
         }}
       >

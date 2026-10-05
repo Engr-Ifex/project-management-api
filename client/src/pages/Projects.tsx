@@ -1,7 +1,7 @@
 import { Plus } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { PageContainer } from '@/components/PageContainer';
 import {
@@ -49,6 +49,13 @@ export const Projects = () => {
   const navigate = useNavigate();
   const { can } = usePermission();
 
+  /*
+   * `?new=1` opens the create modal on arrival, which is what the dashboard's
+   * quick action needs — landing someone on a list and making them find the
+   * button again is not a shortcut. Same convention as the workspace list.
+   */
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
@@ -59,7 +66,7 @@ export const Projects = () => {
 
   const debouncedSearch = useDebounced(search);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(searchParams.get('new') === '1');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -109,6 +116,8 @@ export const Projects = () => {
       setName('');
       setDescription('');
       setDeadline('');
+      // Drop `?new=1`, so a reload or a Back does not reopen the modal.
+      setSearchParams({}, { replace: true });
       navigate(`/workspaces/${workspaceId}/projects/${outcome.data.project._id}`);
     }
   };
@@ -281,7 +290,13 @@ export const Projects = () => {
         </div>
       </PageContainer>
 
-      <Modal open={createOpen} onOpenChange={setCreateOpen}>
+      <Modal
+        open={createOpen}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) setSearchParams({}, { replace: true });
+        }}
+      >
         <ModalContent>
           <form onSubmit={onCreate}>
             <ModalHeader title="New project" description="You can change these details later." />

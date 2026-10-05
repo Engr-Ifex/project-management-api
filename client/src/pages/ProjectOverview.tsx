@@ -6,6 +6,7 @@ import { ActivityTab } from '@/components/project/ActivityTab';
 import { AttachmentsTab } from '@/components/project/AttachmentsTab';
 import { LabelsTab } from '@/components/project/LabelsTab';
 import { MembersTab } from '@/components/project/MembersTab';
+import { ProjectSettingsTab } from '@/components/project/ProjectSettingsTab';
 import { TasksTab } from '@/components/project/TasksTab';
 import { useProjectContext } from '@/layouts/ProjectLayout';
 
@@ -15,6 +16,7 @@ const TABS = [
   { value: 'members', label: 'Members' },
   { value: 'attachments', label: 'Attachments' },
   { value: 'activity', label: 'Activity' },
+  { value: 'settings', label: 'Settings' },
 ] as const;
 
 /**
@@ -81,6 +83,10 @@ export const ProjectOverview = () => {
 
         <TabsContent value="activity">
           <ActivityTab project={project} />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <ProjectSettingsTab project={project} />
         </TabsContent>
       </PageContainer>
     </Tabs>

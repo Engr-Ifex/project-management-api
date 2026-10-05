@@ -23,6 +23,18 @@ export const ASSIGNABLE_WORKSPACE_ROLE_OPTIONS: { value: 'admin' | 'member'; lab
 ];
 
 /**
+ * The archived filter on the workspace list.
+ *
+ * An archived workspace is invisible to every other read — `GET /workspaces/:id`
+ * answers 404 once it is archived — so this list is the only place it can be
+ * found, and therefore the only place it can be restored from.
+ */
+export const WORKSPACE_ARCHIVE_FILTER_OPTIONS = [
+  { value: 'false', label: 'Active workspaces' },
+  { value: 'true', label: 'Archived only' },
+];
+
+/**
  * The notification scope toggle.
  *
  * Typed as a union rather than `string` on purpose: `SegmentedControl` is

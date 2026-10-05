@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Spinner } from '@/components/ui';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import { intendedDestination } from '@/lib/auth/redirect';
 
 /**
  * A full-page loader.
@@ -47,12 +48,23 @@ export const RequireAuth = ({ children }: { children: ReactNode }) => {
  * Without it, an authenticated user can sit on /login and submit a second
  * session, which is confusing rather than harmful — but the redirect is cheap
  * and the state is impossible to reason about otherwise.
+ *
+ * It sends the user to the **same destination the form would**, rather than
+ * always to the workspace list. Both fire when a session is established: the
+ * form calls `navigate(from)` on success, and this guard re-renders as
+ * `authenticated` and redirects. Whichever commits last wins, so if the two
+ * disagreed the result would be a race — and the user, having just been told
+ * "we will take you back to where you were", would land on a dashboard instead.
+ * Agreeing on the destination makes the outcome the same either way.
  */
 export const RequireAnonymous = ({ children }: { children: ReactNode }) => {
   const { status } = useAuth();
+  const location = useLocation();
 
   if (status === 'loading') return <FullPageLoader label="Checking your session" />;
-  if (status === 'authenticated') return <Navigate to="/workspaces" replace />;
+  if (status === 'authenticated') {
+    return <Navigate to={intendedDestination(location.state)} replace />;
+  }
 
   return <>{children}</>;
 };

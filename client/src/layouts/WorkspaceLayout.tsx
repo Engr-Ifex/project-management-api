@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { AccountMenu } from '@/components/AccountMenu';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { WorkspaceMenu } from '@/components/WorkspaceMenu';
 import { AppShell } from '@/layouts/AppShell';
 import type { NavItem } from '@/layouts/AppShell';
@@ -36,8 +38,7 @@ const WorkspaceChrome = () => {
   const { workspaceId, workspace, loading, error, reload } = useWorkspace();
   const location = useLocation();
   const navigate = useNavigate();
-  const unreadCount = useUnreadCount();
-
+  const { count: unreadCount } = useUnreadCount();
   const navItems = useMemo<NavItem[]>(() => {
     const base = `/workspaces/${workspaceId}`;
     return [
@@ -105,12 +106,20 @@ const WorkspaceChrome = () => {
       }
       accountSlot={<AccountMenu settingsHref={`/workspaces/${workspaceId}/settings`} />}
       topbar={
-        <span className="truncate text-sm font-medium text-body">
-          {workspace?.name ?? 'Workspace'}
-        </span>
+        <>
+          <span className="truncate text-sm font-medium text-body">
+            {workspace?.name ?? 'Workspace'}
+          </span>
+
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            <NotificationBell />
+          </div>
+        </>
       }
     >
-      <Outlet />
+      <ErrorBoundary variant="panel">
+        <Outlet />
+      </ErrorBoundary>
     </AppShell>
   );
 };

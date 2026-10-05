@@ -11,7 +11,7 @@
  * resources one level deeper than lists: `data.task`, `data.projects`.
  */
 
-import { request } from './client';
+import { request, uploadWithProgress } from './client';
 import type { ProjectRole, WorkspaceRole } from '@/components/ui';
 import type {
   Attachment,
@@ -154,10 +154,20 @@ export const projectsApi = {
   get: (workspaceId: string, projectId: string) =>
     request<{ project: Project }>(project(workspaceId, projectId)),
 
+  /**
+   * Partial update. `deadline` and `color` accept `null` to clear the field —
+   * the validator is `.nullable()`, and omitting a key means "leave it alone",
+   * so `null` is the only way to remove one.
+   */
   update: (
     workspaceId: string,
     projectId: string,
-    body: { name?: string; description?: string; deadline?: string; color?: string }
+    body: {
+      name?: string;
+      description?: string;
+      deadline?: string | null;
+      color?: string | null;
+    }
   ) => request<{ project: Project }>(project(workspaceId, projectId), { method: 'PATCH', body }),
 
   setStatus: (workspaceId: string, projectId: string, status: Project['status']) =>
@@ -456,13 +466,20 @@ export const attachmentsApi = {
       { query }
     ),
 
-  uploadToProject: (workspaceId: string, projectId: string, file: File) => {
+  /** `onProgress` receives 0–100. Uploads go through XHR — `fetch` cannot report progress. */
+  uploadToProject: (
+    workspaceId: string,
+    projectId: string,
+    file: File,
+    onProgress?: (percent: number) => void
+  ) => {
     const formData = new FormData();
     formData.append('file', file);
-    return request<{ attachment: Attachment }>(`${project(workspaceId, projectId)}/attachments`, {
-      method: 'POST',
+    return uploadWithProgress<{ attachment: Attachment }>(
+      `${project(workspaceId, projectId)}/attachments`,
       formData,
-    });
+      onProgress
+    );
   },
 
   listForTask: (
@@ -476,12 +493,19 @@ export const attachmentsApi = {
       { query }
     ),
 
-  uploadToTask: (workspaceId: string, projectId: string, taskId: string, file: File) => {
+  uploadToTask: (
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    file: File,
+    onProgress?: (percent: number) => void
+  ) => {
     const formData = new FormData();
     formData.append('file', file);
-    return request<{ attachment: Attachment }>(
+    return uploadWithProgress<{ attachment: Attachment }>(
       `${task(workspaceId, projectId, taskId)}/attachments`,
-      { method: 'POST', formData }
+      formData,
+      onProgress
     );
   },
 
@@ -502,13 +526,15 @@ export const attachmentsApi = {
     projectId: string,
     taskId: string,
     commentId: string,
-    file: File
+    file: File,
+    onProgress?: (percent: number) => void
   ) => {
     const formData = new FormData();
     formData.append('file', file);
-    return request<{ attachment: Attachment }>(
+    return uploadWithProgress<{ attachment: Attachment }>(
       `${comment(workspaceId, projectId, taskId, commentId)}/attachments`,
-      { method: 'POST', formData }
+      formData,
+      onProgress
     );
   },
 

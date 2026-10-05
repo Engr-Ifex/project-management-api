@@ -14,11 +14,15 @@ import { notificationsApi } from '@/lib/api';
  * Failures are swallowed on purpose. A badge is decoration; a dropped poll must
  * not surface an error, and must not tear down the session — though if the
  * session *has* expired, the 401 is broadcast by the client and handled centrally.
+ *
+ * `refresh` exists because a poll interval is the wrong latency for an action
+ * the user just took: marking a notification read must move the badge now, not
+ * up to a minute later.
  */
-export const useUnreadCount = (intervalMs = 60_000): number => {
+export const useUnreadCount = (intervalMs = 60_000) => {
   const [count, setCount] = useState(0);
 
-  const fetchCount = useCallback(async () => {
+  const refresh = useCallback(async () => {
     try {
       const data = await notificationsApi.unreadCount();
       setCount(data.count);
@@ -28,11 +32,11 @@ export const useUnreadCount = (intervalMs = 60_000): number => {
   }, []);
 
   useEffect(() => {
-    void fetchCount();
+    void refresh();
 
-    const timer = window.setInterval(() => void fetchCount(), intervalMs);
+    const timer = window.setInterval(() => void refresh(), intervalMs);
     return () => window.clearInterval(timer);
-  }, [fetchCount, intervalMs]);
+  }, [refresh, intervalMs]);
 
-  return count;
+  return { count, refresh };
 };

@@ -5,6 +5,7 @@ import fsp from 'fs/promises';
 
 import ApiError from '../utils/ApiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import logger from '../utils/logger.js';
 import { getSafeExtension } from '../utils/filename.js';
 import {
   CONTENT_MISMATCH_MESSAGE,
@@ -86,11 +87,40 @@ const upload = multer({
   fileFilter: avatarFileFilter,
 });
 
-/** Remove a file multer has already written. A missing file is the desired state. */
+/**
+ * Remove a file multer has already written. A missing file is the desired state.
+ *
+ * Retried rather than attempted once. On Windows the handle is released a moment
+ * after the write stream ends, so an immediate unlink fails EBUSY/EPERM — and the
+ * previous `.catch(() => {})` swallowed that, leaving the rejected file in the
+ * statically served avatars directory. That is precisely the hole the content
+ * check exists to close, so a leak here is worse than a slow request. The old
+ * single attempt passed in isolation and failed under load.
+ */
 const discardUploadedFile = async (filePath) => {
   if (!filePath) return;
 
-  await fsp.unlink(filePath).catch(() => {});
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await fsp.unlink(filePath);
+
+      return;
+    } catch (error) {
+      // Already gone: the desired end state, however we got here.
+      if (error.code === 'ENOENT') return;
+
+      if (attempt === 4) {
+        logger.warn('Could not remove a rejected upload from disk', {
+          filePath,
+          code: error.code,
+        });
+
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)));
+    }
+  }
 };
 
 /*

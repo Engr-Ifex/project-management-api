@@ -2,17 +2,29 @@ import { z } from 'zod';
 
 import { WORKSPACE_SORT_FIELDS } from '../constants/query.js';
 
-import { paginationQuery, searchQuery, sortQuery } from './query.validator.js';
+import { booleanQuery, paginationQuery, searchQuery, sortQuery } from './query.validator.js';
 
 /*
  * Workspace list query for the caller's own workspaces.
+ *
+ * `isArchived` defaults to `false` in the service, so omitting it preserves the
+ * original behaviour — live workspaces only. It is needed because an archived
+ * workspace is invisible to every other read (`GET /workspaces/:id` answers 404
+ * by design), so without this filter a workspace could be archived and then
+ * never found again, making `PATCH …/restore` unreachable.
  */
 export const workspaceListSchema = z.object({
   body: z.object({}).optional(),
 
   params: z.object({}),
 
-  query: paginationQuery.merge(sortQuery(WORKSPACE_SORT_FIELDS)).merge(searchQuery).optional(),
+  query: paginationQuery
+    .merge(sortQuery(WORKSPACE_SORT_FIELDS))
+    .merge(searchQuery)
+    .extend({
+      isArchived: booleanQuery('isArchived').optional(),
+    })
+    .optional(),
 });
 
 export const createWorkspaceSchema = z.object({

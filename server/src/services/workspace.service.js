@@ -30,13 +30,18 @@ export const createWorkspace = async (userId, workspaceData) => {
 export const getUserWorkspaces = async (userId, query = {}) => {
   /*
    * Same scope the model's `findActiveByMember` helper applies: workspaces the
-   * caller belongs to, excluding archived ones. Written out explicitly here
-   * because the filter is combined with the optional search clause.
+   * caller belongs to, excluding archived ones unless asked for. Written out
+   * explicitly here because the filter is combined with the optional search
+   * clause.
+   *
+   * `isArchived` defaults to false so omitting the parameter keeps the original
+   * behaviour. It is the only way to reach an archived workspace at all — the
+   * detail route 404s on one — which is what makes `restore` reachable.
    */
   const filter = mergeFilters(
     {
       'members.user': userId,
-      isArchived: false,
+      isArchived: query.isArchived ?? false,
     },
     buildSearchFilter(query.search, WORKSPACE_SEARCH_FIELDS)
   );

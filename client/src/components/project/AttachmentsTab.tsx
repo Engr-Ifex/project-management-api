@@ -1,6 +1,7 @@
-import { DownloadSimple, Paperclip, Trash, UploadSimple } from '@phosphor-icons/react';
+import { DownloadSimple, Trash, UploadSimple } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
 
+import { FileTypeIcon, ImagePreview } from '@/components/attachments/FileTypeIcon';
 import {
   Button,
   Card,
@@ -24,6 +25,7 @@ import {
   MAX_ATTACHMENT_BYTES,
 } from '@/lib/constants';
 import { extensionOf, formatBytes } from '@/lib/utils';
+import { isPreviewable } from '@/lib/attachments';
 import { useAsync, useMutation } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
@@ -49,6 +51,7 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
   const [limit, setLimit] = useState(20);
   const [pendingDelete, setPendingDelete] = useState<Attachment | null>(null);
   const [localError, setLocalError] = useState<string | undefined>(undefined);
+  const [progress, setProgress] = useState<number | undefined>(undefined);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { data, error, loading, reload } = useAsync(
@@ -57,7 +60,7 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
   );
 
   const upload = useMutation((file: File) =>
-    attachmentsApi.uploadToProject(workspaceId, project._id, file)
+    attachmentsApi.uploadToProject(workspaceId, project._id, file, setProgress)
   );
   const remove = useMutation((attachmentId: string) =>
     attachmentsApi.remove(workspaceId, project._id, attachmentId)
@@ -69,6 +72,7 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
 
   const onFileChosen = async (file: File | undefined) => {
     setLocalError(undefined);
+    setProgress(undefined);
     if (!file) return;
 
     if (file.size > MAX_ATTACHMENT_BYTES) {
@@ -86,6 +90,7 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
     const outcome = await upload.run(file);
     if (outcome.ok) reload();
 
+    setProgress(undefined);
     if (fileInput.current) fileInput.current.value = '';
   };
 
@@ -155,7 +160,49 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
             </p>
           )}
 
-          {loading && <TableSkeletonRows rows={3} columns={4} />}
+          {/*
+            A 10 MB upload on a slow connection is long enough that a spinner
+            alone reads as "hung". The percentage comes from XHR's upload
+            progress, not from a timer.
+          */}
+          {progress !== undefined && (
+            <div className="flex flex-col gap-1">
+              <div
+                role="progressbar"
+                aria-label="Upload progress"
+                aria-valuenow={progress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="h-1.5 w-full overflow-hidden rounded-full bg-ink-100"
+              >
+                <div
+                  className="h-full rounded-full bg-accent-500 transition-[width] duration-150 ease-standard"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              <p className="text-2xs text-body-subtle" data-numeric>
+                Uploading… {progress}%
+              </p>
+            </div>
+          )}
+
+          {/*
+            The skeleton renders `<tr>`s, so it has to live inside a real table —
+            on its own it is a `<tr>` with no table ancestor, which React reports
+            as invalid nesting.
+          */}
+          {loading && (
+            <div className="overflow-hidden rounded-md border border-line">
+              <TableWrapper>
+                <Table>
+                  <TBody>
+                    <TableSkeletonRows rows={3} columns={4} />
+                  </TBody>
+                </Table>
+              </TableWrapper>
+            </div>
+          )}
 
           {!loading && attachments.length === 0 && (
             <p className="py-8 text-center text-sm text-body-muted">No files attached yet.</p>
@@ -181,7 +228,26 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
                       <TR key={attachment._id}>
                         <TD primary>
                           <span className="flex items-center gap-2">
-                            <Paperclip aria-hidden className="size-3.5 text-body-subtle" />
+                            {/*
+                              An image shows itself — a thumbnail says "this is a
+                              picture" faster than any icon, and the preview is
+                              fetched through the authenticated path like any
+                              other download. Everything else gets a type icon.
+                            */}
+                            {isPreviewable(attachment.originalFilename) ? (
+                              <ImagePreview
+                                path={attachmentsApi.downloadPath(
+                                  workspaceId,
+                                  project._id,
+                                  attachment._id
+                                )}
+                                filename={attachment.originalFilename}
+                                className="size-8 shrink-0 border border-line"
+                              />
+                            ) : (
+                              <FileTypeIcon filename={attachment.originalFilename} />
+                            )}
+
                             <span className="truncate">{attachment.originalFilename}</span>
                           </span>
                         </TD>

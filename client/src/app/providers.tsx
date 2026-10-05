@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastProvider, TooltipProvider } from '@/components/ui';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 
@@ -15,13 +16,15 @@ import { AuthProvider } from '@/lib/auth/AuthProvider';
  *
  * The order below is load-bearing:
  *
- *   1. `BrowserRouter` first, because everything inside may navigate.
- *   2. `AuthProvider` next. It owns the session, and the 401 broadcast it
- *      subscribes to is what tears the session down from anywhere in the tree.
- *   3. `TooltipProvider` — one shared delay for every tooltip. Without it each
+ *   1. `ErrorBoundary` outermost, so it also catches a throw *inside* a provider.
+ *      It can safely sit outside them because `ErrorState` reads no context.
+ *   2. `BrowserRouter` next, because everything inside may navigate.
+ *   3. `AuthProvider`. It owns the session, and the 401 broadcast it subscribes
+ *      to is what tears the session down from anywhere in the tree.
+ *   4. `TooltipProvider` — one shared delay for every tooltip. Without it each
  *      tooltip re-waits on its own, and moving along a row of icon buttons feels
  *      broken.
- *   4. `ToastProvider` last, so a toast fired while logging out still has a
+ *   5. `ToastProvider` last, so a toast fired while logging out still has a
  *      viewport to land in.
  *
  * Note what is *not* here: no query client, no global store. The API has no
@@ -29,11 +32,13 @@ import { AuthProvider } from '@/lib/auth/AuthProvider';
  * `lib/hooks/useAsync` and per-screen.
  */
 export const AppProviders = ({ children }: { children: ReactNode }) => (
-  <BrowserRouter>
-    <AuthProvider>
-      <TooltipProvider>
-        <ToastProvider>{children}</ToastProvider>
-      </TooltipProvider>
-    </AuthProvider>
-  </BrowserRouter>
+  <ErrorBoundary variant="page">
+    <BrowserRouter>
+      <AuthProvider>
+        <TooltipProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </TooltipProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </ErrorBoundary>
 );

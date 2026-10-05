@@ -1,134 +1,130 @@
 # Project Memory — project-management-api
 
-Curated notes only. Daily detail lives in `YYYY-MM-DD.md`; full findings live in
-`server/docs/`. Consolidated 2026-09-26 — deduplicated, with detail moved to its
-source document rather than restated here.
+Index + traps only. Detail lives in the source docs; do not restate it here.
+Consolidated 2026-09-30.
 
-## Where the truth lives (read these before re-deriving anything)
+## Where the truth lives (read before re-deriving)
 
 | Topic | Source |
 | --- | --- |
 | Authorization rules | `src/constants/rolePermissions.js`, `server/docs/SECURITY.md` |
-| Audit findings + remediation | `server/docs/AUDIT.md`, `server/docs/REMEDIATION.md` |
-| Environment variables | `server/docs/ENVIRONMENT.md` (rewritten against `env.js`) |
-| API contract for the frontend | `client/API-INTEGRATION.md` |
-| Design tokens, primitives, verification | `client/DESIGN-SYSTEM.md` |
+| Audit + remediation | `server/docs/AUDIT.md`, `server/docs/REMEDIATION.md` |
+| Env vars | `server/docs/ENVIRONMENT.md` |
+| Frontend API contract | `client/API-INTEGRATION.md` |
+| Design tokens + primitives | `client/DESIGN-SYSTEM.md` |
 
-## Non-negotiables — do not re-derive, do not "fix"
+## Traps — do not re-derive, do not "fix"
 
-- **Policy A:** a workspace OWNER/ADMIN has authority over every project in their
-  workspace and does **not** need project membership. Defined **once** in
-  `hasProjectOverride(workspaceRole)`; applied by `requireProjectPermission` and
-  by controllers that pass `isWorkspaceElevated` into services. The previous
-  triplication is exactly what let the middleware and the task service drift.
-- **Policy A exceptions, deliberate:** comment *editing* is author-only (no
-  override). Comment/attachment *deletion* does honour the override.
-  `assignTask`'s membership check validates the **assignee**, not the caller.
-- **Read scope is uniform:** workspace membership grants the workspace, its member
-  list, the project list and a single project's record. Everything inside a
-  project — tasks, subtasks, comments, labels, attachments, dashboard, activity —
-  requires `project:view`.
-- **`members` is access-shaped, not always returned.** Omitted from
-  `GET /projects` and `GET /projects/:id`, and `createdBy` reduced to an id,
-  unless the caller is a project member or a workspace owner/admin. Lives in
-  `shapeProjectForViewer`, fed by `viewerOf(req)` — the same `hasProjectOverride`
-  helper the guard uses.
-- **Only `User` and `Workspace` map `_id` → `id`.** Everything else serializes
-  `_id`; tests must use `_id` there.
-- **Archived, never hard-deleted:** tasks and projects. There is no
-  `DELETE /tasks/:taskId`.
-- **Auth is cookie-only** (`accessToken`, httpOnly, SameSite=Strict): no refresh
-  token, no Bearer. 15-minute expiry. `passwordChangedAt` invalidates older
-  tokens; `authenticate` allows 1 second of `iat` tolerance.
-- **`members.user` must never get a unique index** — it would enforce uniqueness
-  *across documents*, but the invariant is intra-document. The conditional
-  `findOneAndUpdate` is the only mechanism. Pinned by a test.
-- **Task `position` may repeat** under concurrent creates — tolerated, because it
-  is an ordering hint. `TASK_DEFAULT_SORT` is `{position, createdAt, _id}`, so the
-  order is total.
-- **Indexes:** twelve single-field indexes were removed as provable prefixes of
-  compound indexes. Removing a declaration does **not** drop the index —
-  `npm run migrate:drop-indexes` does, and it has **never been run** (`.env`
-  targets real Atlas). `{isArchived}`, `{isDeleted}`, `{isRead}`,
-  `attachments.uploader` and `projectactivities.workspace` are **not** provably
-  redundant — leave them without `explain()` evidence.
-- **One transaction only:** `acceptInvitation`. Needs a replica set; the fallback
-  is detected, logged once and documented.
-- **Uploads are content-validated by magic bytes**
-  (`src/utils/fileSignature.js`), not just MIME + extension. Attachments use
-  memoryStorage; **avatars use diskStorage, so the middleware must unlink on
-  rejection**. The attachment and avatar allow-lists are **separate** — the drift
-  test must assert both, in both directions (that gap is how `image/jpg` slipped
-  through once).
-- **Unexpected 5xx are masked** to `Internal Server Error`; deliberate
-  `ApiError`s keep their message. Both halves pinned by tests.
-- `docs/openapi.json` is **generated, never hand-edited** (`docs:generate` /
-  `docs:verify`). Do not add a `.prettierignore` for it.
+- **Policy A:** a workspace OWNER/ADMIN rules every project in their workspace
+  without project membership. Defined **once** in `hasProjectOverride(workspaceRole)`.
+  Deliberate exceptions: comment *editing* is author-only (no override);
+  comment/attachment *deletion* does honour it; `assignTask` checks the **assignee**,
+  not the caller.
+- Read scope: workspace membership grants the workspace, its members, the project
+  list and one project. Everything inside a project needs `project:view`.
+- `members` on a project is **access-shaped** — omitted unless the caller is a
+  project member or workspace owner/admin (`shapeProjectForViewer`).
+- Only `User`/`Workspace` map `_id` → `id`; everything else serializes `_id`.
+- Tasks and projects are **archived, never hard-deleted**. No `DELETE /tasks/:taskId`.
+- **An archived workspace is readable from exactly one place.** `GET /workspaces`
+  takes `isArchived` (added 2026-09-30, `?? false`, so omitting it is unchanged) —
+  that list is the only way to find one, and the only place it can be restored
+  from. `GET /workspaces/:id` still **404s** once archived (pinned by a test), so
+  Settings can never load an archived workspace. Restore is owner-only.
+- `Select` (`components/ui/Select.tsx`) must declare any prop it forwards — TS allows
+  a hyphenated attribute like `aria-label` on a component *without* checking it, so an
+  undeclared one compiles and is silently dropped.
+- `members.user` must **never** get a unique index — the invariant is
+  intra-document, so the conditional `findOneAndUpdate` is the only mechanism. Tested.
+- `position` may repeat under concurrent creates (ordering hint);
+  `TASK_DEFAULT_SORT` = `{position, createdAt, _id}` makes the order total.
+- Indexes: twelve single-field ones were dropped as prefixes of compound indexes.
+  Removing a declaration does **not** drop the index — `npm run migrate:drop-indexes`
+  does, and has **never been run**. Don't touch `{isArchived}`, `{isDeleted}`,
+  `{isRead}`, `attachments.uploader`, `projectactivities.workspace` without
+  `explain()` evidence.
+- One transaction only: `acceptInvitation` (needs a replica set).
+- Auth is cookie-only (`accessToken`, httpOnly, SameSite=Strict), 15-min expiry, no
+  refresh/Bearer. `passwordChangedAt` invalidates older tokens; 1s `iat` tolerance.
+- Uploads are validated by **magic bytes**, not MIME+extension. Attachments use
+  memoryStorage but **avatars use diskStorage — unlink on rejection**. The two
+  allow-lists are **separate**; the drift test must assert both directions.
+- Unexpected 5xx are masked to `Internal Server Error`; deliberate `ApiError`s keep
+  their message.
+- `docs/openapi.json` is **generated, never hand-edited**. No `.prettierignore`.
+- **Dashboard payloads are stats objects, not arrays.** Fixed 2026-09-30 — don't
+  regress to `data.projects.length`. `client/src/lib/api/types.ts` is authoritative.
 
 ## Testing
 
-- `node:test` + `node:assert/strict` + `supertest`. `npm test` uses
-  `"tests/*.test.js"` — a directory argument does **not** work on Node 22.
-- Prefer `TEST_DB=mongodb`. The in-process `tests/helpers/memoryStore.js` fakes
-  the query transport and proves nothing about indexes or the query planner.
-  Extend it when you use a new operator, or the tests prove nothing.
-- Fixtures go through the **models** (so defaults and hooks apply); activity tests
-  must go through the **API**, because the service layer writes the audit trail.
-- Rate limiting is skipped when `NODE_ENV=test`.
+- `node:test` + `assert/strict` + `supertest`. `npm test` needs `"tests/*.test.js"` —
+  a directory argument fails on Node 22.
+- Prefer `TEST_DB=mongodb`. `tests/helpers/memoryStore.js` fakes the query transport
+  and proves nothing about indexes; extend it when you use a new operator.
+- Fixtures go through the **models**; activity tests go through the **API** (the
+  service layer writes the audit trail).
 - `makeDocument` cannot represent a populated `members[].user` — assert the
-  *decision* (present/absent), never its contents. Attempting to "fix" this made
-  fidelity worse.
+  *decision* (present/absent), never its contents.
+- **`npm test` has 3 pre-existing failures** (347/344/3 — verified by re-running the
+  full suite with the tree stashed): `probe task field semantics`
+  (`tests/tmp-probe.test.js`, a leftover scratch probe) and `upload content
+  validation`, a Windows flake — `discardUploadedFile`'s
+  `await fsp.unlink(...).catch(() => {})` hides EBUSY on a still-open handle.
 
-## Machine constraints — never claim otherwise
+## Machine — never claim otherwise
 
-- **Docker is NOT installed.** `Dockerfile` / `docker-compose.yml` are unverified.
-- Windows: graceful shutdown is untestable — Node does not deliver POSIX signals.
-- `git checkout HEAD -- <file>` destroys uncommitted work; when changes are staged,
-  `git checkout -- <file>` restores from the INDEX.
-- **C: runs at 99–100% full.** Headless-Chrome profiles alone reached 112 MB.
-  Always delete the `--user-data-dir` after a run; scratch belongs in the
-  gitignored `.tmp-shots/`.
-- **The sandbox blocks a build tool from emptying its own output dir** — Vite
-  fails with `SAFE_DELETE_BULK_CONFIRM_REQUIRED` on a large `dist/assets`. Delete
-  the regenerable `dist/` first; it is not a code error.
-- **`127.0.0.1` ≠ `localhost` on Windows** — Vite binds IPv6 `::1`, so curl to
-  127.0.0.1 returns HTTP 000 while the server is running fine.
+- **Docker is NOT installed**; `Dockerfile`/`docker-compose.yml` are unverified.
+- **C: runs 99–100% full.** At 0 bytes free, `tsc` and headless Chrome die with
+  native crash traces that look like code bugs but are not. A crashed headless run
+  **leaks** its `%TEMP%/cdp-auth-*` profile (~30 MB) — delete it after every run.
+- Sandbox blocks a build tool emptying its own output dir: Vite fails with
+  `SAFE_DELETE_BULK_CONFIRM_REQUIRED` on a large `dist/assets`. Delete `dist/` first.
+- **`127.0.0.1` ≠ `localhost` on Windows** — Vite binds IPv6 `::1`.
 
-## Known inconsistencies, deliberately unfixed
+## Running the real backend without Atlas
 
-- `POST /subtasks` returns the parent task under the `subtask` key; `PATCH`
-  returns the subtask.
-- An archived project remains retrievable by id; an archived task 404s.
-- `src/middlewares/authorize.middleware.js` is dead code; `reorderTaskSchema`
-  (`task.validator.js`) is an unused validator.
+`node client/dev/boot-real-api.mjs` boots the real `server/app.js` on :5000 against
+the test in-process store (the Atlas SRV lookup is refused on this machine).
+`NODE_ENV=test`, so rate limiting is off. No backend file is modified. **The store is
+in-memory — restarting it wipes everything; re-seed before verifying.**
 
-## Frontend (`client/`)
+## Deliberately unfixed
 
-React 19 + Vite + Tailwind v4 + TypeScript. **Phases 2 and 3 are complete**: the
-design system *and* the application (router, API client, auth, every screen).
-`client/README.md` is the architecture note; `client/API-INTEGRATION.md` is the
-endpoint contract; `client/DESIGN-SYSTEM.md` covers tokens and primitives.
+- `POST /subtasks` returns the parent under `subtask`; `PATCH` returns the subtask.
+- An archived project is still retrievable by id; an archived task 404s.
+- `authorize.middleware.js` is dead code; `reorderTaskSchema` is an unused validator.
 
-- **`/api` is proxied by Vite; the client's base URL is the relative `/api/v1`.**
-  Load-bearing: the server's `CORS_ORIGINS` is **unset** (cross-origin requests
-  are refused) and the cookie is `SameSite=Strict` (it would not be sent
-  cross-origin). The proxy makes the browser talk to its own origin, so the
-  backend needs no change. Same proxy configured for `preview`.
-- **`useMutation.run` resolves to a discriminated outcome**, never
-  `TResult | undefined` — every DELETE/archive succeeds with no body, so `T`
-  really is `undefined` on success and the two outcomes would otherwise be
-  indistinguishable.
-- **`members` is omitted (not empty) on a project** unless the caller has access;
-  `Project.members` is optional so the compiler enforces the check.
-- **`GET /workspaces/:id` returns `members` unpopulated** — the caller's role
-  comes from the member entry for free; `GET …/members` populates names.
-- **Comment editing is author-only, no role override** (`canEditComment`);
-  deletion also honours `comment:moderate` (`canDeleteComment`). Two predicates,
-  deliberately not one.
-- **No authenticated screen has been rendered against live data** — the backend
-  was not running during verification. `client/` also has no ESLint config, so
-  `npm run lint` fails.
+## Frontend
 
-Two known OpenAPI response-schema gaps are handled by hand-typed interfaces and
-must not be "corrected" from the spec: the invitation `token` **is** returned,
-and `GET …/labels` also returns `pagination`.
+React 19 + Vite + Tailwind v4 + TS. Phases 2–3 complete. `client/README.md` =
+architecture; `API-INTEGRATION.md` = endpoints; `DESIGN-SYSTEM.md` = tokens.
+`npm run lint` fails — there is no ESLint config.
+
+- `/api` is proxied by Vite; the base URL is the relative `/api/v1`. Load-bearing:
+  `CORS_ORIGINS` is unset and the cookie is `SameSite=Strict`.
+- `useMutation.run` resolves to a discriminated outcome, never `T | undefined` —
+  every DELETE/archive succeeds with no body, so `undefined` is a real success value.
+- Comment editing is author-only (`canEditComment`); deletion honours
+  `comment:moderate` (`canDeleteComment`). Two predicates, deliberately not one.
+- **Editing a project is a workspace operation, not a project one** — a project
+  owner cannot rename their own project. Gate on `can.manageProjects`, not the
+  project role. Same reason archiving is gated there.
+- **An icon inside an icon-only trigger must be `pointer-events-none`.** The
+  `<svg>` otherwise becomes the hit target and the menu silently never opens.
+- **List filters live in the query string** (`useSearchParams`), not component
+  state — a filter you cannot link to is a filter you lose on reload or Back.
+  TasksTab, ProjectOverview, WorkspaceList and the workspace list do this.
+  `assignee` and `unassigned` are one control: the API rejects a query with both.
+- `useUnreadCount` returns `{ count, refresh }`; poll latency is wrong for an
+  action the user just took.
+- **`ActivityAction` is an open union** (`(string & {})`) — every render of it
+  must fall back to `humaniseEnum`, or a new server action shows a blank row.
+  `lib/activity.ts` owns the action → sentence mapping.
+- **Upload progress needs XHR.** `fetch` cannot report it at all;
+  `uploadWithProgress` in `lib/api/client.ts` is the one XHR path. Everything
+  else stays on `fetch`.
+- **`TableSkeletonRows` renders `<tr>`s and must sit inside a `<Table>`.** Rendered
+  on its own it is a `<tr>` with no table ancestor — invalid nesting that React
+  warns about.
+- Two OpenAPI gaps are hand-typed on purpose — don't "correct" from the spec: the
+  invitation `token` **is** returned, and `GET …/labels` also returns `pagination`.

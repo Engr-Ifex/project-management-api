@@ -1,5 +1,5 @@
 import { Plus, SquaresFour } from '@phosphor-icons/react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import {
   DropdownMenu,
@@ -22,6 +22,10 @@ import { useAsync } from '@/lib/hooks';
  * current workspace to change. That also means this menu must preserve the
  * *section* the user is in when it switches: dropping someone from
  * `/workspaces/a/projects` onto `/workspaces/b` loses their place for no reason.
+ *
+ * Depth *below* a section is deliberately not preserved. A project id from one
+ * workspace cannot exist in another, so `/workspaces/a/projects/p/tasks/t`
+ * switches to `/workspaces/b/projects` rather than to a guaranteed 404.
  */
 export const WorkspaceMenu = ({
   currentWorkspace,
@@ -29,9 +33,30 @@ export const WorkspaceMenu = ({
   currentWorkspace?: { id: string; name: string } | undefined;
 }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { data, loading } = useAsync(() => workspacesApi.list({ limit: 100 }), []);
 
   const workspaces = data?.workspaces ?? [];
+
+  /**
+   * The target href for switching to `workspaceId`, keeping the current section.
+   *
+   * The section is taken from the path itself rather than from a hardcoded list,
+   * so it cannot drift from the route table. Anything unrecognised — including a
+   * path that is not under the current workspace at all — falls back to the
+   * workspace root, which is always a valid destination.
+   */
+  const hrefFor = (workspaceId: string) => {
+    const base = `/workspaces/${workspaceId}`;
+    if (!currentWorkspace) return base;
+
+    const prefix = `/workspaces/${currentWorkspace.id}`;
+    if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) return base;
+
+    const section = pathname.slice(prefix.length).split('/').filter(Boolean)[0];
+
+    return section ? `${base}/${section}` : base;
+  };
 
   return (
     <DropdownMenu>
@@ -60,7 +85,7 @@ export const WorkspaceMenu = ({
           <DropdownMenuItem
             key={workspace.id}
             checked={workspace.id === currentWorkspace?.id}
-            onSelect={() => navigate(`/workspaces/${workspace.id}`)}
+            onSelect={() => navigate(hrefFor(workspace.id))}
           >
             {workspace.name}
           </DropdownMenuItem>

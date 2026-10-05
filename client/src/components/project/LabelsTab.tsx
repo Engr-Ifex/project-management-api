@@ -1,4 +1,4 @@
-import { Plus, Trash } from '@phosphor-icons/react';
+import { PencilSimple, Plus, Trash } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 
@@ -17,7 +17,7 @@ import {
   ModalHeader,
   SkeletonList,
 } from '@/components/ui';
-import type { Project } from '@/lib/api';
+import type { Label, Project } from '@/lib/api';
 import { labelsApi } from '@/lib/api';
 import { useAsync, useMutation } from '@/lib/hooks';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
@@ -29,12 +29,18 @@ import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider'
  * duplicate is a 409, not a validation error, so the form surfaces the server's
  * message rather than pretending to validate locally. A label from another
  * project is a 404, which is why this list never offers a cross-project picker.
+ *
+ * Create and edit share one dialog because they take the same two fields and
+ * fail the same way; the only difference is which request they send. Two dialogs
+ * would be two places to keep the 409 wording in step.
  */
 export const LabelsTab = ({ project }: { project: Project }) => {
   const { workspaceId } = useWorkspace();
   const { projectRole } = useProjectRole(project.members);
 
-  const [createOpen, setCreateOpen] = useState(false);
+  /** `null` means "creating"; a label means "editing that one". */
+  const [editing, setEditing] = useState<Label | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState('');
   const [color, setColor] = useState('#348579');
   const [pendingDelete, setPendingDelete] = useState<{ _id: string; name: string } | null>(null);
@@ -47,18 +53,42 @@ export const LabelsTab = ({ project }: { project: Project }) => {
   const create = useMutation((body: { name: string; color: string }) =>
     labelsApi.create(workspaceId, project._id, body)
   );
+  const update = useMutation((args: { labelId: string; body: { name?: string; color?: string } }) =>
+    labelsApi.update(workspaceId, project._id, args.labelId, args.body)
+  );
   const remove = useMutation((labelId: string) =>
     labelsApi.remove(workspaceId, project._id, labelId)
   );
 
   const labels = data?.labels ?? [];
   const canManage = projectRole === 'owner' || projectRole === 'admin';
+  const saving = create.loading || update.loading;
+  const saveError = create.error ?? update.error;
 
-  const onCreate = async (event: FormEvent) => {
+  const openCreate = () => {
+    setEditing(null);
+    setName('');
+    setColor('#348579');
+    setDialogOpen(true);
+  };
+
+  const openEdit = (label: Label) => {
+    setEditing(label);
+    setName(label.name);
+    setColor(label.color);
+    setDialogOpen(true);
+  };
+
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const outcome = await create.run({ name, color });
+
+    const outcome = editing
+      ? await update.run({ labelId: editing._id, body: { name, color } })
+      : await create.run({ name, color });
+
     if (outcome.ok) {
-      setCreateOpen(false);
+      setDialogOpen(false);
+      setEditing(null);
       setName('');
       reload();
     }
@@ -87,7 +117,7 @@ export const LabelsTab = ({ project }: { project: Project }) => {
                 variant="secondary"
                 size="sm"
                 iconLeft={<Plus aria-hidden />}
-                onClick={() => setCreateOpen(true)}
+                onClick={openCreate}
               >
                 New label
               </Button>
@@ -109,14 +139,25 @@ export const LabelsTab = ({ project }: { project: Project }) => {
                   <LabelChip name={label.name} color={label.color} />
 
                   {canManage && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`Delete label ${label.name}`}
-                      iconLeft={<Trash aria-hidden />}
-                      onClick={() => setPendingDelete({ _id: label._id, name: label.name })}
-                      className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
-                    />
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Edit label ${label.name}`}
+                        iconLeft={<PencilSimple aria-hidden />}
+                        onClick={() => openEdit(label)}
+                        className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                      />
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Delete label ${label.name}`}
+                        iconLeft={<Trash aria-hidden />}
+                        onClick={() => setPendingDelete({ _id: label._id, name: label.name })}
+                        className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                      />
+                    </>
                   )}
                 </li>
               ))}
@@ -125,18 +166,24 @@ export const LabelsTab = ({ project }: { project: Project }) => {
         </CardBody>
       </Card>
 
-      <Modal open={createOpen} onOpenChange={setCreateOpen}>
+      <Modal
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditing(null);
+        }}
+      >
         <ModalContent size="sm">
-          <form onSubmit={onCreate}>
-            <ModalHeader title="New label" />
+          <form onSubmit={onSubmit}>
+            <ModalHeader title={editing ? 'Edit label' : 'New label'} />
 
             <ModalBody className="flex flex-col gap-4">
-              {create.error && (
+              {saveError && (
                 <p role="alert" className="text-xs text-danger-700">
                   {/* A 409 here means the name is taken within this project. */}
-                  {create.error.isConflict
+                  {saveError.isConflict
                     ? 'A label with that name already exists in this project.'
-                    : create.error.message}
+                    : saveError.message}
                 </p>
               )}
 
@@ -146,7 +193,7 @@ export const LabelsTab = ({ project }: { project: Project }) => {
                 autoFocus
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                error={create.error?.fieldError('name')}
+                error={saveError?.fieldError('name')}
               />
 
               <Input
@@ -161,13 +208,13 @@ export const LabelsTab = ({ project }: { project: Project }) => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setCreateOpen(false)}
-                disabled={create.loading}
+                onClick={() => setDialogOpen(false)}
+                disabled={saving}
               >
                 Cancel
               </Button>
-              <Button type="submit" variant="primary" loading={create.loading}>
-                Create label
+              <Button type="submit" variant="primary" loading={saving}>
+                {editing ? 'Save label' : 'Create label'}
               </Button>
             </ModalFooter>
           </form>

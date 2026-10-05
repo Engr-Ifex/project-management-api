@@ -17,6 +17,7 @@ import { notificationsApi } from '@/lib/api';
 import { NOTIFICATION_SCOPE_OPTIONS } from '@/lib/constants';
 import type { NotificationScope } from '@/lib/constants';
 import { useAsync, useDocumentTitle, useMutation } from '@/lib/hooks';
+import { groupByDay, notificationHref } from '@/lib/notifications';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
 /**
@@ -58,6 +59,13 @@ export const Notifications = () => {
 
   const notifications = data?.notifications ?? [];
   const pagination = data?.pagination;
+
+  /*
+   * Grouped by day so a long feed has landmarks. The API returns `createdAt`
+   * descending and `groupByDay` only buckets, so the order within a day is the
+   * server's.
+   */
+  const groups = groupByDay(notifications);
 
   if (error) {
     return (
@@ -132,18 +140,16 @@ export const Notifications = () => {
           )}
 
           {!loading && notifications.length > 0 && (
-            <ul className="flex flex-col divide-y divide-line-subtle">
-              {notifications.map((notification) => {
-                /*
-                 * A notification may point at a task, a project or neither.
-                 * Only link when there is somewhere to go — a dead link is worse
-                 * than plain text.
-                 */
-                const href = notification.task
-                  ? `/workspaces/${workspaceId}/projects/${notification.project}/tasks/${notification.task}`
-                  : notification.project
-                    ? `/workspaces/${workspaceId}/projects/${notification.project}`
-                    : undefined;
+            <div className="flex flex-col">
+              {groups.map((group) => (
+                <section key={group.key}>
+                  <h2 className="border-b border-line-subtle bg-surface-sunken px-4 py-1.5 text-2xs uppercase tracking-wide text-body-subtle">
+                    {group.label}
+                  </h2>
+
+                  <ul className="flex flex-col divide-y divide-line-subtle">
+                    {group.items.map((notification) => {
+                      const href = notificationHref(workspaceId, notification);
 
                 const body = (
                   <>
@@ -236,8 +242,11 @@ export const Notifications = () => {
                     </span>
                   </li>
                 );
-              })}
-            </ul>
+                    })}
+                  </ul>
+                </section>
+              ))}
+            </div>
           )}
 
           {pagination && pagination.total > 0 && (

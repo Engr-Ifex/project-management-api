@@ -469,7 +469,17 @@ export const Settings = () => {
           void archiveWorkspace.run().then((outcome) => {
             if (outcome.ok) {
               setConfirmArchive(false);
-              reloadWorkspace();
+              /*
+               * Deliberately a navigation, not `reloadWorkspace()`.
+               *
+               * An archived workspace is invisible to the membership guard by
+               * design — `GET /workspaces/:id` answers 404 once it is archived
+               * (pinned by `tests/workspace.test.js`). Reloading therefore
+               * replaced this page with "Workspace not found" immediately after
+               * a *successful* archive. Leaving is the honest outcome, and it
+               * matches what deleting a workspace already does.
+               */
+              navigate('/workspaces', { replace: true });
             }
           });
         }}

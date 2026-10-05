@@ -1,4 +1,4 @@
-import { Plus, SquaresFour } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, Plus, SquaresFour } from '@phosphor-icons/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -10,6 +10,7 @@ import {
   Button,
   Card,
   CardBody,
+  ConfirmDialog,
   EmptyState,
   ErrorState,
   Input,
@@ -19,10 +20,12 @@ import {
   ModalFooter,
   ModalHeader,
   Pagination,
+  Select,
   SkeletonList,
   Textarea,
 } from '@/components/ui';
-import { workspacesApi } from '@/lib/api';
+import { refId, workspacesApi } from '@/lib/api';
+import { WORKSPACE_ARCHIVE_FILTER_OPTIONS } from '@/lib/constants';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { useAsync, useDebounced, useDocumentTitle, useMutation } from '@/lib/hooks';
 
@@ -47,22 +50,35 @@ export const WorkspaceList = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState('');
+  const [isArchived, setIsArchived] = useState('false');
   const debouncedSearch = useDebounced(search);
 
   const [createOpen, setCreateOpen] = useState(searchParams.get('new') === '1');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [pendingRestore, setPendingRestore] = useState<{ id: string; name: string } | null>(null);
 
   const { data, error, loading, reload } = useAsync(
-    () => workspacesApi.list({ page, limit, search: debouncedSearch || undefined }),
-    [page, limit, debouncedSearch]
+    () => workspacesApi.list({ page, limit, search: debouncedSearch || undefined, isArchived }),
+    [page, limit, debouncedSearch, isArchived]
   );
 
   const create = useMutation(workspacesApi.create);
+  const restore = useMutation((workspaceId: string) => workspacesApi.restore(workspaceId));
 
   const workspaces = data?.workspaces ?? [];
   const pagination = data?.pagination;
-  const filtered = debouncedSearch.trim().length > 0;
+  const archivedOnly = isArchived === 'true';
+  const filtered = debouncedSearch.trim().length > 0 || archivedOnly;
+
+  /*
+   * Restoring is owner-only, and the list payload carries each workspace's
+   * `members` (with `role`, unpopulated `user`), so the caller's role per row is
+   * already here — no extra request.
+   */
+  const isOwnerOf = (workspace: (typeof workspaces)[number]) =>
+    workspace.members?.some((member) => refId(member.user) === user?.id && member.role === 'owner') ??
+    false;
 
   const onCreate = async (event: FormEvent) => {
     event.preventDefault();
@@ -117,7 +133,7 @@ export const WorkspaceList = () => {
         </div>
 
         <Card>
-          <CardBody className="flex flex-col gap-3 p-3">
+          <CardBody className="flex flex-wrap items-center gap-2 p-3">
             <Input
               placeholder="Search workspaces"
               value={search}
@@ -125,7 +141,18 @@ export const WorkspaceList = () => {
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              containerClassName="max-w-xs"
+              containerClassName="min-w-56 flex-1"
+            />
+
+            <Select
+              aria-label="Archived filter"
+              value={isArchived}
+              onValueChange={(value) => {
+                setIsArchived(value);
+                setPage(1);
+              }}
+              options={WORKSPACE_ARCHIVE_FILTER_OPTIONS}
+              className="w-44"
             />
           </CardBody>
         </Card>
@@ -145,14 +172,26 @@ export const WorkspaceList = () => {
             <EmptyState
               variant={filtered ? 'no-results' : 'empty'}
               icon={<SquaresFour aria-hidden />}
-              title={filtered ? 'No workspaces match that search' : 'No workspaces yet'}
+              title={
+                archivedOnly
+                  ? 'No archived workspaces'
+                  : filtered
+                    ? 'No workspaces match that search'
+                    : 'No workspaces yet'
+              }
               description={
-                filtered
-                  ? 'Try a different term, or clear the search.'
-                  : 'A workspace holds your projects and the people working on them.'
+                archivedOnly
+                  ? 'Archived workspaces stay hidden from the list until you ask for them.'
+                  : filtered
+                    ? 'Try a different term, or clear the search.'
+                    : 'A workspace holds your projects and the people working on them.'
               }
               action={
-                filtered ? (
+                archivedOnly ? (
+                  <Button variant="secondary" size="sm" onClick={() => setIsArchived('false')}>
+                    Show active workspaces
+                  </Button>
+                ) : filtered ? (
                   <Button variant="secondary" size="sm" onClick={() => setSearch('')}>
                     Clear search
                   </Button>
@@ -173,11 +212,11 @@ export const WorkspaceList = () => {
           {!loading && !error && workspaces.length > 0 && (
             <ul className="flex flex-col divide-y divide-line-subtle overflow-hidden rounded-lg border border-line bg-surface">
               {workspaces.map((workspace) => (
-                <li key={workspace.id}>
+                <li key={workspace.id} className="flex items-center gap-2 pr-2">
                   <button
                     type="button"
                     onClick={() => navigate(`/workspaces/${workspace.id}`)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-[120ms] ease-standard hover:bg-surface-hover"
+                    className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors duration-[120ms] ease-standard hover:bg-surface-hover"
                   >
                     <span
                       aria-hidden
@@ -200,6 +239,26 @@ export const WorkspaceList = () => {
                       )}
                     </span>
                   </button>
+
+                  {/*
+                    Restore lives here rather than in Settings, because an
+                    archived workspace answers 404 on `GET /workspaces/:id` — the
+                    Settings page can never load one, so its restore control is
+                    unreachable. This list is the only way back. Owner-only, which
+                    is what the API enforces.
+                  */}
+                  {workspace.isArchived && isOwnerOf(workspace) && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      iconLeft={<ArrowCounterClockwise aria-hidden />}
+                      onClick={() =>
+                        setPendingRestore({ id: workspace.id, name: workspace.name })
+                      }
+                    >
+                      Restore
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -217,6 +276,25 @@ export const WorkspaceList = () => {
           />
         )}
       </PageContainer>
+
+      <ConfirmDialog
+        open={pendingRestore !== null}
+        onOpenChange={(open) => !open && setPendingRestore(null)}
+        title={`Restore "${pendingRestore?.name ?? 'this workspace'}"?`}
+        description="It becomes visible again to everyone in it, exactly as it was. Nothing was deleted when it was archived."
+        confirmLabel="Restore workspace"
+        loading={restore.loading}
+        onConfirm={() => {
+          const workspace = pendingRestore;
+          if (!workspace) return;
+          void restore.run(workspace.id).then((outcome) => {
+            if (outcome.ok) {
+              setPendingRestore(null);
+              reload();
+            }
+          });
+        }}
+      />
 
       <Modal
         open={createOpen}

@@ -10171,6 +10171,16 @@
               "maxLength": 100
             },
             "description": ""
+          },
+          {
+            "name": "isArchived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            },
+            "description": ""
           }
         ]
       }

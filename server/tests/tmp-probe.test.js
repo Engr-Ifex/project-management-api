@@ -50,7 +50,7 @@ const setup = async () => {
 const say = (label, value) => console.log(`PROBE ${label} = ${value}`);
 
 test('probe task field semantics', async () => {
-  const { client, base } = await setup();
+  const { owner, client, base } = await setup();
 
   const created = await client.post(`${base}/tasks`).send({
     title: 'Task',
@@ -77,12 +77,17 @@ test('probe task field semantics', async () => {
     .send({ startDate: null });
   say('startDate null -> status', startCleared.status);
 
-  // Unassign with null.
+  // Unassign with null. The task has to be assigned first: unassigning an
+  // already-unassigned task is a deliberate 400 ("Task is already unassigned"),
+  // and the error envelope has no `data`, so the probe used to die dereferencing
+  // it instead of reporting the field semantics it was written to observe.
+  await client.patch(`${base}/tasks/${taskId}/assignee`).send({ assignee: String(owner._id) });
+
   const unassigned = await client
     .patch(`${base}/tasks/${taskId}/assignee`)
     .send({ assignee: null });
   say('assignee null -> status', unassigned.status);
-  say('assignee after null', unassigned.body.data.task.assignee);
+  say('assignee after null', unassigned.body.data?.task?.assignee);
 });
 
 test('probe assigning a non-member', async () => {
