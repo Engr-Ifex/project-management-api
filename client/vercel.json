@@ -1,5 +1,11 @@
+
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://project-management-api-6lkv.onrender.com/api/v1/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
