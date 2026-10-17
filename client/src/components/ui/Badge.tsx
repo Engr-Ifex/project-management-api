@@ -22,6 +22,8 @@ const badgeStyles = cva(
   {
     variants: {
       tone: {
+        // ink-700 rather than ink-600: 4.28:1 fails AA at 12px, and a badge is
+        // small text by definition. 10.06:1 also survives the badge's own tint.
         neutral: 'bg-ink-100 text-ink-700 border-ink-200',
         accent: 'bg-accent-50 text-accent-700 border-accent-100',
         success: 'bg-success-50 text-success-700 border-success-100',
@@ -90,7 +92,10 @@ export const StatusDot = ({
     className={cn(
       'size-1.5 shrink-0 rounded-full',
       {
-        neutral: 'bg-ink-400',
+        // ink-500, not ink-400: the dot carries no text, so it owes no contrast
+        // ratio, but a 6px dot in ink-400 is barely distinguishable from the
+        // hairline it sits above in a dense list.
+        neutral: 'bg-ink-500',
         accent: 'bg-accent-500',
         success: 'bg-success-500',
         warning: 'bg-warning-500',

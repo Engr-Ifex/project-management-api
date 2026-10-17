@@ -1,6 +1,16 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
+/*
+ * Imported for its side effect only: it sets the test environment variables
+ * that `src/config/env.js` reads once, at import time. Without it the model
+ * imports below throw "Invalid environment configuration" before a single
+ * assertion runs. This file needs no database connection — it inspects the
+ * schema index declarations — so `startTestDatabase()` is deliberately not
+ * called.
+ */
+import './helpers/setup.js';
+
 import User from '../src/models/User.js';
 import Workspace from '../src/models/Workspace.js';
 import Project from '../src/models/Project.js';

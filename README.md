@@ -1,13 +1,14 @@
-# Project Management API
+# PROJEX
 
-A production-shaped REST API for team project management, built with Node.js,
-Express and MongoDB. It covers authentication, multi-tenant workspaces, projects,
-tasks with subtasks, comments, labels, file attachments, notifications, an audit
-trail and dashboards — with layered authorization, strict input validation, a
-full test suite and generated API documentation.
+PROJEX is a team project-management application: a React 19 + Vite + TypeScript
+frontend in `client/`, backed by a production-shaped REST API in `server/` built
+with Node.js, Express and MongoDB. It covers authentication, multi-tenant
+workspaces, projects, tasks with subtasks, comments, labels, file attachments,
+notifications, an audit trail and dashboards — with layered authorization, strict
+input validation, a full test suite and generated API documentation.
 
-The `client/` directory is reserved for a future frontend and is currently empty;
-this repository is the backend.
+`server/` is the backend. `client/` is the application: the design system, the
+API client, auth, routing and every screen.
 
 ---
 
@@ -19,6 +20,17 @@ this repository is the backend.
 - Tokens are invalidated on password change
 - Login timing is equalised so accounts cannot be enumerated
 - Profile, avatar and notification settings
+
+**Account recovery**
+- Forgot / reset password: single-use hashed tokens, one-hour expiry, a response
+  that never reveals whether an address has an account, and session revocation
+  through the existing `passwordChangedAt` mechanism
+- Resend integration behind a single `email.service.js`; provider failures are
+  never reported as success
+- PROJEX-branded HTML templates with plain-text alternatives
+- Email is **optional**: registration and login never touch it, so the product
+  runs on a deployment with no verified sending domain. Only account recovery
+  needs it
 
 **Multi-tenant structure**
 - Workspaces with `owner` / `admin` / `member` roles
@@ -46,7 +58,7 @@ this repository is the backend.
 - Fail-fast environment validation
 - Uploads restricted by MIME type **and** extension, stored privately
 - Standard success and error envelopes, consistent pagination
-- 308 automated tests, generated OpenAPI 3.1 documentation
+- 395 automated tests, generated OpenAPI 3.1 documentation
 
 **Production readiness**
 - Fail-fast environment validation plus a `preflight` readiness check
@@ -93,6 +105,11 @@ JWT_ACCESS_SECRET=change-me-to-at-least-32-characters
 JWT_ACCESS_EXPIRES_IN=15m
 COOKIE_MAX_AGE=900000
 BCRYPT_SALT_ROUNDS=10
+
+# Optional — only account recovery uses these. Registration and login do not.
+RESEND_API_KEY=re_your_key_here
+EMAIL_FROM=PROJEX <no-reply@yourdomain.com>
+CLIENT_URL=http://localhost:5173
 ```
 
 `MONGODB_URI` and `JWT_ACCESS_SECRET` are required. The app validates its
@@ -119,6 +136,7 @@ Run from `server/`:
 | `npm run test:coverage` | Tests with coverage |
 | `npm run migrate:task-comments` | Run a migration (see [DEPLOYMENT.md](server/docs/DEPLOYMENT.md#4-database-migrations)) |
 | `npm run migrate:project-member-roles` | Run a migration |
+| `npm run migrate:remove-verification-fields` | Optional cleanup of fields left by the removed verification feature |
 | `npm run docs:generate` | Regenerate `docs/openapi.json` from the implementation |
 | `npm run docs:verify` | Fail if the docs and the routes disagree |
 | `npm run routes` | Print every route with its guard chain |
@@ -232,10 +250,10 @@ cd server
 npm test
 ```
 
-308 tests across 64 suites, covering authentication, authorization, workspaces,
+395 tests across 89 suites, covering authentication, authorization, workspaces,
 projects, tasks, subtasks, comments, labels, notifications, activity,
-attachments, dashboards, query behaviour, the health/readiness probes and the
-response envelope contract.
+attachments, dashboards, query behaviour, session lifetime, the health/readiness
+probes and the response envelope contract.
 
 The suite is built on `node:test`, `supertest` and `mongodb-memory-server`. It
 **never touches the application database**: the connection string is replaced

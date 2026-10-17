@@ -426,6 +426,24 @@ const makeDocument = (Model, raw, { hydrated = true } = {}) => {
   doc.__modelName = Model.modelName;
 
   const persist = async () => {
+    /*
+     * Mongoose validates on `save()` by default, and this double must too or it
+     * accepts documents the real database rejects — a fixture with a
+     * one-character task title passes here and fails only against a real
+     * MongoDB, which is exactly how three suites shipped invalid fixtures.
+     *
+     * Only the CREATE path is validated. On an update the document is hydrated
+     * from a row that may have been loaded through a projection, so a field can
+     * be legitimately absent (a User's `password` is `select: false`); real
+     * Mongoose skips validating paths the projection excluded, and reproducing
+     * that faithfully needs more machinery than the suite warrants. A create
+     * supplies every required field, so validating there is safe and closes the
+     * gap that matters.
+     */
+    if (doc.isNew && typeof doc.validate === 'function') {
+      await doc.validate();
+    }
+
     await runPreSaveHooks(doc);
 
     const plain = { ...doc.toObject({ depopulate: true, getters: false, virtuals: false }) };

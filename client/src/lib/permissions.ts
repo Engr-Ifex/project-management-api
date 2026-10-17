@@ -19,6 +19,14 @@ import type { ProjectRole, WorkspaceRole } from '@/components/ui';
  */
 
 export const workspaceCan = {
+  /**
+   * Every member can read the workspace they belong to, at any role.
+   *
+   * The parameter is retained even though it is unused: the `workspaceCan.*`
+   * table is read uniformly (`workspaceCan[key](role)`), and a capability that
+   * silently takes no argument would break that uniformity at the one call site
+   * that reads it (`usePermission`).
+   */
   view: (_role: WorkspaceRole) => true,
 
   updateWorkspace: (role: WorkspaceRole) => role === 'owner' || role === 'admin',
@@ -37,7 +45,10 @@ export const workspaceCan = {
 };
 
 export const projectCan = {
-  /** Tasks, subtasks, comments, labels, attachments, dashboard, activity. */
+  /**
+   * Every project role can read, viewer included — that is what the role means.
+   * The parameter is kept for uniformity with the rest of the table.
+   */
   view: (_role: ProjectRole) => true,
 
   createTask: (role: ProjectRole) => role !== 'viewer',

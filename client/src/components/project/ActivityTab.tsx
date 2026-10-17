@@ -100,18 +100,14 @@ export const ActivityTab = ({ project }: { project: Project }) => {
 
         {!loading && activities.length === 0 && (
           <p className="py-8 text-center text-sm text-body-muted">
-            {action === 'all'
-              ? 'Nothing has been recorded yet.'
-              : 'Nothing matches that action.'}
+            {action === 'all' ? 'Nothing has been recorded yet.' : 'Nothing matches that action.'}
           </p>
         )}
 
         {!loading &&
           groups.map((group) => (
             <section key={group.key} className="flex flex-col gap-1">
-              <h3 className="text-2xs uppercase tracking-wide text-body-subtle">
-                {group.label}
-              </h3>
+              <h3 className="text-2xs uppercase tracking-wide text-body-subtle">{group.label}</h3>
 
               <ol className="flex flex-col divide-y divide-line-subtle">
                 {group.items.map((entry) => {

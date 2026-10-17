@@ -37,10 +37,13 @@ describe('Dashboard', () => {
       const owner = await createUser({ name: 'Owner' });
       const workspace = await createWorkspace(owner);
 
-      await createProject(workspace, owner, { name: 'A', status: 'active' });
-      await createProject(workspace, owner, { name: 'B', status: 'active' });
-      await createProject(workspace, owner, { name: 'C', status: 'planning' });
-      const archived = await createProject(workspace, owner, { name: 'D', status: 'completed' });
+      await createProject(workspace, owner, { name: 'Project A', status: 'active' });
+      await createProject(workspace, owner, { name: 'Project B', status: 'active' });
+      await createProject(workspace, owner, { name: 'Project C', status: 'planning' });
+      const archived = await createProject(workspace, owner, {
+        name: 'Project D',
+        status: 'completed',
+      });
       archived.isArchived = true;
       await archived.save();
 

@@ -139,7 +139,13 @@ export const ProjectStatusBadge = ({
   );
 };
 
-export const WorkspaceRoleBadge = ({ role, className }: { role: WorkspaceRole; className?: string }) => {
+export const WorkspaceRoleBadge = ({
+  role,
+  className,
+}: {
+  role: WorkspaceRole;
+  className?: string;
+}) => {
   const config = WORKSPACE_ROLE[role];
 
   return (
@@ -149,7 +155,13 @@ export const WorkspaceRoleBadge = ({ role, className }: { role: WorkspaceRole; c
   );
 };
 
-export const ProjectRoleBadge = ({ role, className }: { role: ProjectRole; className?: string }) => {
+export const ProjectRoleBadge = ({
+  role,
+  className,
+}: {
+  role: ProjectRole;
+  className?: string;
+}) => {
   const config = PROJECT_ROLE[role];
 
   return (
@@ -178,8 +190,8 @@ export const LabelChip = ({
 }) => {
   if (!color) {
     return (
-      <Badge tone="neutral" size="sm" className={className}>
-        {name}
+      <Badge tone="neutral" size="sm" className={cn('max-w-full', className)}>
+        <span className="truncate">{name}</span>
       </Badge>
     );
   }
@@ -187,9 +199,14 @@ export const LabelChip = ({
   return (
     <span
       className={cn(
-        'inline-flex h-5 items-center gap-1.5 rounded-sm border px-2 text-xs font-medium',
+        // Label names are user data and can be arbitrarily long. Without a
+        // width bound the chip grew past its container and pushed the row's
+        // other controls sideways; `max-w-full` + a truncating child keeps it
+        // inside the cell while the title attribute keeps the text reachable.
+        'inline-flex h-5 max-w-full min-w-0 items-center gap-1.5 rounded-sm border px-2 text-xs font-medium',
         className
       )}
+      title={name}
       style={{
         // 14% tint of the label's own colour, with the full colour as the border.
         backgroundColor: `color-mix(in srgb, ${color} 14%, transparent)`,
@@ -202,7 +219,7 @@ export const LabelChip = ({
         className="size-1.5 shrink-0 rounded-full"
         style={{ backgroundColor: color }}
       />
-      {name}
+      <span className="min-w-0 truncate">{name}</span>
     </span>
   );
 };

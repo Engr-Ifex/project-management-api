@@ -64,6 +64,44 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    /* ------------------------------------------------------------- email */
+
+    /*
+     * Outstanding password-reset token.
+     *
+     * Only the SHA-256 digest is stored — never the token that was emailed — so
+     * a leak of this collection cannot be turned into working links. See
+     * `src/utils/emailTokens.js` for why a fast digest is the right choice here
+     * and bcrypt is not.
+     *
+     * `select: false` matches the treatment of `password`: the field exists on
+     * the document but is not returned by a query unless asked for. Nothing in
+     * the application ever needs to read it back — the lookup is by hash and
+     * consumption clears it — so the flag costs nothing and removes the field
+     * from every accidental projection.
+     *
+     * `expiresAt` is deliberately *not* hidden: it is not sensitive, and the
+     * reset flow reads it to distinguish "expired" from "never issued", which
+     * are different messages to the user.
+     */
+    passwordResetToken: {
+      hash: {
+        type: String,
+        default: null,
+        select: false,
+      },
+
+      expiresAt: {
+        type: Date,
+        default: null,
+      },
+
+      requestedAt: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   {
     timestamps: true,
@@ -82,6 +120,16 @@ const userSchema = new mongoose.Schema(
          * directly instead of through `sanitizeUser`.
          */
         delete ret.password;
+
+        /*
+         * Same reasoning for the reset token digest. It is `select: false` and
+         * `sanitizeUser` does not name it, so this should never have anything to
+         * remove — which is exactly why it belongs here: a
+         * `select('+passwordResetToken.hash')` added later would otherwise be
+         * one careless `res.json(user)` away from shipping a reset digest to a
+         * client.
+         */
+        delete ret.passwordResetToken?.hash;
 
         return ret;
       },

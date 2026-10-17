@@ -66,6 +66,22 @@ export default tseslint.config(
        * keeps the rule on everywhere else.
        */
       'react-hooks/exhaustive-deps': 'warn',
+
+      /*
+       * A leading underscore means "deliberately unused".
+       *
+       * `lib/permissions.ts` is a capability table where every entry takes a
+       * role so the table can be read uniformly (`workspaceCan[key](role)`),
+       * and a few capabilities genuinely do not depend on the role — `view` is
+       * true for every member. Removing the parameter would break that
+       * uniformity; naming it `_role` states the intent. This is the
+       * conventional way to express it, and without this option the convention
+       * does not compile.
+       */
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 

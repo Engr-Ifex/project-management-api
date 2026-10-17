@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { FormAlert } from '@/components/FormAlert';
-import { Button, Input, PasswordInput } from '@/components/ui';
+import { Button, Input, PasswordInput } from '@/components/ui/shell';
 import { AuthShell } from '@/layouts/AuthShell';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { intendedDestination } from '@/lib/auth/redirect';
@@ -116,7 +116,9 @@ export const Login = () => {
     const allFieldsRendered =
       error.status === 400 &&
       error.errors.length > 0 &&
-      error.errors.every((fieldError) => fieldError.field && FORM_FIELDS.includes(fieldError.field));
+      error.errors.every(
+        (fieldError) => fieldError.field && FORM_FIELDS.includes(fieldError.field)
+      );
 
     if (allFieldsRendered) return undefined;
 
@@ -178,6 +180,22 @@ export const Login = () => {
             }}
             error={errorFor('password')}
           />
+
+          {/*
+            A link rather than a button, and placed after the field it relates
+            to. Someone who cannot sign in scans the form for a way out; putting
+            it beside the label competes with the field itself, and putting it
+            under the submit button buries it where a stuck user is least likely
+            to look.
+          */}
+          <div className="-mt-1 flex justify-end">
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-accent-600 hover:text-accent-700"
+            >
+              Forgot your password?
+            </Link>
+          </div>
         </div>
 
         <Button type="submit" variant="primary" size="lg" block loading={loading}>

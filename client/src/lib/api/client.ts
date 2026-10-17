@@ -195,11 +195,7 @@ export const request = async <T>(path: string, options: RequestOptions = {}): Pr
       for (const listener of unauthorizedListeners) listener();
     }
 
-    throw new ApiError(
-      response.status,
-      message,
-      (envelope?.errors ?? []).map(normalizeFieldError)
-    );
+    throw new ApiError(response.status, message, (envelope?.errors ?? []).map(normalizeFieldError));
   }
 
   const envelope = parsed as { data?: T } | null;
@@ -242,7 +238,7 @@ export const uploadWithProgress = <T>(
     };
 
     xhr.onload = () => {
-      let parsed: { data?: T; message?: string; errors?: ApiFieldError[] } | null = null;
+      let parsed: { data?: T; message?: string; errors?: ApiFieldError[] } | null;
 
       try {
         parsed = xhr.responseText ? JSON.parse(xhr.responseText) : null;
@@ -288,9 +284,7 @@ export const uploadWithProgress = <T>(
  * `<img src>` or `<a href>` gets a 401. The caller must fetch it with
  * credentials and then revoke the URL when done.
  */
-export const downloadBlob = async (
-  path: string
-): Promise<{ url: string; revoke: () => void }> => {
+export const downloadBlob = async (path: string): Promise<{ url: string; revoke: () => void }> => {
   const response = await fetch(`${API_BASE}${path}`, { credentials: 'include' });
 
   if (!response.ok) {
@@ -306,9 +300,8 @@ export const downloadBlob = async (
 /* ------------------------------------------------------------------ helpers */
 
 /** Narrows a possibly-populated reference to a populated document. */
-export const isPopulated = <T extends object>(
-  ref: unknown
-): ref is T => typeof ref === 'object' && ref !== null && !Array.isArray(ref);
+export const isPopulated = <T extends object>(ref: unknown): ref is T =>
+  typeof ref === 'object' && ref !== null && !Array.isArray(ref);
 
 /**
  * Reads the id from a reference whether it is populated or not.
@@ -333,9 +326,7 @@ export const refName = (ref: unknown, fallback = 'Unknown'): string => {
 };
 
 /** Builds a list query, dropping `undefined` and clamping `limit` to the API's 1–100. */
-export const listQuery = (
-  params: Record<string, unknown> = {}
-): Record<string, unknown> => {
+export const listQuery = (params: Record<string, unknown> = {}): Record<string, unknown> => {
   const query: Record<string, unknown> = { ...params };
   if (typeof query.limit === 'number') {
     query.limit = Math.min(100, Math.max(1, query.limit));

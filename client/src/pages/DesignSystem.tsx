@@ -15,12 +15,7 @@ import {
   Users,
 } from '@phosphor-icons/react';
 
-import {
-  AccountMenuTrigger,
-  AppShell,
-  PageHeader,
-  type NavItem,
-} from '@/layouts/AppShell';
+import { AccountMenuTrigger, AppShell, PageHeader, type NavItem } from '@/layouts/AppShell';
 import {
   Avatar,
   AvatarGroup,
@@ -78,6 +73,7 @@ import {
   Textarea,
   Tooltip,
   ToastProvider,
+  TooltipProvider,
   WorkspaceRoleBadge,
   useToast,
 } from '@/components/ui';
@@ -304,7 +300,10 @@ const ShowcaseContent = () => {
               {[1, 2, 3, 4, 6, 8, 12, 16].map((step) => (
                 <div key={step} className="flex items-center gap-3">
                   <span className="w-12 font-mono text-2xs text-body-subtle">{step}</span>
-                  <div className="h-2 rounded-xs bg-accent-300" style={{ width: `${step * 4}px` }} />
+                  <div
+                    className="h-2 rounded-xs bg-accent-300"
+                    style={{ width: `${step * 4}px` }}
+                  />
                   <span className="font-mono text-2xs text-body-subtle">{step * 4}px</span>
                 </div>
               ))}
@@ -345,7 +344,9 @@ const ShowcaseContent = () => {
                 ] as const
               ).map(([name, className, spec]) => (
                 <div key={name} className="flex flex-col items-center gap-1.5">
-                  <div className={cn('size-14 rounded-lg border border-line bg-surface', className)} />
+                  <div
+                    className={cn('size-14 rounded-lg border border-line bg-surface', className)}
+                  />
                   <span className="text-xs font-medium text-body">{name}</span>
                   <span className="font-mono text-2xs text-body-subtle">{spec}</span>
                 </div>
@@ -433,11 +434,7 @@ const ShowcaseContent = () => {
               hint="Matches title and description"
             />
 
-            <Input
-              label="Size"
-              inputSize="sm"
-              placeholder="Small control"
-            />
+            <Input label="Size" inputSize="sm" placeholder="Small control" />
 
             <Textarea
               label="Description"
@@ -454,7 +451,11 @@ const ShowcaseContent = () => {
               onValueChange={setStatus}
               options={[
                 { value: 'todo', label: 'To do', adornment: <StatusDot tone="neutral" /> },
-                { value: 'in_progress', label: 'In progress', adornment: <StatusDot tone="accent" /> },
+                {
+                  value: 'in_progress',
+                  label: 'In progress',
+                  adornment: <StatusDot tone="accent" />,
+                },
                 { value: 'in_review', label: 'In review', adornment: <StatusDot tone="warning" /> },
                 { value: 'completed', label: 'Completed', adornment: <StatusDot tone="success" /> },
               ]}
@@ -471,11 +472,7 @@ const ShowcaseContent = () => {
               ]}
             />
 
-            <Select
-              label="Disabled"
-              disabled
-              options={[{ value: 'x', label: 'Cannot change' }]}
-            />
+            <Select label="Disabled" disabled options={[{ value: 'x', label: 'Cannot change' }]} />
 
             <div className="flex flex-col gap-3">
               <Checkbox
@@ -486,7 +483,12 @@ const ShowcaseContent = () => {
                 onCheckedChange={setChecked}
               />
 
-              <Checkbox id="cb-2" label="Marketing emails" checked={false} onCheckedChange={() => {}} />
+              <Checkbox
+                id="cb-2"
+                label="Marketing emails"
+                checked={false}
+                onCheckedChange={() => {}}
+              />
 
               <Checkbox
                 id="cb-3"
@@ -495,11 +497,28 @@ const ShowcaseContent = () => {
                 onCheckedChange={() => {}}
               />
 
-              <Checkbox id="cb-4" label="Disabled" disabled checked={false} onCheckedChange={() => {}} />
+              <Checkbox
+                id="cb-4"
+                label="Disabled"
+                disabled
+                checked={false}
+                onCheckedChange={() => {}}
+              />
             </div>
 
-            {/* FieldShell directly, for a control that is not one of the built-ins. */}
-            <FieldShell label="Custom control" controlId="custom" hint="Compose your own.">
+            {/*
+              No `label` prop, and `controlId` names nothing on purpose: this
+              block demonstrates FieldShell for a control that is not one of the
+              built-ins, and the stand-in below is a plain div. Passing a
+              controlId here would emit an `htmlFor` pointing at an element that
+              does not exist.
+            */}
+            <FieldShell
+              label="Custom control"
+              controlId="custom-control"
+              hint="Compose your own."
+              labelAsText
+            >
               <div className="flex h-8 items-center rounded-md border border-line-strong bg-surface-sunken px-2.5 font-mono text-xs text-body-muted">
                 6aaf7cbd7ec8624e2979081d
               </div>
@@ -604,7 +623,11 @@ const ShowcaseContent = () => {
               action={
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <IconButton label="Sprint actions" size="sm" icon={<DotsThree weight="bold" />} />
+                    <IconButton
+                      label="Sprint actions"
+                      size="sm"
+                      icon={<DotsThree weight="bold" />}
+                    />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -649,7 +672,10 @@ const ShowcaseContent = () => {
           </Card>
 
           <Card>
-            <CardHeader title="Loading state" description="Skeletons match the shape of the content" />
+            <CardHeader
+              title="Loading state"
+              description="Skeletons match the shape of the content"
+            />
             <CardBody>
               <SkeletonText lines={3} />
             </CardBody>
@@ -670,7 +696,11 @@ const ShowcaseContent = () => {
                 <THead>
                   <TR>
                     <TH className="w-8">
-                      <Checkbox checked={false} onCheckedChange={() => {}} />
+                      <Checkbox
+                        aria-label="Select all tasks"
+                        checked={false}
+                        onCheckedChange={() => {}}
+                      />
                     </TH>
                     <TH sortDirection="asc" onSort={() => {}}>
                       Task
@@ -696,7 +726,11 @@ const ShowcaseContent = () => {
                   ).map(([title, taskStatus, priority, assignee, estimate]) => (
                     <TR key={title} interactive className="group/row">
                       <TD>
-                        <Checkbox checked={false} onCheckedChange={() => {}} />
+                        <Checkbox
+                          aria-label={`Select ${title}`}
+                          checked={false}
+                          onCheckedChange={() => {}}
+                        />
                       </TD>
                       <TD primary>{title}</TD>
                       <TD>
@@ -1019,39 +1053,52 @@ const ShowcaseContent = () => {
   );
 };
 
+/*
+ * The showcase mounts its own providers.
+ *
+ * `ToastProvider` was already here. `TooltipProvider` moved here from
+ * `app/providers.tsx`, where it wrapped the entire application: this page is the
+ * only place a `<Tooltip>` is rendered, and mounting the provider at the root
+ * pulled Radix's tooltip and all of `@floating-ui` (~52 KB of rendered
+ * JavaScript) into every page load, including the sign-in screen.
+ *
+ * Keeping them here means the cost is paid by the one route that needs it.
+ */
 export const DesignSystemShowcase = () => (
-  <ToastProvider>
-    <AppShell
-      navItems={NAV_ITEMS}
-      currentPath="/design"
-      workspaceSlot="Northwind"
-      accountSlot={
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <AccountMenuTrigger
-              name="Amara Okonkwo"
-              email="amara@northwind.example"
-              avatar={null}
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>amara@northwind.example</DropdownMenuLabel>
-            <DropdownMenuItem icon={<Gear />}>Settings</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem destructive>Sign out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      }
-      topbar={
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-body">Design system</span>
-          <Badge tone="neutral" size="sm">
-            Internal
-          </Badge>
-        </div>
-      }
-    >
-      <ShowcaseContent />
-    </AppShell>
-  </ToastProvider>
+  <TooltipProvider>
+    <ToastProvider>
+      <AppShell
+        navItems={NAV_ITEMS}
+        currentPath="/design"
+        workspaceSlot="Northwind"
+        accountSlot={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <AccountMenuTrigger
+                name="Amara Okonkwo"
+                email="amara@northwind.example"
+                avatar={null}
+              />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>amara@northwind.example</DropdownMenuLabel>
+              <DropdownMenuItem icon={<Gear />}>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem destructive>Sign out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
+        topbar={
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-body">Design system</span>
+            <Badge tone="neutral" size="sm">
+              Internal
+            </Badge>
+          </div>
+        }
+      >
+        <ShowcaseContent />
+      </AppShell>
+    </ToastProvider>
+  </TooltipProvider>
 );

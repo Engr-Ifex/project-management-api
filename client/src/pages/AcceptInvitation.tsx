@@ -89,9 +89,27 @@ export const AcceptInvitation = () => {
           role="alert"
           className="rounded-md border border-danger-200 bg-danger-50 px-3 py-2 text-xs text-danger-700"
         >
+          {/*
+            Three distinct failures reach here, and they mean different things
+            to the person reading them:
+
+              404 — the token is unknown: already accepted, or never existed.
+              410 — the token is real but its 48-hour window has closed. The API
+                    says so explicitly (`Invitation has expired`), so the copy
+                    can be definite instead of hedged.
+              403 — the invitation exists but was addressed to another email.
+                    The server's own message says exactly that, so it is passed
+                    through unchanged.
+
+            Only the 404 and 410 are given friendlier wording — the 403's
+            message is already the clearest possible sentence, and replacing it
+            would lose the one fact the reader needs (which address it was for).
+          */}
           {error.isNotFound
             ? 'This invitation is no longer valid. It may have been accepted already, or it may have expired.'
-            : error.message}
+            : error.status === 410
+              ? 'This invitation has expired. Invitations are valid for 48 hours — ask for a new one.'
+              : error.message}
         </p>
       )}
 

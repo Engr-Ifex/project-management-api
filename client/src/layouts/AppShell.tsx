@@ -157,11 +157,7 @@ export const AppShell = ({
   return (
     <div className="flex min-h-[100dvh] bg-canvas">
       {/* Skip link: the first tab stop, so keyboard users can bypass the nav. */}
-      <a
-        data-skip-link
-        href="#main"
-        className="rounded-md bg-surface px-3 py-2 text-sm shadow-md"
-      >
+      <a data-skip-link href="#main" className="rounded-md bg-surface px-3 py-2 text-sm shadow-md">
         Skip to content
       </a>
 
@@ -273,8 +269,12 @@ export const PageHeader = ({
   breadcrumb?: ReactNode;
   className?: string;
 }) => (
-  <div className={cn('flex flex-col gap-3 border-b border-line px-4 py-4 lg:px-6', className)}>
-    {breadcrumb && <div className="flex items-center gap-1.5 text-xs text-body-subtle">{breadcrumb}</div>}
+  <div
+    className={cn('flex flex-col gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8', className)}
+  >
+    {breadcrumb && (
+      <div className="flex items-center gap-1.5 text-xs text-body-subtle">{breadcrumb}</div>
+    )}
 
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-0.5">

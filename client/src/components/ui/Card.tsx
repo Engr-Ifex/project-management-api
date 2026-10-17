@@ -26,11 +26,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 export const Card = ({ className, flat, ...props }: CardProps) => (
   <div
-    className={cn(
-      'bg-surface border border-line rounded-lg',
-      !flat && 'shadow-xs',
-      className
-    )}
+    className={cn('bg-surface border border-line rounded-lg', !flat && 'shadow-xs', className)}
     {...props}
   />
 );
@@ -110,13 +106,16 @@ export const StatTile = ({
       </span>
       {delta && (
         <span
-          className={cn('text-xs font-medium', {
-            neutral: 'text-body-subtle',
-            accent: 'text-accent-600',
-            success: 'text-success-600',
-            warning: 'text-warning-600',
-            danger: 'text-danger-600',
-          }[tone])}
+          className={cn(
+            'text-xs font-medium',
+            {
+              neutral: 'text-body-subtle',
+              accent: 'text-accent-600',
+              success: 'text-success-600',
+              warning: 'text-warning-600',
+              danger: 'text-danger-600',
+            }[tone]
+          )}
         >
           {delta}
         </span>

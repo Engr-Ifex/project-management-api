@@ -14,6 +14,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   Pagination,
   ProjectStatusBadge,
@@ -32,6 +33,7 @@ import {
 import { projectsApi } from '@/lib/api';
 import { PROJECT_ARCHIVE_FILTER_OPTIONS, PROJECT_STATUS_FILTER_OPTIONS } from '@/lib/constants';
 import { useAsync, useDebounced, useDocumentTitle, useMutation, usePermission } from '@/lib/hooks';
+import { formatCalendarDate, formatDate, fromDateInputValue } from '@/lib/utils/format';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
 /**
@@ -107,7 +109,8 @@ export const Projects = () => {
     const outcome = await create.run(workspaceId, {
       name,
       ...(description.trim() ? { description } : {}),
-      ...(deadline ? { deadline } : {}),
+      // A date input yields `yyyy-mm-dd`; the API requires an ISO datetime.
+      ...(deadline ? { deadline: fromDateInputValue(deadline) as string } : {}),
       ...(color ? { color } : {}),
     });
 
@@ -124,7 +127,7 @@ export const Projects = () => {
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 lg:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-xl font-semibold text-body">Projects</h1>
           <p className="text-xs text-body-muted">
@@ -205,12 +208,14 @@ export const Projects = () => {
                       Status
                     </TH>
                     <TH
+                      numeric
                       sortDirection={sortBy === 'deadline' ? order : false}
                       onSort={() => toggleSort('deadline')}
                     >
                       Deadline
                     </TH>
                     <TH
+                      numeric
                       sortDirection={sortBy === 'updatedAt' ? order : false}
                       onSort={() => toggleSort('updatedAt')}
                     >
@@ -262,14 +267,11 @@ export const Projects = () => {
                         </TD>
 
                         <TD numeric>
-                          {project.deadline
-                            ? new Date(project.deadline).toLocaleDateString()
-                            : '—'}
+                          {project.deadline ? formatCalendarDate(project.deadline) : '—'}
                         </TD>
 
-                        <TD numeric>
-                          {new Date(project.updatedAt).toLocaleDateString()}
-                        </TD>
+                        {/* An instant, so the local rendering is the correct one. */}
+                        <TD numeric>{formatDate(project.updatedAt)}</TD>
                       </TR>
                     ))}
                 </TBody>
@@ -298,7 +300,7 @@ export const Projects = () => {
         }}
       >
         <ModalContent>
-          <form onSubmit={onCreate}>
+          <ModalForm onSubmit={onCreate}>
             <ModalHeader title="New project" description="You can change these details later." />
 
             <ModalBody className="flex flex-col gap-4">
@@ -357,7 +359,7 @@ export const Projects = () => {
                 Create project
               </Button>
             </ModalFooter>
-          </form>
+          </ModalForm>
         </ModalContent>
       </Modal>
     </>

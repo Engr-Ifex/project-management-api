@@ -81,7 +81,7 @@ export const Notifications = () => {
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 lg:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-xl font-semibold text-body">Notifications</h1>
           <p className="text-xs text-body-muted">
@@ -151,97 +151,97 @@ export const Notifications = () => {
                     {group.items.map((notification) => {
                       const href = notificationHref(workspaceId, notification);
 
-                const body = (
-                  <>
-                    <span
-                      aria-hidden
-                      className={
-                        notification.isRead
-                          ? 'mt-1.5 size-1.5 shrink-0 rounded-full bg-ink-200'
-                          : 'mt-1.5 size-1.5 shrink-0 rounded-full bg-accent-500'
-                      }
-                    />
+                      const body = (
+                        <>
+                          <span
+                            aria-hidden
+                            className={
+                              notification.isRead
+                                ? 'mt-1.5 size-1.5 shrink-0 rounded-full bg-ink-200'
+                                : 'mt-1.5 size-1.5 shrink-0 rounded-full bg-accent-500'
+                            }
+                          />
 
-                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="flex items-center gap-2">
-                        <span
-                          className={
-                            notification.isRead
-                              ? 'text-sm text-body-muted'
-                              : 'text-sm font-medium text-body'
-                          }
-                        >
-                          {notification.title}
-                        </span>
-                        {!notification.isRead && <Badge tone="accent">New</Badge>}
-                      </span>
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="flex items-center gap-2">
+                              <span
+                                className={
+                                  notification.isRead
+                                    ? 'text-sm text-body-muted'
+                                    : 'text-sm font-medium text-body'
+                                }
+                              >
+                                {notification.title}
+                              </span>
+                              {!notification.isRead && <Badge tone="accent">New</Badge>}
+                            </span>
 
-                      {notification.message && (
-                        <span className="text-xs text-body-subtle">
-                          {notification.message}
-                        </span>
-                      )}
+                            {notification.message && (
+                              <span className="text-xs text-body-subtle">
+                                {notification.message}
+                              </span>
+                            )}
 
-                      <time
-                        dateTime={notification.createdAt}
-                        className="text-2xs text-body-subtle"
-                        data-numeric
-                      >
-                        {new Date(notification.createdAt).toLocaleString()}
-                      </time>
-                    </span>
-                  </>
-                );
+                            <time
+                              dateTime={notification.createdAt}
+                              className="text-2xs text-body-subtle"
+                              data-numeric
+                            >
+                              {new Date(notification.createdAt).toLocaleString()}
+                            </time>
+                          </span>
+                        </>
+                      );
 
-                return (
-                  <li key={notification._id} className="flex items-start gap-3 px-4 py-3">
-                    {href ? (
-                      <Link
-                        to={href}
-                        className="flex min-w-0 flex-1 items-start gap-3"
-                        onClick={() => {
-                          if (!notification.isRead) {
-                            void markRead.run(notification._id).then((outcome) => {
-                              if (outcome.ok) reload();
-                            });
-                          }
-                        }}
-                      >
-                        {body}
-                      </Link>
-                    ) : (
-                      <span className="flex min-w-0 flex-1 items-start gap-3">{body}</span>
-                    )}
+                      return (
+                        <li key={notification._id} className="flex items-start gap-3 px-4 py-3">
+                          {href ? (
+                            <Link
+                              to={href}
+                              className="flex min-w-0 flex-1 items-start gap-3"
+                              onClick={() => {
+                                if (!notification.isRead) {
+                                  void markRead.run(notification._id).then((outcome) => {
+                                    if (outcome.ok) reload();
+                                  });
+                                }
+                              }}
+                            >
+                              {body}
+                            </Link>
+                          ) : (
+                            <span className="flex min-w-0 flex-1 items-start gap-3">{body}</span>
+                          )}
 
-                    <span className="flex shrink-0 items-center gap-1">
-                      {!notification.isRead && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          aria-label="Mark as read"
-                          iconLeft={<Check aria-hidden />}
-                          onClick={() => {
-                            void markRead.run(notification._id).then((outcome) => {
-                              if (outcome.ok) reload();
-                            });
-                          }}
-                        />
-                      )}
+                          <span className="flex shrink-0 items-center gap-1">
+                            {!notification.isRead && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label="Mark as read"
+                                iconLeft={<Check aria-hidden />}
+                                onClick={() => {
+                                  void markRead.run(notification._id).then((outcome) => {
+                                    if (outcome.ok) reload();
+                                  });
+                                }}
+                              />
+                            )}
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label="Delete notification"
-                        iconLeft={<Trash aria-hidden />}
-                        onClick={() => {
-                          void remove.run(notification._id).then((outcome) => {
-                            if (outcome.ok) reload();
-                          });
-                        }}
-                      />
-                    </span>
-                  </li>
-                );
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              aria-label="Delete notification"
+                              iconLeft={<Trash aria-hidden />}
+                              onClick={() => {
+                                void remove.run(notification._id).then((outcome) => {
+                                  if (outcome.ok) reload();
+                                });
+                              }}
+                            />
+                          </span>
+                        </li>
+                      );
                     })}
                   </ul>
                 </section>

@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
-import { Spinner } from '@/components/ui';
+import { Spinner } from '@/components/ui/shell';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { intendedDestination } from '@/lib/auth/redirect';
 

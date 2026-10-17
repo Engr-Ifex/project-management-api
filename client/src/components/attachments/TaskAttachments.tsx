@@ -26,13 +26,7 @@ import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
  * Downloads are authenticated, so they follow the same blob dance as the project
  * tab — a plain link would 401.
  */
-export const TaskAttachments = ({
-  taskId,
-  canUpload,
-}: {
-  taskId: string;
-  canUpload: boolean;
-}) => {
+export const TaskAttachments = ({ taskId, canUpload }: { taskId: string; canUpload: boolean }) => {
   const { workspaceId, projectId } = useTaskScope();
   const [pendingDelete, setPendingDelete] = useState<Attachment | null>(null);
   const [localError, setLocalError] = useState<string | undefined>(undefined);

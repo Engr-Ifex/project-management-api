@@ -19,6 +19,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   Select,
   SkeletonList,
@@ -100,18 +101,14 @@ export const Members = () => {
   if (error) {
     return (
       <PageContainer>
-        <ErrorState
-          title="Could not load members"
-          description={error.message}
-          onRetry={reload}
-        />
+        <ErrorState title="Could not load members" description={error.message} onRetry={reload} />
       </PageContainer>
     );
   }
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 lg:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-xl font-semibold text-body">Members</h1>
           <p className="text-xs text-body-muted">
@@ -152,7 +149,7 @@ export const Members = () => {
                   <TR>
                     <TH>Person</TH>
                     <TH>Role</TH>
-                    <TH>Joined</TH>
+                    <TH numeric>Joined</TH>
                     <TH>
                       <span className="sr-only">Actions</span>
                     </TH>
@@ -215,9 +212,7 @@ export const Members = () => {
                         </TD>
 
                         <TD numeric>
-                          {member.joinedAt
-                            ? new Date(member.joinedAt).toLocaleDateString()
-                            : '—'}
+                          {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : '—'}
                         </TD>
 
                         <TD>
@@ -276,7 +271,7 @@ export const Members = () => {
         }}
       >
         <ModalContent>
-          <form onSubmit={onInvite}>
+          <ModalForm onSubmit={onInvite}>
             <ModalHeader
               title="Invite someone"
               description="You will get a link to pass on yourself — this API does not send email."
@@ -356,7 +351,7 @@ export const Members = () => {
                 </>
               )}
             </ModalFooter>
-          </form>
+          </ModalForm>
         </ModalContent>
       </Modal>
 
@@ -417,11 +412,7 @@ const TransferOwnership = ({
           className="w-64"
         />
 
-        <Button
-          variant="secondary"
-          disabled={!selected}
-          onClick={() => setConfirming(true)}
-        >
+        <Button variant="secondary" disabled={!selected} onClick={() => setConfirming(true)}>
           Transfer ownership
         </Button>
       </div>

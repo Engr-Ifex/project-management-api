@@ -85,12 +85,9 @@ export const ProjectLayout = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-3 border-b border-line px-4 py-4 lg:px-6">
+      <div className="flex flex-col gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <nav className="flex items-center gap-1.5 text-xs text-body-subtle">
-          <Link
-            to={`/workspaces/${workspaceId}/projects`}
-            className="hover:text-body-muted"
-          >
+          <Link to={`/workspaces/${workspaceId}/projects`} className="hover:text-body-muted">
             Projects
           </Link>
           <span aria-hidden>/</span>
@@ -111,9 +108,7 @@ export const ProjectLayout = () => {
                 {loading && !project ? <Skeleton className="h-6 w-48" /> : project?.name}
               </h1>
               {project && <ProjectStatusBadge status={project.status} />}
-              {project?.isArchived && (
-                <span className="text-xs text-body-subtle">Archived</span>
-              )}
+              {project?.isArchived && <span className="text-xs text-body-subtle">Archived</span>}
             </div>
 
             {project?.description && (

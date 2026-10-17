@@ -20,10 +20,7 @@ import {
 } from '@/components/ui';
 import type { Attachment, Project } from '@/lib/api';
 import { attachmentsApi, downloadBlob, refName } from '@/lib/api';
-import {
-  ALLOWED_ATTACHMENT_EXTENSIONS,
-  MAX_ATTACHMENT_BYTES,
-} from '@/lib/constants';
+import { ALLOWED_ATTACHMENT_EXTENSIONS, MAX_ATTACHMENT_BYTES } from '@/lib/constants';
 import { extensionOf, formatBytes } from '@/lib/utils';
 import { isPreviewable } from '@/lib/attachments';
 import { useAsync, useMutation } from '@/lib/hooks';
@@ -80,9 +77,11 @@ export const AttachmentsTab = ({ project }: { project: Project }) => {
       return;
     }
 
-    if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(
+    if (
+      !ALLOWED_ATTACHMENT_EXTENSIONS.includes(
         extensionOf(file.name) as (typeof ALLOWED_ATTACHMENT_EXTENSIONS)[number]
-      )) {
+      )
+    ) {
       setLocalError(`".${extensionOf(file.name)}" is not an allowed file type.`);
       return;
     }

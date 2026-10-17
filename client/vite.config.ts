@@ -17,7 +17,23 @@ import tailwindcss from '@tailwindcss/vite';
  * The client's base URL stays relative (`/api/v1`), which means the same code
  * works in production behind any single-origin reverse proxy, and the backend
  * needs no change at all.
+ *
+ * `/uploads` is proxied for the same reason, and it is not optional: avatars are
+ * served by the API at `/uploads/avatars/<file>`, and the API stores that
+ * relative path on the user. The browser then requests it from the *frontend*
+ * origin, where an unproxied path falls through to the SPA history fallback and
+ * returns `index.html` with a 200 — so the `<img>` receives HTML, fails to
+ * decode, and the avatar silently reverts to initials. The upload itself
+ * succeeds, which is what made this look like a broken upload rather than a
+ * broken URL.
  */
+const uploadsProxy = {
+  '/uploads': {
+    target: 'http://localhost:5000',
+    changeOrigin: false,
+  },
+};
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
 
@@ -25,6 +41,12 @@ export default defineConfig({
     // Root-relative, so the config needs no Node type definitions.
     alias: {
       '@': '/src',
+    },
+  },
+
+  build: {
+    rollupOptions: {
+      output: {},
     },
   },
 
@@ -38,6 +60,7 @@ export default defineConfig({
         // to anything downstream that does.
         changeOrigin: false,
       },
+      ...uploadsProxy,
     },
   },
 
@@ -53,6 +76,7 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: false,
       },
+      ...uploadsProxy,
     },
   },
 });

@@ -21,11 +21,11 @@ The brief asked for a professional project-management product, and the skill's
 defaults are tuned for marketing pages. They are wrong here, so they are set
 explicitly:
 
-| Dial | Skill default | **Set here** | Why |
-| --- | --- | --- | --- |
-| `DESIGN_VARIANCE` | 8 (asymmetric) | **2** | This is an application shell. Alignment and repetition are what make a dense table scannable; asymmetry in a data grid is noise. |
-| `MOTION_INTENSITY` | 6 (fluid) | **2** | The brief says "subtle interactions, purposeful animation only". At level 2 that means CSS transitions and nothing else — **no Framer Motion dependency at all**. |
-| `VISUAL_DENSITY` | 4 (airy) | **6** | A task list, a sidebar and a table have to coexist. Airy spacing here means scrolling to see eight rows. |
+| Dial               | Skill default  | **Set here** | Why                                                                                                                                                               |
+| ------------------ | -------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DESIGN_VARIANCE`  | 8 (asymmetric) | **2**        | This is an application shell. Alignment and repetition are what make a dense table scannable; asymmetry in a data grid is noise.                                  |
+| `MOTION_INTENSITY` | 6 (fluid)      | **2**        | The brief says "subtle interactions, purposeful animation only". At level 2 that means CSS transitions and nothing else — **no Framer Motion dependency at all**. |
+| `VISUAL_DENSITY`   | 4 (airy)       | **6**        | A task list, a sidebar and a table have to coexist. Airy spacing here means scrolling to see eight rows.                                                          |
 
 **[judgement] No animation library.** At intensity 2 the entire motion
 vocabulary is background-colour, border-colour, opacity and a 1px press. That is
@@ -86,14 +86,14 @@ every column of figures jitters by a pixel and the table looks loose.
 
 ### 1.4 Radius and elevation: restrained
 
-| Token | Value | Used for |
-| --- | --- | --- |
-| `xs` | 4px | badges, checkboxes |
-| `sm` | 6px | small buttons |
-| `md` | 8px | buttons, inputs, selects |
-| `lg` | 10px | cards, panels, menus |
-| `xl` | 14px | modals |
-| `full` | 9999px | pills, avatars |
+| Token  | Value  | Used for                 |
+| ------ | ------ | ------------------------ |
+| `xs`   | 4px    | badges, checkboxes       |
+| `sm`   | 6px    | small buttons            |
+| `md`   | 8px    | buttons, inputs, selects |
+| `lg`   | 10px   | cards, panels, menus     |
+| `xl`   | 14px   | modals                   |
+| `full` | 9999px | pills, avatars           |
 
 **[judgement] The ceiling for a panel is 10px.** The brief rules out "excessive
 rounded cards", and a 20px+ radius on a card is the second-most reliable
@@ -156,14 +156,14 @@ danger-…                  red — urgent, destructive
 
 **Semantic layer** — what components actually use:
 
-| Token | Meaning |
-| --- | --- |
-| `canvas` | the page behind everything |
-| `surface` | panels, cards, tables |
-| `surface-sunken` | wells, inset areas, disabled controls |
-| `surface-hover` / `surface-active` | row and item states |
-| `line` / `line-strong` / `line-subtle` | default border, input border, internal divider |
-| `body` / `body-muted` / `body-subtle` / `body-inverse` | primary, secondary, meta, on-graphite |
+| Token                                                  | Meaning                                        |
+| ------------------------------------------------------ | ---------------------------------------------- |
+| `canvas`                                               | the page behind everything                     |
+| `surface`                                              | panels, cards, tables                          |
+| `surface-sunken`                                       | wells, inset areas, disabled controls          |
+| `surface-hover` / `surface-active`                     | row and item states                            |
+| `line` / `line-strong` / `line-subtle`                 | default border, input border, internal divider |
+| `body` / `body-muted` / `body-subtle` / `body-inverse` | primary, secondary, meta, on-graphite          |
 
 ### Type scale
 
@@ -196,26 +196,26 @@ from a component file directly**, so an internal rename never touches a page.
 
 ### Primitives
 
-| Component | Notes |
-| --- | --- |
-| `Button` | 5 variants × 3 sizes. `loading` keeps the label for width stability. |
-| `IconButton` | `label` is required — it becomes the accessible name. |
-| `Input` / `Textarea` | Label, hint and error built in, with the ARIA wiring done for you. |
-| `Select` | Radix listbox: arrow keys, type-ahead, focus returns on close. |
-| `Checkbox` | Radix, with an indeterminate state and a clickable label. |
-| `FieldShell` / `useFieldControl` | For a control that is not one of the built-ins. |
-| `Badge` / `StatusDot` | 6 tones × soft/outline × 2 sizes. |
-| `Avatar` / `AvatarGroup` | Initials fallback, deterministic tint, `+N` overflow. |
-| `Card` / `CardHeader` / `CardBody` / `CardFooter` / `StatTile` | |
-| `Table` + 8 sub-components | Sortable headers with `aria-sort`, density, skeleton rows. |
-| `Tabs` / `SegmentedControl` | Tabs change *what*; a segmented control changes *how*. |
-| `Tooltip` | Shared 300ms delay via one provider. |
-| `DropdownMenu` + 9 sub-components | Row actions, account menu, submenus. |
-| `Modal` / `ConfirmDialog` | Focus trap, Escape, scroll containment. |
-| `ToastProvider` / `useToast` | `success` / `error` / `warning` / `info`. |
-| `Skeleton` / `SkeletonText` / `SkeletonList` / `Spinner` / `LoadingOverlay` | |
-| `EmptyState` / `ErrorState` | Two empty variants — see §4. |
-| `Pagination` | Takes the API's `pagination` object directly. |
+| Component                                                                   | Notes                                                                |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `Button`                                                                    | 5 variants × 3 sizes. `loading` keeps the label for width stability. |
+| `IconButton`                                                                | `label` is required — it becomes the accessible name.                |
+| `Input` / `Textarea`                                                        | Label, hint and error built in, with the ARIA wiring done for you.   |
+| `Select`                                                                    | Radix listbox: arrow keys, type-ahead, focus returns on close.       |
+| `Checkbox`                                                                  | Radix, with an indeterminate state and a clickable label.            |
+| `FieldShell` / `useFieldControl`                                            | For a control that is not one of the built-ins.                      |
+| `Badge` / `StatusDot`                                                       | 6 tones × soft/outline × 2 sizes.                                    |
+| `Avatar` / `AvatarGroup`                                                    | Initials fallback, deterministic tint, `+N` overflow.                |
+| `Card` / `CardHeader` / `CardBody` / `CardFooter` / `StatTile`              |                                                                      |
+| `Table` + 8 sub-components                                                  | Sortable headers with `aria-sort`, density, skeleton rows.           |
+| `Tabs` / `SegmentedControl`                                                 | Tabs change _what_; a segmented control changes _how_.               |
+| `Tooltip`                                                                   | Shared 300ms delay via one provider.                                 |
+| `DropdownMenu` + 9 sub-components                                           | Row actions, account menu, submenus.                                 |
+| `Modal` / `ConfirmDialog`                                                   | Focus trap, Escape, scroll containment.                              |
+| `ToastProvider` / `useToast`                                                | `success` / `error` / `warning` / `info`.                            |
+| `Skeleton` / `SkeletonText` / `SkeletonList` / `Spinner` / `LoadingOverlay` |                                                                      |
+| `EmptyState` / `ErrorState`                                                 | Two empty variants — see §4.                                         |
+| `Pagination`                                                                | Takes the API's `pagination` object directly.                        |
 
 ### Domain components
 
@@ -268,11 +268,11 @@ failure in this API is transient.
 
 ## 5. Responsive behaviour
 
-| Breakpoint | Shell | Tables | Forms |
-| --- | --- | --- | --- |
-| `< 640px` | Drawer nav, topbar with a menu button | Horizontal scroll inside the wrapper — never the page | Single column |
-| `640–1024px` | Drawer nav | Horizontal scroll | 2 columns where it fits |
-| `≥ 1024px` | Fixed 240px sidebar | Full width | 2 columns |
+| Breakpoint   | Shell                                 | Tables                                                | Forms                   |
+| ------------ | ------------------------------------- | ----------------------------------------------------- | ----------------------- |
+| `< 640px`    | Drawer nav, topbar with a menu button | Horizontal scroll inside the wrapper — never the page | Single column           |
+| `640–1024px` | Drawer nav                            | Horizontal scroll                                     | 2 columns where it fits |
+| `≥ 1024px`   | Fixed 240px sidebar                   | Full width                                            | 2 columns               |
 
 Rules that hold at every size:
 
@@ -331,14 +331,11 @@ Not a later pass — built into the primitives:
 import { Button, Card, CardHeader, CardBody, TaskStatusBadge } from '@/components/ui';
 
 <Card>
-  <CardHeader
-    title="Sprint 24"
-    action={<Button size="sm">Open</Button>}
-  />
+  <CardHeader title="Sprint 24" action={<Button size="sm">Open</Button>} />
   <CardBody>
     <TaskStatusBadge status="in_progress" />
   </CardBody>
-</Card>
+</Card>;
 ```
 
 Rules for adding to the system:
@@ -378,15 +375,15 @@ Verified against the **production build** (`client/dist`, served statically on
 `127.0.0.1:5173`) and driven by headless Chrome over CDP. The dev server was not
 used, so what is confirmed is the shipped artifact rather than the dev pipeline.
 
-| Check | Result |
-| --- | --- |
+| Check              | Result                                                                                                                                                                             |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Whole page renders | 1440 × 6169 px — colour, type, spacing, radius, elevation, buttons, forms, badges, avatars, cards, stats, tables, pagination, tabs, dialogs, empty / no-results / error, skeletons |
-| `≥ 1024px` | Fixed 240px sidebar, content region scrolls independently — confirmed at 1024 and 1440 |
-| `768–1024px` | Sidebar collapses to the drawer, hamburger in the topbar; swatch grid reflows 9 → 7 per row |
-| `< 640px` (390) | Drawer nav, single column, 2-up swatch grid; the table scrolls **inside its wrapper** and the page itself never scrolls sideways |
-| Modal | Opens over a dimmed backdrop, focus lands inside, Escape closes and returns focus |
-| Dropdown menu | Opens with a section label (`TASK`), a shortcut (`⌘E`), and the destructive item in red |
-| Toasts | Stack bottom-right; success and error variants, each with a dismiss control |
+| `≥ 1024px`         | Fixed 240px sidebar, content region scrolls independently — confirmed at 1024 and 1440                                                                                             |
+| `768–1024px`       | Sidebar collapses to the drawer, hamburger in the topbar; swatch grid reflows 9 → 7 per row                                                                                        |
+| `< 640px` (390)    | Drawer nav, single column, 2-up swatch grid; the table scrolls **inside its wrapper** and the page itself never scrolls sideways                                                   |
+| Modal              | Opens over a dimmed backdrop, focus lands inside, Escape closes and returns focus                                                                                                  |
+| Dropdown menu      | Opens with a section label (`TASK`), a shortcut (`⌘E`), and the destructive item in red                                                                                            |
+| Toasts             | Stack bottom-right; success and error variants, each with a dismiss control                                                                                                        |
 
 Three things the browser run settled that the build could not:
 
@@ -394,7 +391,7 @@ Three things the browser run settled that the build could not:
   `Geist Mono Variable` as `loaded`, and the computed family is
   `"Geist Variable", ui-sans-serif, …` — no silent fallback.
 - **The base size is 14px** as specified, and **`font-variant-numeric:
-  tabular-nums` is actually applied** to `td` — the Estimate column aligns.
+tabular-nums` is actually applied** to `td` — the Estimate column aligns.
 - **The page makes six requests and none fail**, apart from
   `/favicon.ico` → 404. There is no favicon in the project; a browser will
   always ask for it. Worth adding one, but it is cosmetic.

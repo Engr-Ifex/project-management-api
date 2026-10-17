@@ -114,6 +114,52 @@ bcrypt cost factor, `10`–`15`. Default `10`. Outside that range the applicatio
 refuses to start: too low weakens the hash, too high makes every login
 noticeably slow.
 
+## Transactional email
+
+Password-reset emails are sent through [Resend](https://resend.com).
+
+All three variables below are **optional**. The application starts and works
+without them: registration, login and every other feature never touch email, so
+nothing is blocked by their absence. What you lose is account recovery — a user
+who forgets their password has no way back in.
+
+When they are missing the server logs a warning at boot and `npm run preflight`
+reports it. It is deliberately **not** a fatal error: refusing to start would
+block a deployment over one degraded feature.
+
+### RESEND_API_KEY
+
+API key from <https://resend.com/api-keys>. Starts with `re_`.
+
+Never logged, and redacted by the logger even if it appears inside an error
+string. `npm run preflight` warns if the value does not look like a key.
+
+### EMAIL_FROM
+
+The sender. The **domain must be verified in the Resend dashboard first**, or
+every send is rejected with a `403` and nothing is delivered.
+
+```env
+EMAIL_FROM=PROJEX <no-reply@yourdomain.com>
+```
+
+The `Name <address>` form is supported.
+
+### CLIENT_URL
+
+The public origin of the frontend, used to build the links in those emails.
+**No trailing slash.**
+
+```env
+CLIENT_URL=https://app.example.com
+```
+
+This is read from configuration and **never** from the request's `Host` header.
+A `Host` header is attacker-controlled, so a reset link built from one could be
+made to point at a domain an attacker owns — turning "reset your password" into
+a credential-theft funnel. There is deliberately no request-derived fallback
+anywhere in the email code; see `src/utils/emailLinks.js`.
+
 ## CORS
 
 ### CORS_ORIGINS

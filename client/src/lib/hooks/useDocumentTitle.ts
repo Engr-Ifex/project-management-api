@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 export const useDocumentTitle = (title?: string): void => {
   useEffect(() => {
     const previous = document.title;
-    document.title = title ? `${title} · Project Management` : 'Project Management';
+    document.title = title ? `${title} · PROJEX` : 'PROJEX';
     return () => {
       document.title = previous;
     };

@@ -93,11 +93,17 @@ export const WorkspaceMenu = ({
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem icon={<SquaresFour aria-hidden />} onSelect={() => navigate('/workspaces')}>
+        <DropdownMenuItem
+          icon={<SquaresFour aria-hidden />}
+          onSelect={() => navigate('/workspaces')}
+        >
           All workspaces
         </DropdownMenuItem>
 
-        <DropdownMenuItem icon={<Plus aria-hidden />} onSelect={() => navigate('/workspaces?new=1')}>
+        <DropdownMenuItem
+          icon={<Plus aria-hidden />}
+          onSelect={() => navigate('/workspaces?new=1')}
+        >
           New workspace
         </DropdownMenuItem>
       </DropdownMenuContent>

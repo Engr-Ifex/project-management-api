@@ -24,6 +24,14 @@ export interface CheckboxProps {
   /** Secondary line under the label, for a longer explanation. */
   description?: ReactNode;
   error?: string | null;
+  /**
+   * Accessible name for a checkbox rendered without a visible `label` — the
+   * select-all box in a table header, or a row-selection box whose meaning
+   * comes from the row. Preferred over `label` when both are given, since a
+   * caller that passes this has a more specific name in mind than the generic
+   * visible one.
+   */
+  'aria-label'?: string;
   name?: string;
   value?: string;
   id?: string;
@@ -31,7 +39,19 @@ export interface CheckboxProps {
 }
 
 export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Checkbox(
-  { checked, onCheckedChange, disabled, label, description, error, name, value, id, className },
+  {
+    checked,
+    onCheckedChange,
+    disabled,
+    label,
+    description,
+    error,
+    name,
+    value,
+    id,
+    className,
+    'aria-label': ariaLabel,
+  },
   ref
 ) {
   const control = (
@@ -43,6 +63,17 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Ch
       disabled={disabled}
       name={name}
       value={value}
+      /*
+       * A Radix checkbox renders a `<button>`, not an `<input>`, so the
+       * adjacent `<label htmlFor>` below — which only labels labelable
+       * elements — does not give it an accessible name. `label` is the same
+       * string, so it can be the name directly. Without this the control
+       * announces as "button" and the user has no idea which row they are on.
+       *
+       * A checkbox with no `label` at all is a row-selection box in a table
+       * header, which the caller names through the explicit `aria-label` prop.
+       */
+      aria-label={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
       aria-invalid={error ? true : undefined}
       className={cn(
         'peer size-4 shrink-0 rounded-xs border border-line-strong bg-surface',
@@ -77,7 +108,10 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(function Ch
         {control}
 
         <div className="flex flex-col gap-0.5">
-          <label htmlFor={id} className="cursor-pointer text-sm text-body peer-disabled:cursor-not-allowed">
+          <label
+            htmlFor={id}
+            className="cursor-pointer text-sm text-body peer-disabled:cursor-not-allowed"
+          >
             {label}
           </label>
           {description && <p className="text-xs text-body-subtle">{description}</p>}

@@ -1,0 +1,876 @@
+{
+  "when": "2026-10-16T07:45:37.909Z",
+  "browser": "Chrome/155.0.8059.80",
+  "results": [
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Workspace list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Dashboard (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project overview (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Members (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Notifications (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Settings (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Design system (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Workspace list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Dashboard (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project overview (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Members (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Notifications (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Settings (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Design system (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Workspace list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Workspace list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Dashboard (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Dashboard"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project list (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project list"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project overview (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Project overview"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Members (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Members"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Notifications (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Notifications"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Settings (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Settings"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Design system (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Design system"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Task detail (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Task detail (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "tablet",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "geometry: no horizontal overflow",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Task detail (scrollWidth == clientWidth)"
+    },
+    {
+      "check": "geometry: no clipped content",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: every control has a name",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: images labelled, field errors associated",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "a11y: text contrast >= WCAG AA",
+      "viewport": "mobile",
+      "status": "PASS",
+      "detail": "Task detail"
+    },
+    {
+      "check": "form: invalid submit is blocked and errors are announced",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "2 field(s)"
+    },
+    {
+      "check": "form: failed login shows an error and does not navigate",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": null
+    },
+    {
+      "check": "auth: valid credentials navigate into the app",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": null
+    },
+    {
+      "check": "state: protected route survives a hard refresh",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": null
+    },
+    {
+      "check": "interaction: search updates the result set",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "4 -> 1 -> 4"
+    },
+    {
+      "check": "interaction: destructive action confirms and Escape dismisses",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "Archive this project?"
+    },
+    {
+      "check": "keyboard: skip link is the first tab stop and becomes visible",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": null
+    },
+    {
+      "check": "keyboard: focused control paints a visible ring",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "2px rgb(52, 133, 121)"
+    },
+    {
+      "check": "state: no success message without a successful request",
+      "viewport": "desktop",
+      "status": "PASS",
+      "detail": "empty submit produced no success toast"
+    },
+    {
+      "check": "runtime: no unexpected console errors during the sweep",
+      "viewport": "all",
+      "status": "PASS",
+      "detail": null
+    }
+  ]
+}

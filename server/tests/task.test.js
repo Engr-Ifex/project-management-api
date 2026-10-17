@@ -139,8 +139,8 @@ describe('Tasks', () => {
   describe('retrieval', () => {
     test('lists the project tasks', async () => {
       const { client, tasksUrl, project, owner } = await setup();
-      await createTask(project, owner, { title: 'A' });
-      await createTask(project, owner, { title: 'B' });
+      await createTask(project, owner, { title: 'Task A' });
+      await createTask(project, owner, { title: 'Task B' });
 
       const response = await client.get(tasksUrl);
 
@@ -217,6 +217,103 @@ describe('Tasks', () => {
 
       assert.equal(negative.status, 400);
       assert.equal(fractional.status, 400);
+    });
+  });
+
+  /*
+   * The update contract, and why it is split in two.
+   *
+   * `PATCH /tasks/:taskId` is validated by `updateTaskSchema`, which covers only
+   * title, description, dates and estimate. Status, priority and assignee each
+   * have their own route and their own schema. Zod strips unknown keys, so a
+   * body carrying `status` to the generic PATCH arrives empty and trips the
+   * "at least one field must be provided" refinement — a 400.
+   *
+   * These tests exist because the frontend sent all three to the generic PATCH.
+   * TypeScript allowed it — structural typing permits extra properties when the
+   * object is passed as a variable rather than a fresh literal — so it compiled,
+   * every request 400'd, and the UI simply appeared not to save. The split is
+   * deliberate, so it is pinned here rather than widened to hide the mistake.
+   */
+  describe('update contract', () => {
+    test('the generic PATCH does not accept status, priority or assignee', async () => {
+      const { client, tasksUrl, project, owner } = await setup();
+      const task = await createTask(project, owner);
+
+      const bodies = [
+        { status: 'completed' },
+        { priority: 'urgent' },
+        { assignee: String(owner._id) },
+      ];
+
+      for (const body of bodies) {
+        const response = await client.patch(`${tasksUrl}/${task._id}`).send(body);
+
+        assert.equal(
+          response.status,
+          400,
+          `${Object.keys(body)[0]} must go to its own endpoint, not the generic PATCH`
+        );
+      }
+    });
+
+    test('the generic PATCH accepts a full ISO datetime for the due date', async () => {
+      const { client, tasksUrl, project, owner } = await setup();
+      const task = await createTask(project, owner);
+
+      const response = await client
+        .patch(`${tasksUrl}/${task._id}`)
+        .send({ dueDate: '2026-10-12T00:00:00.000Z' });
+
+      assert.equal(response.status, 200);
+      assert.equal(
+        new Date(response.body.data.task.dueDate).toISOString(),
+        '2026-10-12T00:00:00.000Z'
+      );
+    });
+
+    test('a date-only due date is rejected, which is why the client converts it', async () => {
+      const { client, tasksUrl, project, owner } = await setup();
+      const task = await createTask(project, owner);
+
+      // Exactly what `<input type="date">` produces, and what the client used
+      // to send verbatim: `z.string().datetime()` requires a time and a zone.
+      const response = await client
+        .patch(`${tasksUrl}/${task._id}`)
+        .send({ dueDate: '2026-10-12' });
+
+      assert.equal(response.status, 400);
+    });
+  });
+
+  describe('creation contract', () => {
+    test('accepts a full ISO due date, and omits it cleanly when absent', async () => {
+      const { client, tasksUrl } = await setup();
+
+      // The case that always worked: no due date means the key is not sent.
+      const withoutDate = await client.post(tasksUrl).send({ title: 'No due date' });
+      assert.equal(withoutDate.status, 201);
+      assert.equal(withoutDate.body.data.task.dueDate, null);
+
+      const withDate = await client
+        .post(tasksUrl)
+        .send({ title: 'With due date', dueDate: '2026-10-12T00:00:00.000Z' });
+
+      assert.equal(withDate.status, 201);
+      assert.equal(
+        new Date(withDate.body.data.task.dueDate).toISOString(),
+        '2026-10-12T00:00:00.000Z'
+      );
+    });
+
+    test('rejects a date-only due date, the payload the client used to send', async () => {
+      const { client, tasksUrl } = await setup();
+
+      const response = await client
+        .post(tasksUrl)
+        .send({ title: 'Date only', dueDate: '2026-10-12' });
+
+      assert.equal(response.status, 400);
     });
   });
 

@@ -14,6 +14,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   SkeletonList,
 } from '@/components/ui';
@@ -174,7 +175,7 @@ export const LabelsTab = ({ project }: { project: Project }) => {
         }}
       >
         <ModalContent size="sm">
-          <form onSubmit={onSubmit}>
+          <ModalForm onSubmit={onSubmit}>
             <ModalHeader title={editing ? 'Edit label' : 'New label'} />
 
             <ModalBody className="flex flex-col gap-4">
@@ -217,7 +218,7 @@ export const LabelsTab = ({ project }: { project: Project }) => {
                 {editing ? 'Save label' : 'Create label'}
               </Button>
             </ModalFooter>
-          </form>
+          </ModalForm>
         </ModalContent>
       </Modal>
 

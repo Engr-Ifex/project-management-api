@@ -65,8 +65,7 @@ const buttonStyles = cva(
 );
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonStyles> {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonStyles> {
   /** Shows a spinner and disables interaction. The label stays for width stability. */
   loading?: boolean;
   /** Icon rendered before the label. Pass a Phosphor icon element. */

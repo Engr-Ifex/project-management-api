@@ -1,6 +1,7 @@
 import { before, after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import request from 'supertest';
 
 import { startTestDatabase, clearDatabase, stopTestDatabase } from './helpers/setup.js';
 import { asUser, createProject, createUser, createWorkspace } from './helpers/factories.js';
@@ -304,5 +305,170 @@ describe('upload content validation', () => {
         fs.unlinkSync(`${PUBLIC_AVATARS_DIR}/${file}`);
       }
     });
+  });
+});
+
+/*
+ * The avatar upload, end to end.
+ *
+ * The rejection paths above were already covered; what was not covered is the
+ * success path, and that gap is why a broken avatar upload looked like a
+ * backend problem. The API returns a **relative** `/uploads/avatars/<file>`
+ * path on the user, and the frontend renders it directly as an `<img src>`. So
+ * the contract has two halves — the path is stored on the user, and the file is
+ * reachable at that path — and both are asserted here.
+ *
+ * The reachability half is what actually broke: the client's dev server proxied
+ * `/api` but not `/uploads`, so the browser received the SPA's HTML instead of
+ * the image and the avatar silently fell back to initials. That is a client
+ * concern and is fixed in `client/vite.config.ts`; what belongs here is proof
+ * that the server half is sound, so the two can be told apart.
+ */
+describe('avatar upload', () => {
+  /** Removes any avatar files created since `before`. */
+  const cleanUpAfter = (before) => {
+    for (const file of avatarFiles().filter((file) => !before.includes(file))) {
+      fs.unlinkSync(`${PUBLIC_AVATARS_DIR}/${file}`);
+    }
+  };
+
+  const uploadAvatar = (client, buffer, filename, contentType) =>
+    client.patch(`${API}/users/avatar`).attach('avatar', buffer, { filename, contentType });
+
+  test('a JPEG is stored and the path is saved on the user', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const before = avatarFiles();
+    const client = asUser(app, owner);
+
+    const response = await uploadAvatar(client, JPEG, 'photo.jpg', 'image/jpeg');
+
+    assert.equal(response.status, 200, response.body.message);
+
+    const storedPath = response.body.data.user.avatar;
+
+    assert.match(storedPath, /^\/uploads\/avatars\/avatar-[\w.-]+\.jpg$/);
+
+    // The file must exist at the path the API just handed back.
+    const filename = storedPath.split('/').pop();
+    assert.ok(
+      fs.existsSync(`${PUBLIC_AVATARS_DIR}/${filename}`),
+      'the avatar file should exist on disk'
+    );
+
+    // And the path must survive a fresh read, not just the mutation response.
+    const profile = await client.get(`${API}/users/profile`);
+    assert.equal(profile.body.data.user.avatar, storedPath);
+
+    cleanUpAfter(before);
+  });
+
+  test('a PNG is stored and the path is saved on the user', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const before = avatarFiles();
+
+    const response = await uploadAvatar(asUser(app, owner), PNG, 'photo.png', 'image/png');
+
+    assert.equal(response.status, 200, response.body.message);
+    assert.match(response.body.data.user.avatar, /^\/uploads\/avatars\/avatar-[\w.-]+\.png$/);
+
+    cleanUpAfter(before);
+  });
+
+  test('rejects a type that is not an avatar image', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const before = avatarFiles();
+
+    // GIF is a valid image and a valid *attachment*, but not an avatar type.
+    const response = await uploadAvatar(asUser(app, owner), GIF, 'animation.gif', 'image/gif');
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(avatarFiles(), before, 'a rejected upload must write nothing');
+
+    cleanUpAfter(before);
+  });
+
+  test('rejects a file over the size limit', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const before = avatarFiles();
+
+    // Valid PNG signature, so it fails on size rather than on content.
+    const oversized = Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      Buffer.alloc(5 * 1024 * 1024 + 1),
+    ]);
+
+    const response = await uploadAvatar(asUser(app, owner), oversized, 'big.png', 'image/png');
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(avatarFiles(), before, 'an oversized upload must write nothing');
+
+    cleanUpAfter(before);
+  });
+
+  test('a rejected replacement leaves the previous avatar intact', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const before = avatarFiles();
+    const client = asUser(app, owner);
+
+    const first = await uploadAvatar(client, JPEG, 'photo.jpg', 'image/jpeg');
+    assert.equal(first.status, 200);
+
+    const originalPath = first.body.data.user.avatar;
+    const afterFirstUpload = avatarFiles();
+
+    // Content that does not match its declared type.
+    const rejected = await uploadAvatar(
+      client,
+      Buffer.from('not-an-image-at-all'),
+      'fake.jpg',
+      'image/jpeg'
+    );
+    assert.equal(rejected.status, 400);
+
+    assert.deepEqual(avatarFiles(), afterFirstUpload, 'the rejected file must be removed');
+
+    const profile = await client.get(`${API}/users/profile`);
+    assert.equal(
+      profile.body.data.user.avatar,
+      originalPath,
+      'a failed replacement must not clear or change the existing avatar'
+    );
+
+    cleanUpAfter(before);
+  });
+
+  test('an anonymous request cannot set an avatar', async () => {
+    const before = avatarFiles();
+
+    const response = await request(app)
+      .patch(`${API}/users/avatar`)
+      .attach('avatar', JPEG, { filename: 'photo.jpg', contentType: 'image/jpeg' });
+
+    assert.equal(response.status, 401);
+    assert.deepEqual(avatarFiles(), before);
+
+    cleanUpAfter(before);
+  });
+
+  test('the upload is attributed to the caller, never to a supplied id', async () => {
+    const owner = await createUser({ name: 'Owner' });
+    const other = await createUser({ name: 'Other' });
+    const before = avatarFiles();
+
+    // The endpoint takes the id from the session. A body field naming another
+    // user must be ignored rather than honoured.
+    const response = await asUser(app, owner)
+      .patch(`${API}/users/avatar`)
+      .field('userId', String(other._id))
+      .attach('avatar', JPEG, { filename: 'photo.jpg', contentType: 'image/jpeg' });
+
+    assert.equal(response.status, 200);
+
+    const { default: User } = await import('../src/models/User.js');
+    const reloadedOther = await User.findById(other._id);
+
+    assert.equal(reloadedOther.avatar, null, "another user's avatar must be untouched");
+
+    cleanUpAfter(before);
   });
 });

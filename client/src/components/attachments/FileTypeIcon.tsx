@@ -32,13 +32,7 @@ const ICONS: Record<FileKind, typeof File> = {
  * The type is also spelled out for assistive tech, because the icon is the only
  * carrier of the information — the filename alone does not say "spreadsheet".
  */
-export const FileTypeIcon = ({
-  filename,
-  className,
-}: {
-  filename: string;
-  className?: string;
-}) => {
+export const FileTypeIcon = ({ filename, className }: { filename: string; className?: string }) => {
   const kind = fileKind(filename);
   const Icon = ICONS[kind];
 

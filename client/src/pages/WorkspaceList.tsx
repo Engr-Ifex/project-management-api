@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { AccountMenu } from '@/components/AccountMenu';
+import { LogoutButton } from '@/components/LogoutButton';
 import { PageContainer } from '@/components/PageContainer';
 import {
   Badge,
@@ -18,6 +19,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   Pagination,
   Select,
@@ -77,8 +79,9 @@ export const WorkspaceList = () => {
    * already here — no extra request.
    */
   const isOwnerOf = (workspace: (typeof workspaces)[number]) =>
-    workspace.members?.some((member) => refId(member.user) === user?.id && member.role === 'owner') ??
-    false;
+    workspace.members?.some(
+      (member) => refId(member.user) === user?.id && member.role === 'owner'
+    ) ?? false;
 
   const onCreate = async (event: FormEvent) => {
     event.preventDefault();
@@ -104,13 +107,20 @@ export const WorkspaceList = () => {
             aria-hidden
             className="flex size-6 items-center justify-center rounded-sm bg-ink-950 text-2xs font-semibold text-body-inverse"
           >
-            PM
+            PX
           </span>
-          <span className="text-sm font-medium text-body">Project Management</span>
+          <span className="text-sm font-medium text-body">PROJEX</span>
         </div>
 
-        <div className="w-56">
-          <AccountMenu />
+        <div className="flex items-center gap-2">
+          <div className="w-32 sm:w-56">
+            <AccountMenu />
+          </div>
+          {/*
+            Visible here too. This screen has its own chrome rather than the
+            workspace shell, so the sidebar's sign-out does not exist on it.
+          */}
+          <LogoutButton collapseOnMobile />
         </div>
       </header>
 
@@ -252,9 +262,7 @@ export const WorkspaceList = () => {
                       variant="secondary"
                       size="sm"
                       iconLeft={<ArrowCounterClockwise aria-hidden />}
-                      onClick={() =>
-                        setPendingRestore({ id: workspace.id, name: workspace.name })
-                      }
+                      onClick={() => setPendingRestore({ id: workspace.id, name: workspace.name })}
                     >
                       Restore
                     </Button>
@@ -304,7 +312,7 @@ export const WorkspaceList = () => {
         }}
       >
         <ModalContent>
-          <form onSubmit={onCreate}>
+          <ModalForm onSubmit={onCreate}>
             <ModalHeader
               title="New workspace"
               description="You will be its owner, and can invite others afterwards."
@@ -349,7 +357,7 @@ export const WorkspaceList = () => {
                 Create workspace
               </Button>
             </ModalFooter>
-          </form>
+          </ModalForm>
         </ModalContent>
       </Modal>
     </div>

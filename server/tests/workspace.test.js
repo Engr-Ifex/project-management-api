@@ -152,6 +152,145 @@ describe('Workspace', () => {
     assert.equal(response.status, 403);
   });
 
+  /*
+   * Workspace member management.
+   *
+   * The service-level rules in `team.service.js` — who may be removed, who may
+   * change a role, and which guards protect the owner — were only ever exercised
+   * through DENIAL paths (a member getting a 403 from the permission
+   * middleware), so the functions themselves were never reached. These tests
+   * drive the successful paths and the guards the middleware cannot express.
+   */
+  test('the owner removes a member', async () => {
+    const owner = await createUser();
+    const guest = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, guest, 'member');
+
+    const response = await asUser(app, owner).delete(
+      `${API}/workspaces/${workspace._id}/members/${guest._id}`
+    );
+
+    assert.equal(response.status, 200);
+
+    const reloaded = await import('../src/models/Workspace.js').then((m) =>
+      m.default.findById(workspace._id)
+    );
+
+    assert.ok(
+      !reloaded.members.some((member) => String(member.user) === String(guest._id)),
+      'the removed member must be gone from the workspace'
+    );
+  });
+
+  test('an admin removes a regular member', async () => {
+    const owner = await createUser();
+    const admin = await createUser();
+    const guest = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, admin, 'admin');
+    await addWorkspaceMember(workspace, guest, 'member');
+
+    const response = await asUser(app, admin).delete(
+      `${API}/workspaces/${workspace._id}/members/${guest._id}`
+    );
+
+    assert.equal(response.status, 200);
+  });
+
+  test('an admin cannot remove another admin', async () => {
+    const owner = await createUser();
+    const admin = await createUser();
+    const peer = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, admin, 'admin');
+    await addWorkspaceMember(workspace, peer, 'admin');
+
+    const response = await asUser(app, admin).delete(
+      `${API}/workspaces/${workspace._id}/members/${peer._id}`
+    );
+
+    assert.equal(response.status, 403);
+  });
+
+  test('the workspace owner cannot be removed', async () => {
+    const owner = await createUser();
+    const admin = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, admin, 'admin');
+
+    const response = await asUser(app, admin).delete(
+      `${API}/workspaces/${workspace._id}/members/${owner._id}`
+    );
+
+    assert.equal(response.status, 403);
+  });
+
+  test('an admin cannot remove themselves', async () => {
+    /*
+     * The requester must hold REMOVE_MEMBERS to reach the service at all, so
+     * the self-removal guard is exercised with an admin. (A plain member is
+     * stopped earlier by the permission middleware with a 403.)
+     */
+    const owner = await createUser();
+    const admin = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, admin, 'admin');
+
+    const response = await asUser(app, admin).delete(
+      `${API}/workspaces/${workspace._id}/members/${admin._id}`
+    );
+
+    assert.equal(response.status, 400);
+  });
+
+  test('the owner changes a member role', async () => {
+    const owner = await createUser();
+    const guest = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, guest, 'member');
+
+    const response = await asUser(app, owner)
+      .patch(`${API}/workspaces/${workspace._id}/members/${guest._id}/role`)
+      .send({ role: 'admin' });
+
+    assert.equal(response.status, 200);
+
+    const reloaded = await import('../src/models/Workspace.js').then((m) =>
+      m.default.findById(workspace._id)
+    );
+
+    const updated = reloaded.members.find((member) => String(member.user) === String(guest._id));
+
+    assert.equal(updated.role, 'admin', 'the new role must be persisted');
+  });
+
+  test('an admin cannot change a role', async () => {
+    const owner = await createUser();
+    const admin = await createUser();
+    const guest = await createUser();
+    const workspace = await createWorkspace(owner);
+    await addWorkspaceMember(workspace, admin, 'admin');
+    await addWorkspaceMember(workspace, guest, 'member');
+
+    const response = await asUser(app, admin)
+      .patch(`${API}/workspaces/${workspace._id}/members/${guest._id}/role`)
+      .send({ role: 'admin' });
+
+    assert.equal(response.status, 403, 'only the owner may change roles');
+  });
+
+  test('the owner role cannot be changed', async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+
+    const response = await asUser(app, owner)
+      .patch(`${API}/workspaces/${workspace._id}/members/${owner._id}/role`)
+      .send({ role: 'member' });
+
+    assert.equal(response.status, 403);
+  });
+
   test('the owner can delete the workspace', async () => {
     const user = await createUser();
     const workspace = await createWorkspace(user);
@@ -188,5 +327,77 @@ describe('Workspace', () => {
       m.default.findById(workspace._id)
     );
     assert.ok(reloaded.members.some((member) => String(member.user) === String(invitee._id)));
+  });
+
+  test('rejects an expired invitation with 410 and marks it expired', async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const inviteeEmail = uniqueEmail('expired-invitee');
+    const token = 'e'.repeat(64);
+
+    /*
+     * Created through the model with a past `expiresAt`: the API always mints a
+     * 48-hour window, so an expired invitation cannot be produced through it.
+     */
+    const { default: Invitation } = await import('../src/models/Invitation.js');
+
+    await Invitation.create({
+      workspace: workspace._id,
+      invitedBy: owner._id,
+      email: inviteeEmail,
+      role: 'member',
+      token,
+      expiresAt: new Date(Date.now() - 60 * 1000),
+    });
+
+    const invitee = await createUser({ email: inviteeEmail });
+
+    const response = await asUser(app, invitee).patch(`${API}/invitations/${token}/accept`);
+
+    assert.equal(response.status, 410);
+
+    const stored = await Invitation.findOne({ token });
+
+    assert.equal(stored.status, 'expired', 'the invitation must be marked expired');
+    assert.equal(stored.acceptedAt, null, 'an expired invitation is never accepted');
+
+    const reloaded = await import('../src/models/Workspace.js').then((m) =>
+      m.default.findById(workspace._id)
+    );
+
+    assert.ok(
+      !reloaded.members.some((member) => String(member.user) === String(invitee._id)),
+      'an expired invitation must not grant membership'
+    );
+  });
+
+  test('an expired invitation does not block a fresh one', async () => {
+    const owner = await createUser();
+    const workspace = await createWorkspace(owner);
+    const inviteeEmail = uniqueEmail('reinvite');
+
+    const { default: Invitation } = await import('../src/models/Invitation.js');
+
+    await Invitation.create({
+      workspace: workspace._id,
+      invitedBy: owner._id,
+      email: inviteeEmail,
+      role: 'member',
+      token: 'f'.repeat(64),
+      status: 'expired',
+      expiresAt: new Date(Date.now() - 60 * 1000),
+    });
+
+    /*
+     * The partial unique index on {workspace, email} covers `status: 'pending'`
+     * only, so an expired row must not make this a 409 — otherwise a re-invite
+     * would be permanently blocked after the first invitation lapsed.
+     */
+    const response = await asUser(app, owner)
+      .post(`${API}/workspaces/${workspace._id}/invitations`)
+      .send({ email: inviteeEmail, role: 'member' });
+
+    assert.equal(response.status, 201);
+    assert.equal(response.body.data.invitation.status, 'pending');
   });
 });

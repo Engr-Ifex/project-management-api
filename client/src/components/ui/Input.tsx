@@ -1,4 +1,9 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type TextareaHTMLAttributes,
+} from 'react';
 
 import { cn } from '@/lib/utils/cn';
 import { FieldShell, useFieldControl } from './Field';
@@ -36,8 +41,7 @@ interface FieldProps {
 }
 
 export interface InputProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'>,
-    FieldProps {
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'prefix'>, FieldProps {
   /** Rendered inside the control, before the text. */
   prefix?: ReactNode;
   suffix?: ReactNode;
@@ -65,7 +69,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const field = useFieldControl(id, hint, error);
 
   const height =
-    inputSize === 'sm' ? 'h-7 text-xs px-2' : inputSize === 'lg' ? 'h-9 text-base px-3' : 'h-8 text-sm px-2.5';
+    inputSize === 'sm'
+      ? 'h-7 text-xs px-2'
+      : inputSize === 'lg'
+        ? 'h-9 text-base px-3'
+        : 'h-8 text-sm px-2.5';
 
   const control = (
     <div className="relative flex items-center">
@@ -128,7 +136,18 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { className, label, hint, error, containerClassName, labelAction, id, required, rows = 4, ...props },
+  {
+    className,
+    label,
+    hint,
+    error,
+    containerClassName,
+    labelAction,
+    id,
+    required,
+    rows = 4,
+    ...props
+  },
   ref
 ) {
   const field = useFieldControl(id, hint, error);

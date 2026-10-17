@@ -42,13 +42,17 @@ export const EmptyState = ({
   className,
 }: EmptyStateProps) => (
   <div
-    className={cn('flex flex-col items-center justify-center gap-3 px-6 py-12 text-center', className)}
+    className={cn(
+      'flex flex-col items-center justify-center gap-3 px-6 py-12 text-center',
+      className
+    )}
   >
     <span
       aria-hidden
       className="flex size-9 items-center justify-center rounded-full bg-ink-100 text-body-subtle [&_svg]:size-4"
     >
-      {icon ?? (variant === 'no-results' ? <MagnifyingGlass /> : <span className="text-sm">—</span>)}
+      {icon ??
+        (variant === 'no-results' ? <MagnifyingGlass /> : <span className="text-sm">—</span>)}
     </span>
 
     <div className="flex max-w-sm flex-col gap-1">

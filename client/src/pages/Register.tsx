@@ -3,7 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { FormAlert } from '@/components/FormAlert';
-import { Button, Input, PasswordInput } from '@/components/ui';
+import { Button, Input, PasswordInput } from '@/components/ui/shell';
 import { AuthShell } from '@/layouts/AuthShell';
 import { useAuth } from '@/lib/auth/AuthProvider';
 import { hasErrors, validateRegister, type FieldErrors } from '@/lib/auth/validation';
@@ -23,7 +23,9 @@ import { useDocumentTitle, useMutation } from '@/lib/hooks';
  * teaches users that the rules are decorative.
  *
  * Registering signs the user in (the endpoint sets the cookie), so this goes
- * straight to the workspace list rather than back to login.
+ * straight to the workspace list rather than back to login. The account is
+ * complete on creation: there is no confirmation step to wait for and nothing is
+ * withheld until an email is opened.
  */
 /** The fields this form renders, used to decide whether a 400 is fully inline. */
 const FORM_FIELDS = ['name', 'email', 'password'];
@@ -56,7 +58,9 @@ export const Register = () => {
     : undefined;
 
   const errorFor = (field: string) =>
-    fieldErrors[field] ?? error?.fieldError(field) ?? (field === 'email' ? conflictMessage : undefined);
+    fieldErrors[field] ??
+    error?.fieldError(field) ??
+    (field === 'email' ? conflictMessage : undefined);
 
   const clearFieldError = (field: string) => {
     setFieldErrors((current) => {
@@ -101,7 +105,9 @@ export const Register = () => {
     const allFieldsRendered =
       error.status === 400 &&
       error.errors.length > 0 &&
-      error.errors.every((fieldError) => fieldError.field && FORM_FIELDS.includes(fieldError.field));
+      error.errors.every(
+        (fieldError) => fieldError.field && FORM_FIELDS.includes(fieldError.field)
+      );
 
     if (allFieldsRendered) return undefined;
 

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import { FullPageLoader, RequireAnonymous, RequireAuth } from '@/routes/guards';
 
@@ -13,7 +13,15 @@ import { FullPageLoader, RequireAnonymous, RequireAuth } from '@/routes/guards';
  *
  * Route shape, and why:
  *
+ *   /                          public marketing homepage
  *   /login, /register          public, and *redirect away* when already signed in
+ *   /forgot-password           public, same guard — a signed-in user changes
+ *                              their password in Settings instead
+ *   /reset-password            public and deliberately NOT behind
+ *                              RequireAnonymous: it is opened from an email on
+ *                              whatever device is to hand, and a signed-in user
+ *                              may still be completing a reset they started
+ *                              elsewhere
  *   /invitations/:token        public on purpose — an invitee usually has no
  *                              account yet, so gating it behind login would ask
  *                              them to sign in before they can see what for
@@ -25,15 +33,13 @@ import { FullPageLoader, RequireAnonymous, RequireAuth } from '@/routes/guards';
  *
  * Every route is lazily imported, so the initial bundle is the shell and the
  * login screen only. Each screen is its own chunk.
- *
- * **No forgot-password or reset-password route exists**, because the backend has
- * no such endpoint — `auth.routes.js` registers exactly three (`register`,
- * `login`, `logout`) and the generated OpenAPI spec contains no reset path. A
- * screen here would be a form that cannot work.
  */
 
 /* --------------------------------------------------------------- lazy routes */
 
+const MarketingHomepage = lazy(() =>
+  import('@/pages/MarketingHomepage').then((module) => ({ default: module.MarketingHomepage }))
+);
 const DesignSystemShowcase = lazy(() =>
   import('@/pages/DesignSystem').then((module) => ({ default: module.DesignSystemShowcase }))
 );
@@ -43,6 +49,12 @@ const Register = lazy(() =>
 );
 const AcceptInvitation = lazy(() =>
   import('@/pages/AcceptInvitation').then((module) => ({ default: module.AcceptInvitation }))
+);
+const ForgotPassword = lazy(() =>
+  import('@/pages/ForgotPassword').then((module) => ({ default: module.ForgotPassword }))
+);
+const ResetPassword = lazy(() =>
+  import('@/pages/ResetPassword').then((module) => ({ default: module.ResetPassword }))
 );
 const WorkspaceList = lazy(() =>
   import('@/pages/WorkspaceList').then((module) => ({ default: module.WorkspaceList }))
@@ -100,6 +112,20 @@ export const AppRoutes = () => (
           </RequireAnonymous>
         }
       />
+      <Route
+        path="/forgot-password"
+        element={
+          <RequireAnonymous>
+            <ForgotPassword />
+          </RequireAnonymous>
+        }
+      />
+      {/*
+        Unguarded on purpose — see the route notes above. This is reached from an
+        email link, and the session state on the device that opens it is not
+        something the product can assume.
+      */}
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/invitations/:token" element={<AcceptInvitation />} />
       <Route path="/design" element={<DesignSystemShowcase />} />
 
@@ -132,7 +158,7 @@ export const AppRoutes = () => (
         <Route path="settings" element={<Settings />} />
       </Route>
 
-      <Route path="/" element={<Navigate to="/workspaces" replace />} />
+      <Route path="/" element={<MarketingHomepage />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </Suspense>

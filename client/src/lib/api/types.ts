@@ -2,9 +2,9 @@
  * Domain types.
  *
  * Read from `client/API-INTEGRATION.md`, which was itself derived from the
- * generated OpenAPI spec — but the spec's *response schemas* are hand-authored
- * and understate reality in two places, so where the document flags a
- * discrepancy, the document wins. Those spots are marked `SPEC GAP` below.
+ * generated OpenAPI spec. The spec's response schemas are hand-authored in
+ * `generate-openapi.js` and previously understated reality in two places;
+ * both have been corrected (see "Resolved spec gaps" in API-INTEGRATION.md).
  *
  * The shapes that actually bite:
  *
@@ -20,7 +20,13 @@
  *   Two different shapes in one document.
  */
 
-import type { ProjectRole, ProjectStatus, TaskPriority, TaskStatus, WorkspaceRole } from '@/components/ui';
+import type {
+  ProjectRole,
+  ProjectStatus,
+  TaskPriority,
+  TaskStatus,
+  WorkspaceRole,
+} from '@/components/ui';
 
 export type Id = string;
 /** An ISO-8601 timestamp. */
@@ -103,7 +109,6 @@ export interface WorkspaceMember {
   user: Ref<UserRef>;
   role: WorkspaceRole;
   joinedAt?: IsoDate;
-  addedBy?: Ref<UserRef> | null;
 }
 
 export interface Workspace {
@@ -121,12 +126,9 @@ export interface Workspace {
 }
 
 /**
- * The invitation as the API really returns it.
- *
- * SPEC GAP: `openapi.json` omits `token` from the `Invitation` schema, but the
- * endpoint returns it — a 64-character hex string, and the only way the invitee
- * can accept, because this API sends no email. Typed here by hand; do not
- * "correct" this from the spec.
+ * The invitation as the API returns it. `token` is documented in the
+ * OpenAPI `Invitation` schema — it is a 64-character hex string, and the
+ * only way the invitee can accept, because this API sends no email.
  */
 export interface Invitation {
   _id: Id;
@@ -138,6 +140,7 @@ export interface Invitation {
   status?: string;
   expiresAt?: IsoDate;
   createdAt: IsoDate;
+  updatedAt?: IsoDate;
 }
 
 /* ------------------------------------------------------------------- project */
@@ -145,8 +148,7 @@ export interface Invitation {
 export interface ProjectMember {
   user: Ref<UserRef>;
   role: ProjectRole;
-  joinedAt?: IsoDate;
-  addedBy?: Ref<UserRef> | null;
+  addedAt?: IsoDate;
 }
 
 export interface Project {

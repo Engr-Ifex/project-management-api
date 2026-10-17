@@ -92,7 +92,8 @@ const SCHEMAS = {
   User: {
     type: 'object',
     description:
-      'A user. `password` is never present: it is `select: false` and stripped again on serialisation.',
+      'A user. `password` is never present: it is `select: false` and stripped again on serialisation. ' +
+      'The reset-token digest is omitted for the same reason.',
     properties: {
       id: objectId(),
       name: str({ example: 'Ada Lovelace' }),
@@ -113,6 +114,7 @@ const SCHEMAS = {
         oneOf: [ref('ObjectId'), ref('User')],
       },
       role: { type: 'string', enum: ['owner', 'admin', 'member'] },
+      joinedAt: { type: 'string', format: 'date-time' },
     },
   },
 
@@ -138,16 +140,25 @@ const SCHEMAS = {
 
   Invitation: {
     type: 'object',
+    description:
+      'An invitation to join a workspace. The API sends no email, so `token` ' +
+      'is the only way the invitee can accept — it must be surfaced in the UI.',
     properties: {
       _id: objectId(),
       workspace: ref('ObjectId'),
       invitedBy: ref('ObjectId'),
       email: str({ format: 'email' }),
       role: { type: 'string', enum: ['admin', 'member'] },
+      token: str({
+        description:
+          '64-character hex string. The invitee accepts via PATCH /invitations/:token/accept.',
+        example: 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4',
+      }),
       status: { type: 'string', enum: ['pending', 'accepted', 'expired', 'cancelled'] },
       expiresAt: dateTime(),
       acceptedAt: dateTime(),
       createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
     },
   },
 
@@ -156,6 +167,7 @@ const SCHEMAS = {
     properties: {
       user: { oneOf: [ref('ObjectId'), ref('User')] },
       role: { type: 'string', enum: ['owner', 'admin', 'member', 'viewer'] },
+      addedAt: { type: 'string', format: 'date-time' },
     },
   },
 
@@ -182,7 +194,7 @@ const SCHEMAS = {
       },
       isArchived: bool(),
       archivedAt: dateTime(),
-      archivedBy: ref('ObjectId'),
+      archivedBy: { oneOf: [ref('ObjectId'), ref('User'), { type: 'null' }] },
       createdAt: { type: 'string', format: 'date-time' },
       updatedAt: { type: 'string', format: 'date-time' },
     },
@@ -210,7 +222,11 @@ const SCHEMAS = {
       title: str({ example: 'Handle refund webhooks' }),
       description: str(),
       subtasks: { type: 'array', items: ref('Subtask') },
-      labels: { type: 'array', items: ref('ObjectId') },
+      labels: {
+        type: 'array',
+        items: ref('LabelRef'),
+        description: 'Populated on every task response as `{ _id, name, color }` objects.',
+      },
       status: {
         type: 'string',
         enum: ['todo', 'in_progress', 'in_review', 'completed', 'cancelled'],
@@ -222,7 +238,7 @@ const SCHEMAS = {
       position: integer({ description: 'Ordering within the project.' }),
       isArchived: bool(),
       archivedAt: dateTime(),
-      archivedBy: ref('ObjectId'),
+      archivedBy: { oneOf: [ref('ObjectId'), ref('User'), { type: 'null' }] },
       createdAt: { type: 'string', format: 'date-time' },
       updatedAt: { type: 'string', format: 'date-time' },
     },
@@ -252,6 +268,21 @@ const SCHEMAS = {
       color: str({ description: 'Hex colour, e.g. `#ff0000`.', example: '#ff0000' }),
       createdAt: { type: 'string', format: 'date-time' },
       updatedAt: { type: 'string', format: 'date-time' },
+    },
+  },
+
+  /*
+   * The subset of Label returned when labels are populated onto a task:
+   * `{ _id, name, color }`. Labels are always populated on every task
+   * response, so a task carries enough to render its chips without a second
+   * request.
+   */
+  LabelRef: {
+    type: 'object',
+    properties: {
+      _id: objectId(),
+      name: str({ example: 'bug' }),
+      color: str({ example: '#ff0000' }),
     },
   },
 
@@ -325,8 +356,16 @@ const SCHEMAS = {
 
   WorkspaceDashboard: {
     type: 'object',
+    description:
+      'Aggregated statistics for a workspace. `workspace` is a reduced shape: `{ id, name }` only.',
     properties: {
-      workspace: ref('Workspace'),
+      workspace: {
+        type: 'object',
+        properties: {
+          id: objectId(),
+          name: str(),
+        },
+      },
       projects: {
         type: 'object',
         properties: {
@@ -352,8 +391,20 @@ const SCHEMAS = {
 
   ProjectDashboard: {
     type: 'object',
+    description:
+      'Aggregated statistics for a project. `project` is a reduced shape: `{ id, name, status }` only.',
     properties: {
-      project: ref('Project'),
+      project: {
+        type: 'object',
+        properties: {
+          id: objectId(),
+          name: str(),
+          status: {
+            type: 'string',
+            enum: ['planning', 'active', 'on_hold', 'completed', 'cancelled'],
+          },
+        },
+      },
       tasks: {
         type: 'object',
         properties: {
@@ -405,12 +456,13 @@ const DATA_SHAPES = {
   comment: { comment: ref('Comment') },
   comments: { comments: arrayOf('Comment'), pagination: ref('Pagination') },
   label: { label: ref('Label') },
-  labels: { labels: arrayOf('Label') },
+  labels: { labels: arrayOf('Label'), pagination: ref('Pagination') },
   attachment: { attachment: ref('Attachment') },
   attachments: { attachments: arrayOf('Attachment'), pagination: ref('Pagination') },
   notification: { notification: ref('Notification') },
   notifications: { notifications: arrayOf('Notification'), pagination: ref('Pagination') },
   count: { count: integer() },
+  modified: { modified: integer({ description: 'Number of notifications marked as read.' }) },
   activities: { activities: arrayOf('ProjectActivity'), pagination: ref('Pagination') },
   apiIndex: { version: str(), documentation: str() },
   health: {

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ToastProvider, TooltipProvider } from '@/components/ui';
 import { AuthProvider } from '@/lib/auth/AuthProvider';
 
 /*
@@ -21,24 +20,39 @@ import { AuthProvider } from '@/lib/auth/AuthProvider';
  *   2. `BrowserRouter` next, because everything inside may navigate.
  *   3. `AuthProvider`. It owns the session, and the 401 broadcast it subscribes
  *      to is what tears the session down from anywhere in the tree.
- *   4. `TooltipProvider` — one shared delay for every tooltip. Without it each
- *      tooltip re-waits on its own, and moving along a row of icon buttons feels
- *      broken.
- *   5. `ToastProvider` last, so a toast fired while logging out still has a
- *      viewport to land in.
  *
  * Note what is *not* here: no query client, no global store. The API has no
  * websockets, no optimistic updates and 15-minute sessions, so data fetching is
  * `lib/hooks/useAsync` and per-screen.
+ *
+ * ## Why the toast and tooltip providers were removed from here
+ *
+ * They used to wrap the whole application, and they were expensive: mounting
+ * `TooltipProvider` pulls in Radix's tooltip and the whole of `@floating-ui`
+ * (~52 KB of rendered JavaScript), and `ToastProvider` pulls in Radix's toast
+ * (~22 KB). Both were paid on **every page load**, including the sign-in screen.
+ *
+ * Measured, before moving them: the login page fetched 157.6 KB (gzip) of
+ * JavaScript and Lighthouse reported 75 KiB of unused JavaScript on first load.
+ *
+ * The reason they could be moved is that neither had a consumer outside the
+ * design-system showcase — `Tooltip` is rendered in exactly one file
+ * (`pages/DesignSystem.tsx`) and `useToast` is called in exactly one file (the
+ * same one). No product screen renders a tooltip; `IconButton` uses the native
+ * `title` attribute, not `Tooltip`. So the application was paying ~74 KB of
+ * JavaScript on every route to serve one dev-only page.
+ *
+ * Both providers now live in that page, next to their only consumer.
+ *
+ * **If a product feature ever needs a toast or a tooltip, mount the provider
+ * there** — `useToast` throws outside a `ToastProvider`, and `<Tooltip>` needs
+ * `TooltipProvider` for its shared open delay. Putting it back here is the right
+ * call at that point, and the cost becomes justified.
  */
 export const AppProviders = ({ children }: { children: ReactNode }) => (
   <ErrorBoundary variant="page">
     <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </TooltipProvider>
-      </AuthProvider>
+      <AuthProvider>{children}</AuthProvider>
     </BrowserRouter>
   </ErrorBoundary>
 );

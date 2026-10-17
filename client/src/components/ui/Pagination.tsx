@@ -74,12 +74,7 @@ export const Pagination = ({
   const last = Math.min(page * limit, total);
 
   return (
-    <div
-      className={cn(
-        'flex flex-wrap items-center justify-between gap-3 px-4 py-3',
-        className
-      )}
-    >
+    <div className={cn('flex flex-wrap items-center justify-between gap-3 px-4 py-3', className)}>
       <div className="flex items-center gap-3">
         {!hideSummary && (
           <p className="text-xs text-body-subtle" data-numeric>
@@ -116,11 +111,7 @@ export const Pagination = ({
           <div className="mx-1 flex items-center gap-0.5">
             {pageWindow(page, totalPages).map((item, index) =>
               item === null ? (
-                <span
-                  key={`gap-${index}`}
-                  aria-hidden
-                  className="px-1.5 text-xs text-body-subtle"
-                >
+                <span key={`gap-${index}`} aria-hidden className="px-1.5 text-xs text-body-subtle">
                   …
                 </span>
               ) : (

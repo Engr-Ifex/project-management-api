@@ -17,15 +17,19 @@ import { cn } from '@/lib/utils/cn';
 
 export const Tabs = TabsPrimitive.Root;
 
-export const TabsList = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => (
+export const TabsList = ({ children, className }: { children: ReactNode; className?: string }) => (
+  /*
+   * `overflow-x-auto` and `whitespace-nowrap`: five tabs at 12–13px do not fit
+   * a 390px screen, and the alternative — wrapping — turns a tab row into two
+   * ragged rows where the underline no longer reads as a single control. A
+   * scrollable row keeps the visual language and stays usable on a phone.
+   * `scrollbar-thin` keeps the bar from eating the row height.
+   */
   <TabsPrimitive.List
-    className={cn('flex items-center gap-1 border-b border-line', className)}
+    className={cn(
+      'flex items-center gap-1 overflow-x-auto border-b border-line scrollbar-thin',
+      className
+    )}
   >
     {children}
   </TabsPrimitive.List>
@@ -49,7 +53,7 @@ export const TabsTrigger = ({
     value={value}
     disabled={disabled}
     className={cn(
-      'group relative -mb-px inline-flex items-center gap-1.5 px-3 py-2',
+      'group relative -mb-px inline-flex shrink-0 items-center gap-1.5 px-3 py-2',
       'text-sm font-medium text-body-muted',
       'border-b-2 border-transparent',
       'transition-colors duration-[120ms] ease-standard',
@@ -129,9 +133,7 @@ export const SegmentedControl = <T extends string>({
           className={cn(
             'inline-flex items-center gap-1.5 rounded-sm px-2 py-1 text-xs font-medium',
             'transition-colors duration-[120ms] ease-standard',
-            active
-              ? 'bg-surface text-body shadow-xs'
-              : 'text-body-muted hover:text-body'
+            active ? 'bg-surface text-body shadow-xs' : 'text-body-muted hover:text-body'
           )}
         >
           {option.icon}

@@ -22,7 +22,14 @@ export const PageContainer = ({
 }) => (
   <div
     className={cn(
-      'mx-auto w-full px-4 py-5 lg:px-6',
+      /*
+       * Horizontal padding steps with the viewport rather than sitting at a
+       * single value: 16px is right on a phone, but at 1440px the content would
+       * otherwise start a hair from the edge of the canvas and read as cramped.
+       * The three stops match the marketing page and the shell's topbar, so
+       * every screen shares one gutter.
+       */
+      'mx-auto w-full px-4 py-5 sm:px-6 lg:px-8',
       width === 'narrow' ? 'max-w-2xl' : 'max-w-content',
       className
     )}

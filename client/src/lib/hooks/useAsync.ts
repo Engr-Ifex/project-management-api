@@ -42,7 +42,19 @@ export const useAsync = <T>(
   deps: DependencyList
 ): AsyncState<T> => {
   const loaderRef = useRef(loader);
-  loaderRef.current = loader;
+
+  /*
+   * The ref is synced in an effect, not during render.
+   *
+   * Writing a ref during render is a side effect in a function React may call
+   * twice (StrictMode) or discard, and the lint rule flags it for that reason.
+   * The effect below runs before the fetch effect on the same commit — effects
+   * fire in declaration order — so `loaderRef.current` is always the loader this
+   * render produced by the time the fetch reads it.
+   */
+  useEffect(() => {
+    loaderRef.current = loader;
+  });
 
   const [data, setDataState] = useState<T | undefined>(undefined);
   const [error, setError] = useState<ApiError | undefined>(undefined);
@@ -62,9 +74,20 @@ export const useAsync = <T>(
     } else {
       setLoading(true);
     }
+
+    /*
+     * Clearing a stale error is part of "a new request is starting", which is
+     * what this effect *is* — so the setState here is the effect synchronising
+     * React state to a real external thing (an in-flight request), not a
+     * derived value that could be computed during render. The rule fires on the
+     * shape, and the alternative — deriving "no error" from a request id — would
+     * add a second source of truth for the same fact.
+     */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError(undefined);
 
-    loaderRef.current(controller.signal)
+    loaderRef
+      .current(controller.signal)
       .then((result) => {
         if (controller.signal.aborted) return;
         hasData.current = true;
@@ -108,9 +131,7 @@ export const useAsync = <T>(
  * The thrown `ApiError` is also kept in state, so a form can map
  * `error.fieldError('name')` onto the right input.
  */
-export type MutationOutcome<TResult> =
-  | { ok: true; data: TResult }
-  | { ok: false; error: ApiError };
+export type MutationOutcome<TResult> = { ok: true; data: TResult } | { ok: false; error: ApiError };
 
 export interface MutationState<TArgs extends unknown[], TResult> {
   run: (...args: TArgs) => Promise<MutationOutcome<TResult>>;
@@ -123,7 +144,11 @@ export const useMutation = <TArgs extends unknown[], TResult>(
   action: (...args: TArgs) => Promise<TResult>
 ): MutationState<TArgs, TResult> => {
   const actionRef = useRef(action);
-  actionRef.current = action;
+
+  // Synced in an effect rather than during render — same reason as `useAsync`.
+  useEffect(() => {
+    actionRef.current = action;
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ApiError | undefined>(undefined);

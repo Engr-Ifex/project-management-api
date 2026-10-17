@@ -27,8 +27,21 @@ export const AVATAR_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as co
  * them, so offering them here would only produce a confusing failure.
  */
 export const ALLOWED_ATTACHMENT_EXTENSIONS = [
-  'jpg', 'jpeg', 'png', 'webp', 'gif',
-  'pdf', 'txt', 'csv', 'md', 'json',
-  'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'gif',
+  'pdf',
+  'txt',
+  'csv',
+  'md',
+  'json',
+  'doc',
+  'docx',
+  'xls',
+  'xlsx',
+  'ppt',
+  'pptx',
   'zip',
 ] as const;

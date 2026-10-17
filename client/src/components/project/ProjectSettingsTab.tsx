@@ -13,6 +13,7 @@ import {
 import type { Project } from '@/lib/api';
 import { projectsApi } from '@/lib/api';
 import { useMutation, usePermission } from '@/lib/hooks';
+import { formatCalendarDate, fromDateInputValue, toDateInputValue } from '@/lib/utils/format';
 import { useProjectContext } from '@/layouts/ProjectLayout';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
@@ -59,7 +60,7 @@ export const ProjectSettingsTab = ({ project }: { project: Project }) => {
       // An empty description is a real value here: it clears the field. The
       // validator has no minimum length, so `''` is the way to remove one.
       description: description.trim(),
-      deadline: deadline ? `${deadline}T00:00:00.000Z` : null,
+      deadline: fromDateInputValue(deadline),
       color: color || null,
     });
 
@@ -184,7 +185,7 @@ export const ProjectSettingsTab = ({ project }: { project: Project }) => {
 
             <Field label="Deadline">
               <span data-numeric>
-                {project.deadline ? new Date(project.deadline).toLocaleDateString() : 'None'}
+                {project.deadline ? formatCalendarDate(project.deadline) : 'None'}
               </span>
             </Field>
           </dl>
@@ -201,8 +202,6 @@ export const ProjectSettingsTab = ({ project }: { project: Project }) => {
 };
 
 /** A `<input type="date">` speaks `yyyy-mm-dd`; the API speaks ISO datetimes. */
-const toDateInputValue = (iso: string | null | undefined) => (iso ? iso.slice(0, 10) : '');
-
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="flex flex-col gap-1">
     <dt className="text-2xs uppercase tracking-wide text-body-subtle">{label}</dt>

@@ -41,7 +41,11 @@ export const Table = ({
   />
 );
 
-export const THead = ({ className, sticky, ...props }: HTMLAttributes<HTMLTableSectionElement> & { sticky?: boolean }) => (
+export const THead = ({
+  className,
+  sticky,
+  ...props
+}: HTMLAttributes<HTMLTableSectionElement> & { sticky?: boolean }) => (
   <thead
     className={cn(
       'border-b border-line',
@@ -115,7 +119,9 @@ export const TH = ({
   return (
     <th
       scope="col"
-      aria-sort={sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : undefined}
+      aria-sort={
+        sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : undefined
+      }
       className={cn(
         'px-3 py-2 font-medium whitespace-nowrap',
         'first:pl-4 last:pr-4',
@@ -190,13 +196,7 @@ export const TableMessage = ({
 );
 
 /** A skeleton row, for the loading state of any table. */
-export const TableSkeletonRows = ({
-  rows = 5,
-  columns,
-}: {
-  rows?: number;
-  columns: number;
-}) => (
+export const TableSkeletonRows = ({ rows = 5, columns }: { rows?: number; columns: number }) => (
   <>
     {Array.from({ length: rows }).map((_, rowIndex) => (
       <tr key={rowIndex}>

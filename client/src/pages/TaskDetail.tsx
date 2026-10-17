@@ -74,12 +74,8 @@ export const TaskDetail = () => {
     tasksApi.update(workspaceId, project._id, taskId ?? '', body)
   );
 
-  const archiveTask = useMutation(() =>
-    tasksApi.archive(workspaceId, project._id, taskId ?? '')
-  );
-  const restoreTask = useMutation(() =>
-    tasksApi.restore(workspaceId, project._id, taskId ?? '')
-  );
+  const archiveTask = useMutation(() => tasksApi.archive(workspaceId, project._id, taskId ?? ''));
+  const restoreTask = useMutation(() => tasksApi.restore(workspaceId, project._id, taskId ?? ''));
   const assignLabel = useMutation((labelId: string) =>
     tasksApi.assignLabel(workspaceId, project._id, taskId ?? '', labelId)
   );
@@ -149,7 +145,7 @@ export const TaskDetail = () => {
   return (
     <>
       <PageContainer>
-        <nav className="mb-3 flex items-center gap-1.5 text-xs text-body-subtle">
+        <nav className="mb-3 flex min-w-0 items-center gap-1.5 text-xs text-body-subtle">
           <Link to={`/workspaces/${workspaceId}/projects`} className="hover:text-body-muted">
             Projects
           </Link>
@@ -202,16 +198,30 @@ export const TaskDetail = () => {
                 ) : (
                   <>
                     <div className="flex items-start justify-between gap-3">
-                      <h1 className="text-xl font-semibold text-body">{current.title}</h1>
+                      {/*
+                        `min-w-0 break-words`: the flex item defaults to
+                        `min-width: auto`, so a long unbroken title (a URL, a
+                        pasted id) refused to shrink and pushed the Edit button
+                        out of the card. `break-words` lets the same string wrap
+                        instead of overflowing the card's padding box.
+                      */}
+                      <h1 className="min-w-0 break-words text-xl font-semibold text-body">
+                        {current.title}
+                      </h1>
                       {canEdit && (
-                        <Button variant="secondary" size="sm" onClick={startEditing}>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={startEditing}
+                        >
                           Edit
                         </Button>
                       )}
                     </div>
 
                     {current.description ? (
-                      <p className="whitespace-pre-wrap text-sm text-body-muted">
+                      <p className="whitespace-pre-wrap break-words text-sm text-body-muted">
                         {current.description}
                       </p>
                     ) : (

@@ -1,11 +1,4 @@
-import {
-  ArrowRight,
-  Bell,
-  Folders,
-  Plus,
-  UserPlus,
-  WarningCircle,
-} from '@phosphor-icons/react';
+import { ArrowRight, Bell, Folders, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { PageContainer } from '@/components/PageContainer';
@@ -28,6 +21,7 @@ import { dashboardApi, notificationsApi, projectsApi, refName } from '@/lib/api'
 import { PROJECT_STATUS_OPTIONS } from '@/lib/constants';
 import { useAsync, useDocumentTitle, usePermission } from '@/lib/hooks';
 import { cn } from '@/lib/utils/cn';
+import { formatCalendarDate } from '@/lib/utils/format';
 import { useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
 /**
@@ -110,9 +104,7 @@ export const Dashboard = () => {
   const feed = activity.data ?? [];
 
   const completion =
-    myTasks && myTasks.assigned > 0
-      ? Math.round((myTasks.completed / myTasks.assigned) * 100)
-      : 0;
+    myTasks && myTasks.assigned > 0 ? Math.round((myTasks.completed / myTasks.assigned) * 100) : 0;
 
   /* --------------------------------------------------------------- panels */
 
@@ -233,7 +225,7 @@ export const Dashboard = () => {
 
                 <span className="hidden shrink-0 text-xs text-body-subtle sm:block" data-numeric>
                   {project.deadline
-                    ? `Due ${new Date(project.deadline).toLocaleDateString()}`
+                    ? `Due ${formatCalendarDate(project.deadline)}`
                     : `Updated ${new Date(project.updatedAt).toLocaleDateString()}`}
                 </span>
 
@@ -450,7 +442,7 @@ export const Dashboard = () => {
 
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 lg:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-xl font-semibold text-body">{workspace?.name ?? 'Dashboard'}</h1>
           <p className="text-xs text-body-muted">

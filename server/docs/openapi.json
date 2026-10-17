@@ -128,7 +128,7 @@
       },
       "User": {
         "type": "object",
-        "description": "A user. `password` is never present: it is `select: false` and stripped again on serialisation.",
+        "description": "A user. `password` is never present: it is `select: false` and stripped again on serialisation. The reset-token digest is omitted for the same reason.",
         "properties": {
           "id": {
             "type": "string",
@@ -182,6 +182,10 @@
           "role": {
             "type": "string",
             "enum": ["owner", "admin", "member"]
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -241,6 +245,7 @@
       },
       "Invitation": {
         "type": "object",
+        "description": "An invitation to join a workspace. The API sends no email, so `token` is the only way the invitee can accept — it must be surfaced in the UI.",
         "properties": {
           "_id": {
             "type": "string",
@@ -261,6 +266,11 @@
             "type": "string",
             "enum": ["admin", "member"]
           },
+          "token": {
+            "type": "string",
+            "description": "64-character hex string. The invitee accepts via PATCH /invitations/:token/accept.",
+            "example": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+          },
           "status": {
             "type": "string",
             "enum": ["pending", "accepted", "expired", "cancelled"]
@@ -276,6 +286,10 @@
             "nullable": true
           },
           "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
             "type": "string",
             "format": "date-time"
           }
@@ -297,6 +311,10 @@
           "role": {
             "type": "string",
             "enum": ["owner", "admin", "member", "viewer"]
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -357,7 +375,17 @@
             "nullable": true
           },
           "archivedBy": {
-            "$ref": "#/components/schemas/ObjectId"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ObjectId"
+              },
+              {
+                "$ref": "#/components/schemas/User"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -448,8 +476,9 @@
           "labels": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ObjectId"
-            }
+              "$ref": "#/components/schemas/LabelRef"
+            },
+            "description": "Populated on every task response as `{ _id, name, color }` objects."
           },
           "status": {
             "type": "string",
@@ -487,7 +516,17 @@
             "nullable": true
           },
           "archivedBy": {
-            "$ref": "#/components/schemas/ObjectId"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ObjectId"
+              },
+              {
+                "$ref": "#/components/schemas/User"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "createdAt": {
             "type": "string",
@@ -572,6 +611,24 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "LabelRef": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{24}$",
+            "example": "64f000000000000000000001"
+          },
+          "name": {
+            "type": "string",
+            "example": "bug"
+          },
+          "color": {
+            "type": "string",
+            "example": "#ff0000"
           }
         }
       },
@@ -755,9 +812,20 @@
       },
       "WorkspaceDashboard": {
         "type": "object",
+        "description": "Aggregated statistics for a workspace. `workspace` is a reduced shape: `{ id, name }` only.",
         "properties": {
           "workspace": {
-            "$ref": "#/components/schemas/Workspace"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{24}$",
+                "example": "64f000000000000000000001"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
           },
           "projects": {
             "type": "object",
@@ -801,9 +869,24 @@
       },
       "ProjectDashboard": {
         "type": "object",
+        "description": "Aggregated statistics for a project. `project` is a reduced shape: `{ id, name, status }` only.",
         "properties": {
           "project": {
-            "$ref": "#/components/schemas/Project"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{24}$",
+                "example": "64f000000000000000000001"
+              },
+              "name": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["planning", "active", "on_hold", "completed", "cancelled"]
+              }
+            }
           },
           "tasks": {
             "type": "object",
@@ -1384,6 +1467,9 @@
                 "items": {
                   "$ref": "#/components/schemas/Label"
                 }
+              },
+              "pagination": {
+                "$ref": "#/components/schemas/Pagination"
               }
             }
           }
@@ -1531,6 +1617,34 @@
             "properties": {
               "count": {
                 "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "modifiedResponse": {
+        "type": "object",
+        "description": "Standard success envelope.",
+        "required": ["success", "statusCode", "message", "data"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true]
+          },
+          "statusCode": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "Request completed successfully"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "modified": {
+                "type": "integer",
+                "description": "Number of notifications marked as read."
               }
             }
           }
@@ -2998,6 +3112,100 @@
           },
           "401": {
             "description": "Missing, expired, malformed or revoked session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Authentication endpoints are limited to 10 requests / 15 minutes per IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Request a password reset link (the response never reveals whether the account exists)",
+        "operationId": "postAuthentication",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "The `accessToken` httpOnly session cookie.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or the request is not actionable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Authentication endpoints are limited to 10 requests / 15 minutes per IP.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Set a new password using a reset token, revoking existing sessions",
+        "operationId": "postAuthentication",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/userResponse"
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "The `accessToken` httpOnly session cookie.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed, or the request is not actionable.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4523,7 +4731,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/countResponse"
+                  "$ref": "#/components/schemas/modifiedResponse"
                 }
               }
             }

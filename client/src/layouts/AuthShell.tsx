@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { Card, CardBody } from '@/components/ui';
+import { Card, CardBody } from '@/components/ui/shell';
 
 /**
  * The frame for the two unauthenticated screens.
@@ -27,9 +27,9 @@ export const AuthShell = ({
         aria-hidden
         className="flex size-7 items-center justify-center rounded-md bg-ink-950 text-xs font-semibold text-body-inverse"
       >
-        PM
+        PX
       </span>
-      <span className="text-sm font-medium text-body">Project Management</span>
+      <span className="text-sm font-medium text-body">PROJEX</span>
     </div>
 
     <Card className="w-full max-w-sm">

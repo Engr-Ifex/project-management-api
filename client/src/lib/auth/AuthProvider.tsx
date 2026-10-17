@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 
 import { authApi, onUnauthorized, usersApi } from '@/lib/api';
@@ -88,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const current = generation.current;
 
     usersApi
-      .profile()
+      .profile(controller.signal)
       .then((data) => {
         if (controller.signal.aborted || generation.current !== current) return;
         setUserState(data.user);

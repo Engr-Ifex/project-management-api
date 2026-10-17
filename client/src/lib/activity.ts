@@ -63,7 +63,9 @@ export const describeActivity = (
    * missing the preposition is dropped and the noun moves into the text.
    */
   const withTask = (phrase: string, withoutTitle: string): ActivityDescription =>
-    taskTitle ? { text: phrase, resource: taskTitle, href: taskHref } : { text: withoutTitle, href: taskHref };
+    taskTitle
+      ? { text: phrase, resource: taskTitle, href: taskHref }
+      : { text: withoutTitle, href: taskHref };
 
   switch (entry.action) {
     case 'created':
@@ -114,7 +116,11 @@ export const describeActivity = (
     case 'task_restored':
       return { text: 'restored the task', resource: taskTitle, href: taskHref };
     case 'task_status_changed':
-      return { text: transition(meta.from, meta.to, 'status'), resource: taskTitle, href: taskHref };
+      return {
+        text: transition(meta.from, meta.to, 'status'),
+        resource: taskTitle,
+        href: taskHref,
+      };
     case 'task_priority_changed':
       return {
         text: transition(meta.from, meta.to, 'priority'),
@@ -180,6 +186,10 @@ export const describeActivity = (
 
     default:
       // Unknown action: a readable label beats a blank row.
-      return { text: humaniseEnum(entry.action), resource: taskTitle, href: taskHref ?? projectHref };
+      return {
+        text: humaniseEnum(entry.action),
+        resource: taskTitle,
+        href: taskHref ?? projectHref,
+      };
   }
 };

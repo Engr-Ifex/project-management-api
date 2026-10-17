@@ -66,6 +66,28 @@ export const OPERATIONS = {
     '200',
   ],
 
+  /*
+   * Account recovery.
+   *
+   * `forgot-password` returns the `message` shape deliberately: it has no data
+   * payload, because the response must not differ between an address that has an
+   * account and one that does not.
+   */
+  'POST /api/v1/auth/forgot-password': [
+    'Authentication',
+    'Request a password reset link (the response never reveals whether the account exists)',
+    'message',
+    null,
+    '200',
+  ],
+  'POST /api/v1/auth/reset-password': [
+    'Authentication',
+    'Set a new password using a reset token, revoking existing sessions',
+    'user',
+    null,
+    '200',
+  ],
+
   // ---- Users ----
   'GET /api/v1/users/profile': ['Users', 'Get the authenticated user’s profile', 'user'],
   'PATCH /api/v1/users/profile': ['Users', 'Update the authenticated user’s profile', 'user'],
@@ -370,7 +392,7 @@ export const OPERATIONS = {
   'PATCH /api/v1/notifications/read-all': [
     'Notifications',
     'Mark every notification as read',
-    'count',
+    'modified',
     null,
   ],
   'PATCH /api/v1/notifications/:notificationId/read': [

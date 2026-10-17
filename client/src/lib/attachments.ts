@@ -8,7 +8,8 @@
  * downloads the file, and pretending otherwise would mean fetching every row.
  */
 
-export type FileKind = 'image' | 'pdf' | 'document' | 'spreadsheet' | 'presentation' | 'archive' | 'text' | 'other';
+export type FileKind =
+  'image' | 'pdf' | 'document' | 'spreadsheet' | 'presentation' | 'archive' | 'text' | 'other';
 
 const EXTENSIONS: Record<FileKind, string[]> = {
   image: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif'],

@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 
-import { ErrorState } from '@/components/ui';
+import { ErrorState } from '@/components/ui/shell';
 
 /*
  * ErrorBoundary

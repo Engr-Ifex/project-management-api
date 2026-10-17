@@ -129,7 +129,12 @@ const projectTwo = {
 };
 
 const label = { _id: LABEL_ID, project: PROJECT_ID, name: 'backend', color: '#348579' };
-const labelTwo = { _id: '64e5d0000000000000000002', project: PROJECT_ID, name: 'urgent', color: '#c0392b' };
+const labelTwo = {
+  _id: '64e5d0000000000000000002',
+  project: PROJECT_ID,
+  name: 'urgent',
+  color: '#c0392b',
+};
 
 /* `subtasks` is embedded (real subdocuments); `labels` is populated. */
 const task = {
@@ -303,70 +308,130 @@ const pagination = (total, page = 1, limit = 20) => ({
 
 const routes = [
   ['GET', /^\/api\/v1\/users\/profile$/, () => ({ user: USER })],
-  ['GET', /^\/api\/v1\/users\/settings$/, () => ({
-    settings: { emailNotifications: true, marketingEmails: false },
-  })],
+  [
+    'GET',
+    /^\/api\/v1\/users\/settings$/,
+    () => ({
+      settings: { emailNotifications: true, marketingEmails: false },
+    }),
+  ],
   ['GET', /^\/api\/v1\/notifications\/unread\/count$/, () => ({ count: 1 })],
-  ['GET', /^\/api\/v1\/notifications$/, () => ({
-    notifications,
-    pagination: pagination(notifications.length),
-  })],
-  ['GET', /^\/api\/v1\/workspaces$/, () => ({
-    workspaces: [workspace],
-    pagination: pagination(1),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/members$/, () => ({
-    members: [
-      { user: USER_REF, role: 'owner', joinedAt: '2026-08-01T09:00:00.000Z' },
-      { user: COLLEAGUE, role: 'member', joinedAt: '2026-08-04T09:00:00.000Z' },
-    ],
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/dashboard$/, () => ({
-    workspace,
-    projects: [project, projectTwo],
-    myTasks: { assigned: 4, completed: 2, overdue: 1 },
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects$/, () => ({
-    projects: [project, projectTwo],
-    pagination: pagination(2),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/dashboard$/, () => ({
-    project,
-    tasks: [task, taskTwo],
-    myTasks: { assigned: 2, completed: 1, overdue: 0 },
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks$/, () => ({
-    tasks: [task, taskTwo],
-    pagination: pagination(2),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/comments$/, () => ({
-    comments,
-    pagination: pagination(comments.length),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/subtasks$/, () => ({
-    subtasks: task.subtasks,
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/activities$/, () => ({
-    activities,
-    pagination: pagination(activities.length),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/attachments$/, () => ({
-    attachments,
-    pagination: pagination(attachments.length),
-  })],
+  [
+    'GET',
+    /^\/api\/v1\/notifications$/,
+    () => ({
+      notifications,
+      pagination: pagination(notifications.length),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces$/,
+    () => ({
+      workspaces: [workspace],
+      pagination: pagination(1),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/members$/,
+    () => ({
+      members: [
+        { user: USER_REF, role: 'owner', joinedAt: '2026-08-01T09:00:00.000Z' },
+        { user: COLLEAGUE, role: 'member', joinedAt: '2026-08-04T09:00:00.000Z' },
+      ],
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/dashboard$/,
+    () => ({
+      workspace,
+      projects: [project, projectTwo],
+      myTasks: { assigned: 4, completed: 2, overdue: 1 },
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects$/,
+    () => ({
+      projects: [project, projectTwo],
+      pagination: pagination(2),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/dashboard$/,
+    () => ({
+      project,
+      tasks: [task, taskTwo],
+      myTasks: { assigned: 2, completed: 1, overdue: 0 },
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks$/,
+    () => ({
+      tasks: [task, taskTwo],
+      pagination: pagination(2),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/comments$/,
+    () => ({
+      comments,
+      pagination: pagination(comments.length),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/subtasks$/,
+    () => ({
+      subtasks: task.subtasks,
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/activities$/,
+    () => ({
+      activities,
+      pagination: pagination(activities.length),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)\/attachments$/,
+    () => ({
+      attachments,
+      pagination: pagination(attachments.length),
+    }),
+  ],
   ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/tasks\/([^/]+)$/, () => ({ task })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/labels$/, () => ({
-    labels: [label, labelTwo],
-    pagination: pagination(2),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/activities$/, () => ({
-    activities,
-    pagination: pagination(activities.length),
-  })],
-  ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/attachments$/, () => ({
-    attachments,
-    pagination: pagination(attachments.length),
-  })],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/labels$/,
+    () => ({
+      labels: [label, labelTwo],
+      pagination: pagination(2),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/activities$/,
+    () => ({
+      activities,
+      pagination: pagination(activities.length),
+    }),
+  ],
+  [
+    'GET',
+    /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)\/attachments$/,
+    () => ({
+      attachments,
+      pagination: pagination(attachments.length),
+    }),
+  ],
   ['GET', /^\/api\/v1\/workspaces\/([^/]+)\/projects\/([^/]+)$/, () => ({ project })],
   ['GET', /^\/api\/v1\/workspaces\/([^/]+)$/, () => ({ workspace })],
 ];

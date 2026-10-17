@@ -71,10 +71,10 @@ export const Settings = () => {
   const updateProfile = useMutation((body: { name?: string }) => usersApi.updateProfile(body));
   const uploadAvatar = useMutation((file: File) => usersApi.uploadAvatar(file));
   const changePassword = useMutation(usersApi.changePassword);
-  const updateSettings = useMutation((body: {
-    emailNotifications?: boolean;
-    marketingEmails?: boolean;
-  }) => usersApi.updateSettings(body));
+  const updateSettings = useMutation(
+    (body: { emailNotifications?: boolean; marketingEmails?: boolean }) =>
+      usersApi.updateSettings(body)
+  );
   const updateWorkspace = useMutation((body: { name?: string; description?: string }) =>
     workspacesApi.update(workspaceId, body)
   );
@@ -134,7 +134,7 @@ export const Settings = () => {
 
   return (
     <>
-      <div className="border-b border-line px-4 py-4 lg:px-6">
+      <div className="border-b border-line px-4 py-4 sm:px-6 lg:px-8">
         <h1 className="text-xl font-semibold text-body">Settings</h1>
         <p className="mt-0.5 text-xs text-body-muted">
           Your account, and the workspace you are currently in.
@@ -179,9 +179,7 @@ export const Settings = () => {
                           Change photo
                         </Button>
 
-                        <p className="text-2xs text-body-subtle">
-                          JPEG, PNG or WEBP, up to 5 MB.
-                        </p>
+                        <p className="text-2xs text-body-subtle">JPEG, PNG or WEBP, up to 5 MB.</p>
                       </div>
                     </div>
 
@@ -250,11 +248,12 @@ export const Settings = () => {
 
                 <CardBody className="p-4">
                   <form onSubmit={onChangePassword} className="flex flex-col gap-4">
-                    {changePassword.error && !changePassword.error.fieldError('currentPassword') && (
-                      <p role="alert" className="text-xs text-danger-700">
-                        {changePassword.error.message}
-                      </p>
-                    )}
+                    {changePassword.error &&
+                      !changePassword.error.fieldError('currentPassword') && (
+                        <p role="alert" className="text-xs text-danger-700">
+                          {changePassword.error.message}
+                        </p>
+                      )}
 
                     <Input
                       label="Current password"

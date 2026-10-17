@@ -120,6 +120,72 @@ if (!corsOrigins) {
   }
 }
 
+/* ---------------- Transactional email ---------------- */
+/*
+ * Warnings, not failures.
+ *
+ * Email verification was removed, so nothing sends mail during registration and
+ * an unconfigured provider no longer breaks sign-up. The only flow that sends is
+ * password reset, so a missing key degrades one recovery path rather than
+ * blocking the product — and blocking the deploy for it would prevent exactly
+ * the deployment this change exists to enable.
+ *
+ * They are still reported loudly, because "users cannot reset a forgotten
+ * password" is something an operator should be told before it happens, not
+ * discovered from a support ticket.
+ */
+const resendKey = get('RESEND_API_KEY');
+const emailFrom = get('EMAIL_FROM');
+const clientUrl = get('CLIENT_URL');
+
+if (!resendKey) {
+  warnings.push(
+    'RESEND_API_KEY is not set: password reset cannot send a link. Registration and login ' +
+      'are unaffected. Get a key from https://resend.com/api-keys'
+  );
+} else if (looksLikePlaceholder(resendKey)) {
+  warnings.push('RESEND_API_KEY still contains a placeholder value. Replace it.');
+} else if (!/^re_/.test(resendKey)) {
+  /*
+   * A key that does not look like one is far more often the wrong value pasted
+   * into the wrong variable than a deliberate choice, and the failure it
+   * produces at runtime is an opaque 401 from the provider.
+   */
+  warnings.push(
+    'RESEND_API_KEY does not start with "re_". Check it is the API key, not a domain id.'
+  );
+} else {
+  notes.push(`RESEND_API_KEY: ${resendKey.length} characters`);
+}
+
+if (!emailFrom) {
+  warnings.push(
+    'EMAIL_FROM is not set: the provider will reject every send for want of a verified sender.'
+  );
+} else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$|^.+<[^@\s]+@[^@\s]+\.[^@\s]+>$/.test(emailFrom)) {
+  warnings.push(`EMAIL_FROM "${emailFrom}" is not a valid address or "Name <address>" pair.`);
+} else {
+  notes.push(`EMAIL_FROM: ${emailFrom}`);
+}
+
+if (!clientUrl) {
+  warnings.push(
+    'CLIENT_URL is not set: password-reset links are built from it, and there is deliberately ' +
+      'no request-derived fallback.'
+  );
+} else if (!/^https?:\/\//.test(clientUrl)) {
+  warnings.push(`CLIENT_URL "${clientUrl}" must be an absolute URL, e.g. https://app.example.com`);
+} else if (!/^https:\/\//.test(clientUrl)) {
+  warnings.push(
+    `CLIENT_URL "${clientUrl}" is not HTTPS. Reset links travel through email and should not ` +
+      'be downgradeable to plaintext.'
+  );
+} else if (clientUrl.endsWith('/')) {
+  warnings.push('CLIENT_URL ends with "/", which produces a doubled slash in emailed links.');
+} else {
+  notes.push(`CLIENT_URL: ${clientUrl}`);
+}
+
 /* ---------------- Proxy ---------------- */
 const trustProxy = Number(get('TRUST_PROXY') || 0);
 

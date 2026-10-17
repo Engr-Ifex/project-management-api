@@ -79,8 +79,8 @@ export const SubtaskList = ({
                 <span
                   className={
                     subtask.isCompleted
-                      ? 'flex-1 text-sm text-body-subtle line-through'
-                      : 'flex-1 text-sm text-body'
+                      ? 'min-w-0 flex-1 break-words text-sm text-body-subtle line-through'
+                      : 'min-w-0 flex-1 break-words text-sm text-body'
                   }
                 >
                   {subtask.title}
@@ -90,6 +90,7 @@ export const SubtaskList = ({
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="shrink-0"
                     aria-label={`Delete ${subtask.title}`}
                     iconLeft={<Trash aria-hidden />}
                     onClick={() => {
@@ -104,9 +105,7 @@ export const SubtaskList = ({
           </ul>
         )}
 
-        {subtasks.length === 0 && (
-          <p className="text-sm text-body-subtle">No subtasks yet.</p>
-        )}
+        {subtasks.length === 0 && <p className="text-sm text-body-subtle">No subtasks yet.</p>}
 
         {canEdit && (
           <form
@@ -129,7 +128,7 @@ export const SubtaskList = ({
               placeholder="Add a subtask"
               value={newTitle}
               onChange={(event) => setNewTitle(event.target.value)}
-              containerClassName="flex-1"
+              containerClassName="min-w-0 flex-1"
             />
 
             <Button

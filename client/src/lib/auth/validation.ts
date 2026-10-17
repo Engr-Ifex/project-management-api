@@ -108,4 +108,65 @@ export const validateRegister = (values: {
   return errors;
 };
 
+/*
+ * ---------------------------------------------------------------------------
+ * Account recovery
+ * ---------------------------------------------------------------------------
+ */
+
+/**
+ * Forgot password takes only an address, and applies the same rule as login.
+ *
+ * Deliberately identical to the login form's check rather than stricter: the
+ * endpoint must accept anything that could plausibly belong to an account, and a
+ * client-side rule that rejected an address the server would have accepted would
+ * be a client refusing a valid request.
+ */
+export const validateForgotPassword = (values: { email: string }): FieldErrors => {
+  const errors: FieldErrors = {};
+
+  const email = emailError(values.email);
+
+  if (email) errors.email = email;
+
+  return errors;
+};
+
+/**
+ * Reset password.
+ *
+ * The password rule is the registration rule — a reset must not be a way to set
+ * a weaker credential than sign-up allows.
+ *
+ * The confirmation is checked here and only here: the API accepts a single
+ * `password`, exactly as registration does, so this is a typo guard, not a
+ * second opinion. It is worth having on this screen in a way it is not on
+ * registration — someone resetting a password is often doing so because they
+ * cannot get in, and a typo here locks them out a second time.
+ */
+export const confirmPasswordError = (
+  password: string,
+  confirmation: string
+): string | undefined => {
+  if (!confirmation) return 'Please confirm your new password';
+  if (password !== confirmation) return 'Passwords do not match';
+
+  return undefined;
+};
+
+export const validateResetPassword = (values: {
+  password: string;
+  confirmPassword: string;
+}): FieldErrors => {
+  const errors: FieldErrors = {};
+
+  const password = newPasswordError(values.password);
+  const confirmation = confirmPasswordError(values.password, values.confirmPassword);
+
+  if (password) errors.password = password;
+  if (confirmation) errors.confirmPassword = confirmation;
+
+  return errors;
+};
+
 export const hasErrors = (errors: FieldErrors): boolean => Object.keys(errors).length > 0;

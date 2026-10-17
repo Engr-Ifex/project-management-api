@@ -82,8 +82,21 @@ const dropRedundantIndexes = async () => {
         /*
          * IndexNotFound (27) means it is already gone — the desired end state,
          * so a re-run is a no-op rather than a failure.
+         *
+         * NamespaceNotFound (26) means the COLLECTION itself does not exist,
+         * which is the same situation one level up: there is no index to drop
+         * because there is no collection yet. A fresh database — or one where a
+         * feature has never been used — hits this on the first run. Treating it
+         * as fatal made the migration abort with a non-zero exit against a real
+         * server, which would fail a deploy step; the in-process test store
+         * never raised it, so nothing caught the difference.
          */
-        if (error.code === 27 || error.codeName === 'IndexNotFound') {
+        if (
+          error.code === 27 ||
+          error.codeName === 'IndexNotFound' ||
+          error.code === 26 ||
+          error.codeName === 'NamespaceNotFound'
+        ) {
           console.log(`Skipped ${collection}.${index} (not present)`);
 
           missing++;

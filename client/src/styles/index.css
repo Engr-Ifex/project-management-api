@@ -146,7 +146,16 @@
 
   --color-body: #1c1b18; /* primary text */
   --color-body-muted: #5a5750; /* secondary text, labels */
-  --color-body-subtle: #7c7871; /* meta, timestamps, placeholders */
+  /*
+   * Meta, timestamps, placeholders. Darker than it looks like it needs to be,
+   * on purpose: this token is used almost exclusively at 11–12px, where AA
+   * needs 4.5:1. The previous value (#7c7871) measured 4.28:1 on the canvas and
+   * 3.85:1 on an ink-100 chip — a real failure on every timestamp and helper
+   * line in the product. #6e6a63 clears 4.5:1 on every surface the app uses
+   * (canvas, panel, sunken well, tinted chip) while staying clearly lighter
+   * than body-muted, so the three-step hierarchy still reads.
+   */
+  --color-body-subtle: #6e6a63; /* meta, timestamps, placeholders */
   --color-body-inverse: #ffffff; /* text on graphite */
 
   /* -- Radius ------------------------------------------------------------ */
@@ -169,8 +178,7 @@
   --shadow-xs: 0 1px 2px 0 rgb(28 27 24 / 0.04);
   --shadow-sm: 0 1px 3px 0 rgb(28 27 24 / 0.07), 0 1px 2px -1px rgb(28 27 24 / 0.05);
   --shadow-md: 0 4px 10px -2px rgb(28 27 24 / 0.08), 0 2px 4px -2px rgb(28 27 24 / 0.05);
-  --shadow-lg:
-    0 14px 28px -8px rgb(28 27 24 / 0.13), 0 4px 10px -4px rgb(28 27 24 / 0.06);
+  --shadow-lg: 0 14px 28px -8px rgb(28 27 24 / 0.13), 0 4px 10px -4px rgb(28 27 24 / 0.06);
 
   /* -- Motion ------------------------------------------------------------ */
   /*
@@ -221,15 +229,33 @@
    * Focus is always visible and always the same shape: a 2px accent ring offset
    * from the element. `outline` rather than `box-shadow`, so it survives
    * `overflow: hidden` and never gets clipped by a rounded ancestor.
+   *
+   * `:where()` is load-bearing, not decoration. A bare `:focus-visible` rule
+   * has the specificity of a pseudo-class (0,1,0), which loses to a component
+   * utility like Tailwind's `.focus-visible\:outline-none:focus-visible`
+   * (0,2,0). Input, PasswordInput, Select, Checkbox and Tabs all pair a visible
+   * focus ring with `outline-none` on the same element, so the utility won and
+   * the ring was silently stripped from every primary form control — the app
+   * shipped with no visible keyboard focus at all. `:where()` contributes zero
+   * specificity, so this rule sits *below* the utilities and cannot be
+   * overridden by a single class again.
+   *
+   * The components keep their `outline-none`; they no longer need it removed,
+   * because the ring here is drawn by us and the browser default is the only
+   * thing worth suppressing.
    */
-  :focus-visible {
+  :where(:focus-visible) {
     outline: 2px solid var(--color-accent-500);
     outline-offset: 2px;
     border-radius: var(--radius-xs);
   }
 
-  /* Only remove the default ring where a component draws its own. */
-  :focus:not(:focus-visible) {
+  /*
+   * Remove the default ring only where nothing else draws one. Any component
+   * that opts out must supply its own visible indicator — `:where()` keeps this
+   * from out-ranking such a component's ring.
+   */
+  :where(:focus:not(:focus-visible)) {
     outline: none;
   }
 
@@ -249,13 +275,21 @@
     opacity: 1;
   }
 
-  /* Keyboard-accessible skip target for the main content region. */
+  /*
+   * Keyboard-accessible skip target for the main content region.
+   *
+   * Revealed on `:focus-visible` rather than `:focus`: a mouse click on an
+   * off-screen link should not make it fly into view, and matching the ring's
+   * own condition keeps the two from disagreeing (previously it appeared on
+   * `:focus` and was then stripped of its outline by the `:focus:not(...)`
+   * rule, so it could appear with no visible indicator).
+   */
   [data-skip-link] {
     position: absolute;
     left: -9999px;
   }
 
-  [data-skip-link]:focus {
+  [data-skip-link]:focus-visible {
     position: fixed;
     top: 0.75rem;
     left: 0.75rem;

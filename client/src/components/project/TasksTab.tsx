@@ -19,6 +19,7 @@ import {
   ModalBody,
   ModalContent,
   ModalFooter,
+  ModalForm,
   ModalHeader,
   Pagination,
   Select,
@@ -46,6 +47,7 @@ import {
   TASK_STATUS_FILTER_OPTIONS,
 } from '@/lib/constants';
 import { useAsync, useDebounced, useMutation } from '@/lib/hooks';
+import { formatCalendarDate, fromDateInputValue } from '@/lib/utils/format';
 import { useProjectRole, useWorkspace } from '@/lib/workspace/WorkspaceProvider';
 
 /**
@@ -265,7 +267,8 @@ export const TasksTab = ({ project }: { project: Project }) => {
       title,
       ...(description.trim() ? { description } : {}),
       ...(createAssignee ? { assignee: createAssignee } : {}),
-      ...(dueDate ? { dueDate } : {}),
+      // A date input yields `yyyy-mm-dd`; the API requires an ISO datetime.
+      ...(dueDate ? { dueDate: fromDateInputValue(dueDate) as string } : {}),
       ...(estimate ? { estimatedTime: Number(estimate) } : {}),
       priority: createPriority,
     });
@@ -453,6 +456,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
                     </TH>
                     <TH>Assignee</TH>
                     <TH
+                      numeric
                       sortDirection={sortBy === 'dueDate' ? order : false}
                       onSort={() => toggleSort('dueDate')}
                     >
@@ -498,8 +502,23 @@ export const TasksTab = ({ project }: { project: Project }) => {
                         }
                       >
                         <TD primary>
-                          <span className="flex flex-col gap-1">
-                            <span className="truncate">{task.title}</span>
+                          {/*
+                            The title is one line by design — a task row is a
+                            scannable index, and a wrapping title makes every
+                            row a different height. `max-w` plus `truncate`
+                            bounds it at both ends: the rem cap stops a long
+                            title from widening the column on desktop, and the
+                            vw cap stops it from pushing the row past a phone
+                            viewport. `title` keeps the full text reachable on
+                            hover, and the detail page is one click away.
+                          */}
+                          <span className="flex min-w-0 flex-col gap-1">
+                            <span
+                              className="block max-w-[min(26rem,55vw)] truncate"
+                              title={task.title}
+                            >
+                              {task.title}
+                            </span>
                             {task.labels.length > 0 && (
                               <span className="flex flex-wrap gap-1">
                                 {task.labels.map((label) => (
@@ -522,11 +541,21 @@ export const TasksTab = ({ project }: { project: Project }) => {
                           <TaskPriorityBadge priority={task.priority} />
                         </TD>
 
-                        <TD>{task.assignee ? refName(task.assignee, '—') : '—'}</TD>
-
-                        <TD numeric>
-                          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '—'}
+                        <TD>
+                          {/*
+                            An assignee name is user data and can be arbitrary
+                            length. Truncated rather than wrapped so the Due and
+                            Actions columns keep their alignment.
+                          */}
+                          <span
+                            className="block max-w-[10rem] truncate"
+                            title={task.assignee ? refName(task.assignee, '—') : undefined}
+                          >
+                            {task.assignee ? refName(task.assignee, '—') : '—'}
+                          </span>
                         </TD>
+
+                        <TD numeric>{task.dueDate ? formatCalendarDate(task.dueDate) : '—'}</TD>
 
                         {/* Row actions must not also trigger the row's navigation. */}
                         <TD onClick={(event) => event.stopPropagation()}>
@@ -592,7 +621,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
 
       <Modal open={createOpen} onOpenChange={setCreateOpen}>
         <ModalContent>
-          <form onSubmit={onCreate}>
+          <ModalForm onSubmit={onCreate}>
             <ModalHeader title="New task" description={`In ${project.name}`} />
 
             <ModalBody className="flex flex-col gap-4">
@@ -671,7 +700,7 @@ export const TasksTab = ({ project }: { project: Project }) => {
                 Create task
               </Button>
             </ModalFooter>
-          </form>
+          </ModalForm>
         </ModalContent>
       </Modal>
 

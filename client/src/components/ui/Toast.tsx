@@ -136,8 +136,20 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
         <ToastPrimitive.Viewport
           className={cn(
-            'fixed z-[60] flex max-h-[100dvh] w-full flex-col gap-2 p-4',
-            'bottom-0 right-0 sm:max-w-sm'
+            /*
+             * The viewport is `fixed`, so `w-full` resolves against the initial
+             * containing block and already includes the viewport's own
+             * scrollbar and any negative offset — pairing it with `right-0` and
+             * 16px of padding makes the box 16px wider than the screen and the
+             * whole document scrolls sideways. It is invisible until a toast
+             * fires, so it survives every visual review.
+             *
+             * `inset-x-0` plus `mx-auto` and a `max-w` is the version that
+             * cannot exceed the viewport: the width is derived from the
+             * available space rather than from 100% of it.
+             */
+            'fixed inset-x-0 bottom-0 z-[60] mx-auto flex max-h-[100dvh] w-auto max-w-full flex-col gap-2 p-4',
+            'sm:max-w-sm'
           )}
         />
       </ToastPrimitive.Provider>

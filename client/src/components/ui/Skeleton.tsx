@@ -19,20 +19,10 @@ import { cn } from '@/lib/utils/cn';
  */
 
 export const Skeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    aria-hidden
-    className={cn('skeleton-shimmer rounded-xs', className)}
-    {...props}
-  />
+  <div aria-hidden className={cn('skeleton-shimmer rounded-xs', className)} {...props} />
 );
 
-export const SkeletonText = ({
-  lines = 3,
-  className,
-}: {
-  lines?: number;
-  className?: string;
-}) => (
+export const SkeletonText = ({ lines = 3, className }: { lines?: number; className?: string }) => (
   <div className={cn('flex flex-col gap-2', className)}>
     {Array.from({ length: lines }).map((_, index) => (
       <Skeleton
@@ -45,13 +35,7 @@ export const SkeletonText = ({
   </div>
 );
 
-export const SkeletonList = ({
-  rows = 5,
-  className,
-}: {
-  rows?: number;
-  className?: string;
-}) => (
+export const SkeletonList = ({ rows = 5, className }: { rows?: number; className?: string }) => (
   <div className={cn('flex flex-col divide-y divide-line-subtle', className)}>
     {Array.from({ length: rows }).map((_, index) => (
       <div key={index} className="flex items-center gap-3 px-4 py-3">

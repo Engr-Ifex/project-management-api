@@ -21,7 +21,10 @@ export const NotFound = () => {
         title="This page does not exist"
         description="The link may be out of date, or it may point at something you no longer have access to."
         action={
-          <Link to="/workspaces" className="text-sm font-medium text-accent-600 hover:text-accent-700">
+          <Link
+            to="/workspaces"
+            className="text-sm font-medium text-accent-600 hover:text-accent-700"
+          >
             Back to your workspaces
           </Link>
         }

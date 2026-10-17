@@ -542,15 +542,26 @@ Stack traces are attached only when `NODE_ENV=development`.
 
 ## 14. Authentication endpoints
 
-| Method | Path             | Auth     | Purpose                               |
-| ------ | ---------------- | -------- | ------------------------------------- |
-| `POST` | `/auth/register` | public   | Create an account and start a session |
-| `POST` | `/auth/login`    | public   | Start a session                       |
-| `POST` | `/auth/logout`   | required | Clear the session cookie              |
+| Method | Path                    | Auth     | Purpose                               |
+| ------ | ----------------------- | -------- | ------------------------------------- |
+| `POST` | `/auth/register`        | public   | Create an account and start a session |
+| `POST` | `/auth/login`           | public   | Start a session                       |
+| `POST` | `/auth/logout`          | required | Clear the session cookie              |
+| `POST` | `/auth/forgot-password` | public   | Request a password reset link         |
+| `POST` | `/auth/reset-password`  | public   | Set a new password with a reset token |
 
 `POST /auth/register` and `POST /auth/login` are rate limited to **10 requests /
 15 minutes per IP**. `POST /auth/logout` is **not** — it is authenticated and
 only clears a cookie, so throttling it would lock a user out of logging out.
+
+The email endpoint has its own budget, because the threat is different: it is an
+_amplifier_, where one request makes the server send one message to an address
+the caller chose.
+
+| Endpoint                | Limit                       |
+| ----------------------- | --------------------------- |
+| `/auth/forgot-password` | 5 requests / 15 min per IP  |
+| `/auth/reset-password`  | 10 requests / 15 min per IP |
 
 `POST /auth/register` and `POST /auth/login` set the cookie and return the user.
 The token is **never** in the response body.
@@ -565,6 +576,43 @@ a wrong password, so it cannot be used to enumerate accounts.
 
 `POST /auth/logout` clears the cookie. The token itself remains valid until it
 expires — there is no server-side revocation list.
+
+### Registration
+
+Registration creates a **fully usable account** and signs it in:
+
+```json
+{ "success": true, "statusCode": 201, "data": { "user": { "id": "…", "email": "…" } } }
+```
+
+There is no confirmation step and **no email is sent**. The account can create or
+join a workspace immediately. Email verification was removed deliberately, so the
+product works on a deployment with no verified sending domain.
+
+### Password reset
+
+`POST /auth/forgot-password` **always** returns the same response, whether or not
+the address has an account:
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "If an account exists for that address, a password reset link is on its way."
+}
+```
+
+A provider failure is not reported to the caller either — that path would only
+ever occur for addresses that _do_ have accounts, so a distinct error would
+reintroduce the enumeration oracle. The failure is logged at `error` level.
+
+`POST /auth/reset-password` validates the token, expiry and single-use status
+**before** touching the password. A validation failure does not consume the token.
+On success the password is hashed with the existing bcrypt policy and
+`passwordChangedAt` is stamped, which **revokes every existing session** through
+the mechanism the authentication middleware already uses.
+
+Nothing about the password changes until a valid token is submitted.
 
 ---
 

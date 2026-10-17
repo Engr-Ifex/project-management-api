@@ -1,0 +1,7 @@
+dist
+node_modules
+public
+package-lock.json
+
+# Generated QA artefacts, not source. Written by dev/qa.mjs.
+qa-results.json

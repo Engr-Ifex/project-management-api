@@ -84,9 +84,7 @@ export const DropdownMenuItem = ({
     {icon}
     <span className="flex-1 truncate">{children}</span>
 
-    {shortcut && (
-      <kbd className="ml-2 font-mono text-2xs text-body-subtle">{shortcut}</kbd>
-    )}
+    {shortcut && <kbd className="ml-2 font-mono text-2xs text-body-subtle">{shortcut}</kbd>}
 
     {checked && (
       <DropdownMenuPrimitive.ItemIndicator>
@@ -153,7 +151,10 @@ export const DropdownMenuLabel = ({
   className?: string;
 }) => (
   <DropdownMenuPrimitive.Label
-    className={cn('px-2 py-1.5 text-2xs font-medium uppercase tracking-wide text-body-subtle', className)}
+    className={cn(
+      'px-2 py-1.5 text-2xs font-medium uppercase tracking-wide text-body-subtle',
+      className
+    )}
   >
     {children}
   </DropdownMenuPrimitive.Label>

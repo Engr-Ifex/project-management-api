@@ -91,9 +91,7 @@ export const useWorkspace = (): WorkspaceContextValue => {
  * a workspace owner/admin still has authority (Policy A) and anyone else has
  * none.
  */
-export const useProjectRole = (
-  projectMembers: { user: unknown; role: string }[] | undefined
-) => {
+export const useProjectRole = (projectMembers: { user: unknown; role: string }[] | undefined) => {
   const { user } = useAuth();
   const { role: workspaceRole } = useWorkspace();
 
@@ -105,8 +103,7 @@ export const useProjectRole = (
       projectRole,
       workspaceRole,
       /** True when the caller may act on the project at all. */
-      hasAccess:
-        workspaceRole === 'owner' || workspaceRole === 'admin' || projectRole !== null,
+      hasAccess: workspaceRole === 'owner' || workspaceRole === 'admin' || projectRole !== null,
     };
   }, [projectMembers, user, workspaceRole]);
 };

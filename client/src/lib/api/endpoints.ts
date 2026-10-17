@@ -44,6 +44,10 @@ const comment = (workspaceId: string, projectId: string, taskId: string, comment
 /* -------------------------------------------------------------------- auth */
 
 export const authApi = {
+  /*
+   * The account is complete on creation — it can sign in and create or join a
+   * workspace immediately. There is no confirmation step and no flag to report.
+   */
   register: (body: { name: string; email: string; password: string }) =>
     request<{ user: User }>('/auth/register', { method: 'POST', body }),
 
@@ -51,13 +55,29 @@ export const authApi = {
     request<{ user: User }>('/auth/login', { method: 'POST', body }),
 
   logout: () => request<unknown>('/auth/logout', { method: 'POST' }),
+
+  /*
+   * Always resolves, whether or not the address has an account. The response is
+   * deliberately uninformative; the client must not try to infer anything from
+   * it beyond "the request was accepted".
+   */
+  forgotPassword: (email: string) =>
+    request<unknown>('/auth/forgot-password', { method: 'POST', body: { email } }),
+
+  resetPassword: (body: { token: string; password: string }) =>
+    request<{ user: User }>('/auth/reset-password', { method: 'POST', body }),
 };
 
 /* ------------------------------------------------------------------- users */
 
 export const usersApi = {
   /** The session probe. A 401 here means logged out — there is no `/me`. */
-  profile: () => request<{ user: User }>('/users/profile'),
+  /*
+   * The session probe. Accepts a signal so a caller that races it — the auth
+   * provider re-probing on mount — can actually cancel the request rather than
+   * letting it complete and discard the result.
+   */
+  profile: (signal?: AbortSignal) => request<{ user: User }>('/users/profile', { signal }),
 
   updateProfile: (body: { name?: string }) =>
     request<{ user: User }>('/users/profile', { method: 'PATCH', body }),
@@ -91,8 +111,7 @@ export const workspacesApi = {
   create: (body: { name: string; description?: string }) =>
     request<{ workspace: Workspace }>('/workspaces', { method: 'POST', body }),
 
-  get: (workspaceId: string) =>
-    request<{ workspace: Workspace }>(ws(workspaceId)),
+  get: (workspaceId: string) => request<{ workspace: Workspace }>(ws(workspaceId)),
 
   update: (workspaceId: string, body: { name?: string; description?: string }) =>
     request<{ workspace: Workspace }>(ws(workspaceId), { method: 'PATCH', body }),
@@ -106,8 +125,7 @@ export const workspacesApi = {
     request<{ workspace: Workspace }>(`${ws(workspaceId)}/restore`, { method: 'PATCH' }),
 
   /** Owner only. */
-  remove: (workspaceId: string) =>
-    request<unknown>(ws(workspaceId), { method: 'DELETE' }),
+  remove: (workspaceId: string) => request<unknown>(ws(workspaceId), { method: 'DELETE' }),
 
   members: (workspaceId: string) =>
     request<{ members: Workspace['members'] }>(`${ws(workspaceId)}/members`),
@@ -197,12 +215,7 @@ export const projectsApi = {
       method: 'DELETE',
     }),
 
-  changeMemberRole: (
-    workspaceId: string,
-    projectId: string,
-    userId: string,
-    role: ProjectRole
-  ) =>
+  changeMemberRole: (workspaceId: string, projectId: string, userId: string, role: ProjectRole) =>
     request<{ project: Project }>(`${project(workspaceId, projectId)}/members/${userId}/role`, {
       method: 'PATCH',
       body: { role },
@@ -232,7 +245,8 @@ export const tasksApi = {
       estimatedTime?: number;
       priority?: Task['priority'];
     }
-  ) => request<{ task: Task }>(`${project(workspaceId, projectId)}/tasks`, { method: 'POST', body }),
+  ) =>
+    request<{ task: Task }>(`${project(workspaceId, projectId)}/tasks`, { method: 'POST', body }),
 
   get: (workspaceId: string, projectId: string, taskId: string) =>
     request<{ task: Task }>(task(workspaceId, projectId, taskId)),
@@ -268,12 +282,7 @@ export const tasksApi = {
     }),
 
   /** `assignee: null` unassigns. A non-member assignee is a 400. */
-  setAssignee: (
-    workspaceId: string,
-    projectId: string,
-    taskId: string,
-    assignee: string | null
-  ) =>
+  setAssignee: (workspaceId: string, projectId: string, taskId: string, assignee: string | null) =>
     request<{ task: Task }>(`${task(workspaceId, projectId, taskId)}/assignee`, {
       method: 'PATCH',
       body: { assignee },
@@ -285,7 +294,12 @@ export const tasksApi = {
       body: { dueDate },
     }),
 
-  setStartDate: (workspaceId: string, projectId: string, taskId: string, startDate: string | null) =>
+  setStartDate: (
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    startDate: string | null
+  ) =>
     request<{ task: Task }>(`${task(workspaceId, projectId, taskId)}/start-date`, {
       method: 'PATCH',
       body: { startDate },
@@ -323,17 +337,12 @@ export const tasksApi = {
     subtaskId: string,
     body: { title?: string; isCompleted?: boolean }
   ) =>
-    request<{ subtask: Subtask }>(
-      `${task(workspaceId, projectId, taskId)}/subtasks/${subtaskId}`,
-      { method: 'PATCH', body }
-    ),
+    request<{ subtask: Subtask }>(`${task(workspaceId, projectId, taskId)}/subtasks/${subtaskId}`, {
+      method: 'PATCH',
+      body,
+    }),
 
-  deleteSubtask: (
-    workspaceId: string,
-    projectId: string,
-    taskId: string,
-    subtaskId: string
-  ) =>
+  deleteSubtask: (workspaceId: string, projectId: string, taskId: string, subtaskId: string) =>
     request<unknown>(`${task(workspaceId, projectId, taskId)}/subtasks/${subtaskId}`, {
       method: 'DELETE',
     }),
@@ -350,7 +359,12 @@ export const tasksApi = {
       method: 'DELETE',
     }),
 
-  activity: (workspaceId: string, projectId: string, taskId: string, query?: Record<string, unknown>) =>
+  activity: (
+    workspaceId: string,
+    projectId: string,
+    taskId: string,
+    query?: Record<string, unknown>
+  ) =>
     request<PagedList<ProjectActivity, 'activities'>>(
       `${task(workspaceId, projectId, taskId)}/activities`,
       { query }
@@ -360,12 +374,7 @@ export const tasksApi = {
 /* ---------------------------------------------------------------- comments */
 
 export const commentsApi = {
-  list: (
-    workspaceId: string,
-    projectId: string,
-    taskId: string,
-    query?: Record<string, unknown>
-  ) =>
+  list: (workspaceId: string, projectId: string, taskId: string, query?: Record<string, unknown>) =>
     request<PagedList<Comment, 'comments'>>(`${task(workspaceId, projectId, taskId)}/comments`, {
       query,
     }),
@@ -401,8 +410,8 @@ export const commentsApi = {
 
 export const labelsApi = {
   /**
-   * SPEC GAP: `openapi.json` claims `data = { labels }`, but the service also
-   * returns `pagination` and accepts `page`/`limit`. Typed for reality.
+   * `openapi.json` documents both `labels` and `pagination` in the response,
+   * matching the actual API. The list is paginated and accepts `page`/`limit`.
    */
   list: (workspaceId: string, projectId: string, query?: Record<string, unknown>) =>
     request<PagedList<Label, 'labels'>>(`${project(workspaceId, projectId)}/labels`, { query }),
@@ -451,7 +460,7 @@ export const notificationsApi = {
       method: 'PATCH',
     }),
 
-  markAllRead: () => request<unknown>('/notifications/read-all', { method: 'PATCH' }),
+  markAllRead: () => request<{ modified: number }>('/notifications/read-all', { method: 'PATCH' }),
 
   remove: (notificationId: string) =>
     request<unknown>(`/notifications/${notificationId}`, { method: 'DELETE' }),
@@ -551,8 +560,7 @@ export const attachmentsApi = {
 /* --------------------------------------------------------------- dashboard */
 
 export const dashboardApi = {
-  workspace: (workspaceId: string) =>
-    request<WorkspaceDashboard>(`${ws(workspaceId)}/dashboard`),
+  workspace: (workspaceId: string) => request<WorkspaceDashboard>(`${ws(workspaceId)}/dashboard`),
 
   project: (workspaceId: string, projectId: string, upcomingDueDays?: number) =>
     request<ProjectDashboard>(`${project(workspaceId, projectId)}/dashboard`, {

@@ -52,6 +52,16 @@ export interface FieldShellProps {
   hintId?: string;
   errorId?: string;
   required?: boolean;
+  /**
+   * Render the heading as a plain `<span>` instead of a `<label htmlFor>`.
+   *
+   * For the case where the wrapper is a visual grouping rather than a real
+   * label association — the caller is composing a control that FieldShell does
+   * not own, so `controlId` names nothing. A `<label for>` pointing at a
+   * missing element is a dangling reference: it looks wired up and is not.
+   * The visible text stays; only the association is dropped.
+   */
+  labelAsText?: boolean;
   /** Rendered on the same row as the label, pushed to the right. */
   action?: ReactNode;
   children: ReactNode;
@@ -71,48 +81,59 @@ export const FieldShell = ({
   hintId,
   errorId,
   required,
+  labelAsText,
   action,
   children,
   className,
   labelClassName,
-}: FieldShellProps) => (
-  <div className={cn('flex flex-col gap-2', className)}>
-    {(label || action) && (
-      <div className="flex items-center justify-between gap-2">
-        {label && (
-          <label
-            htmlFor={controlId}
-            className={cn('flex items-center gap-1 text-sm font-medium text-body', labelClassName)}
-          >
-            {label}
-            {required && (
-              <span aria-hidden className="text-danger-500">
-                *
-              </span>
-            )}
-          </label>
-        )}
-        {action}
-      </div>
-    )}
+}: FieldShellProps) => {
+  const labelClasses = cn('flex items-center gap-1 text-sm font-medium text-body', labelClassName);
 
-    {children}
+  const labelContent = label && (
+    <>
+      {label}
+      {required && (
+        <span aria-hidden className="text-danger-500">
+          *
+        </span>
+      )}
+    </>
+  );
 
-    {/*
-      A hint and an error are never shown together. Once something is wrong the
-      hint is noise, and two lines of helper text under one input is the fastest
-      way to make a form feel hostile.
-    */}
-    {error ? (
-      <p id={errorId} role="alert" className="text-xs text-danger-600">
-        {error}
-      </p>
-    ) : (
-      hint && (
-        <p id={hintId} className="text-xs text-body-subtle">
-          {hint}
+  return (
+    <div className={cn('flex flex-col gap-2', className)}>
+      {(label || action) && (
+        <div className="flex items-center justify-between gap-2">
+          {labelContent &&
+            (labelAsText ? (
+              <span className={labelClasses}>{labelContent}</span>
+            ) : (
+              <label htmlFor={controlId} className={labelClasses}>
+                {labelContent}
+              </label>
+            ))}
+          {action}
+        </div>
+      )}
+
+      {children}
+
+      {/*
+        A hint and an error are never shown together. Once something is wrong the
+        hint is noise, and two lines of helper text under one input is the fastest
+        way to make a form feel hostile.
+      */}
+      {error ? (
+        <p id={errorId} role="alert" className="text-xs text-danger-600">
+          {error}
         </p>
-      )
-    )}
-  </div>
-);
+      ) : (
+        hint && (
+          <p id={hintId} className="text-xs text-body-subtle">
+            {hint}
+          </p>
+        )
+      )}
+    </div>
+  );
+};

@@ -2,7 +2,13 @@ import { Bell, Check } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui';
 import { notificationsApi } from '@/lib/api';
 import { useAsync, useMutation, useUnreadCount } from '@/lib/hooks';
 import { groupByDay, notificationHref } from '@/lib/notifications';
@@ -63,9 +69,7 @@ export const NotificationBell = () => {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={
-            count > 0 ? `Notifications, ${count} unread` : 'Notifications'
-          }
+          aria-label={count > 0 ? `Notifications, ${count} unread` : 'Notifications'}
           className="relative flex size-8 items-center justify-center rounded-md text-body-muted transition-colors duration-[120ms] ease-standard hover:bg-surface-active hover:text-body"
         >
           <Bell aria-hidden className="pointer-events-none size-4" />

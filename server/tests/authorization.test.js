@@ -532,8 +532,8 @@ describe('Authorization', () => {
 
     test('a comment cannot be reached through a different task\u2019s URL', async () => {
       const { actors, workspace, project } = await buildScenario();
-      const taskA = await createTask(project, actors.owner, { title: 'A' });
-      const taskB = await createTask(project, actors.owner, { title: 'B' });
+      const taskA = await createTask(project, actors.owner, { title: 'Task A' });
+      const taskB = await createTask(project, actors.owner, { title: 'Task B' });
       const comment = await createComment(taskA, actors.owner);
 
       const response = await asUser(app, actors.owner).get(

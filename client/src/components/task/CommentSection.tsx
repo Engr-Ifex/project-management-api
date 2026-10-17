@@ -140,28 +140,26 @@ export const CommentSection = ({
                   <Avatar name={refName(comment.author, '?')} size="sm" />
 
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-body">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span className="min-w-0 truncate text-sm font-medium text-body">
                         {refName(comment.author)}
                       </span>
 
                       <time
                         dateTime={comment.createdAt}
-                        className="text-2xs text-body-subtle"
+                        className="shrink-0 whitespace-nowrap text-2xs text-body-subtle"
                         data-numeric
                       >
                         {new Date(comment.createdAt).toLocaleString()}
                       </time>
 
                       {comment.editedAt && (
-                        <span className="text-2xs text-body-subtle">edited</span>
+                        <span className="shrink-0 text-2xs text-body-subtle">edited</span>
                       )}
                     </div>
 
                     {comment.isDeleted ? (
-                      <p className="text-sm italic text-body-subtle">
-                        This comment was deleted.
-                      </p>
+                      <p className="text-sm italic text-body-subtle">This comment was deleted.</p>
                     ) : isEditing ? (
                       <form
                         className="flex flex-col gap-2"
@@ -203,7 +201,7 @@ export const CommentSection = ({
                         </div>
                       </form>
                     ) : (
-                      <p className="whitespace-pre-wrap text-sm text-body-muted">
+                      <p className="whitespace-pre-wrap break-words text-sm text-body-muted">
                         {comment.content}
                       </p>
                     )}

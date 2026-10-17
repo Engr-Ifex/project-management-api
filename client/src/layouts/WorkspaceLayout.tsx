@@ -4,6 +4,7 @@ import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-rou
 
 import { AccountMenu } from '@/components/AccountMenu';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LogoutButton } from '@/components/LogoutButton';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { WorkspaceMenu } from '@/components/WorkspaceMenu';
 import { AppShell } from '@/layouts/AppShell';
@@ -104,7 +105,21 @@ const WorkspaceChrome = () => {
           />
         )
       }
-      accountSlot={<AccountMenu settingsHref={`/workspaces/${workspaceId}/settings`} />}
+      accountSlot={
+        <div className="flex flex-col gap-1">
+          <AccountMenu settingsHref={`/workspaces/${workspaceId}/settings`} />
+
+          {/*
+            A visible sign-out, not just a row inside the account dropdown.
+            The dropdown already has one, but a control that only exists behind
+            a menu is a control most people never find — and this is the one
+            action a user needs when they are done. The sidebar footer and the
+            mobile drawer both render this slot, so it is reachable at every
+            width without a second implementation.
+          */}
+          <LogoutButton variant="ghost" className="w-full justify-start text-body-muted" />
+        </div>
+      }
       topbar={
         <>
           <span className="truncate text-sm font-medium text-body">

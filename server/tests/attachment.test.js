@@ -189,6 +189,50 @@ describe('File uploads', () => {
     assert.equal(response.status, 200);
   });
 
+  test('deleting an attachment removes its stored object too', async () => {
+    /*
+     * Database and storage consistency. The record is the source of truth and
+     * is removed first; the stored object is then deleted. If the unlink were
+     * skipped the row would be gone but the bytes would linger forever, and
+     * nothing else in the suite would notice — so the file is checked on disk
+     * before and after.
+     */
+    const { client, workspace, project, attachmentsUrl } = await setup();
+
+    const uploaded = await client
+      .post(attachmentsUrl)
+      .attach('file', PDF, { filename: 'tracked.pdf', contentType: 'application/pdf' });
+
+    const id = uploaded.body.data.attachment._id;
+
+    const { default: Attachment } = await import('../src/models/Attachment.js');
+    const { getStorageProvider } = await import('../src/storage/storageProvider.js');
+
+    const provider = getStorageProvider();
+    const record = await Attachment.findById(id);
+
+    assert.ok(record, 'the attachment record must exist after upload');
+    assert.equal(
+      await provider.exists(record.storage.key),
+      true,
+      'the stored object must exist after upload'
+    );
+
+    const key = record.storage.key;
+
+    const response = await client.delete(
+      `${API}/workspaces/${workspace._id}/projects/${project._id}/attachments/${id}`
+    );
+
+    assert.equal(response.status, 200);
+    assert.equal(await Attachment.findById(id), null, 'the record must be removed');
+    assert.equal(
+      await provider.exists(key),
+      false,
+      'the stored object must be removed with its record'
+    );
+  });
+
   test('a member cannot delete another member\u2019s attachment', async () => {
     const { owner, workspace, project, attachmentsUrl } = await setup();
     const member = await createUser({ name: 'Member' });

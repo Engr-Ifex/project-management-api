@@ -71,6 +71,7 @@ export {
   ModalContent,
   ModalHeader,
   ModalBody,
+  ModalForm,
   ModalFooter,
   ConfirmDialog,
 } from './Modal';

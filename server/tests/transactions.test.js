@@ -1,6 +1,16 @@
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
+/*
+ * Imported for its side effect only: it sets the test environment variables
+ * that `src/config/env.js` reads once, at import time. Without it the
+ * transaction utility's import chain throws "Invalid environment
+ * configuration" before a single assertion runs. No database connection is
+ * opened here — the transactional branch is driven through injected
+ * dependencies.
+ */
+import './helpers/setup.js';
+
 import {
   runAtomically,
   supportsTransactions,

@@ -12,7 +12,11 @@
     "mock": "node dev/mock-api.mjs",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "qa": "node dev/qa.mjs",
+    "qa:quick": "node dev/qa.mjs --quick",
+    "verify:fixes": "node dev/verify-fixes.mjs",
+    "verify:reset": "node dev/verify-password-reset.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
@@ -42,6 +46,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
+    "lighthouse": "^13.5.0",
+    "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.70.1",

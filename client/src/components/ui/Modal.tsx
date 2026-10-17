@@ -1,6 +1,6 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from '@phosphor-icons/react';
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 import { cn } from '@/lib/utils/cn';
 import { Button } from './Button';
@@ -90,7 +90,9 @@ export const ModalHeader = ({
   className?: string;
 }) => (
   <div className={cn('flex flex-col gap-1 border-b border-line-subtle px-5 py-4 pr-12', className)}>
-    <DialogPrimitive.Title className="text-md font-semibold text-body">{title}</DialogPrimitive.Title>
+    <DialogPrimitive.Title className="text-md font-semibold text-body">
+      {title}
+    </DialogPrimitive.Title>
 
     {description ? (
       <DialogPrimitive.Description className="text-xs text-body-muted">
@@ -107,10 +109,53 @@ export const ModalHeader = ({
 );
 
 export const ModalBody = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <div className={cn('flex-1 overflow-y-auto scrollbar-thin px-5 py-4', className)}>{children}</div>
+  <div className={cn('min-h-0 flex-1 overflow-y-auto scrollbar-thin px-5 py-4', className)}>
+    {children}
+  </div>
 );
 
-export const ModalFooter = ({ children, className }: { children: ReactNode; className?: string }) => (
+/**
+ * ModalForm
+ *
+ * The `<form>` wrapper for a dialog whose fields submit together.
+ *
+ * It exists because a bare `<form>` between `ModalContent` and the body breaks
+ * the dialog's layout. `ModalContent` is `flex flex-col` with a `max-h` and
+ * `overflow-hidden`, and it relies on `ModalBody`'s `flex-1 overflow-y-auto` to
+ * absorb a long form. A plain `<form>` is not a flex container, so:
+ *
+ *   - `ModalBody` stops being a flex item, so its `flex-1` does nothing and
+ *     `overflow-y-auto` has no bounded height to scroll within;
+ *   - the form itself is a flex item with the default `min-height: auto`, so it
+ *     refuses to shrink below its content;
+ *   - the form therefore grows past `ModalContent`'s `max-h`, and
+ *     `overflow-hidden` clips whatever is at the bottom — the footer, and with
+ *     it the Cancel and submit buttons.
+ *
+ * `min-h-0` is the load-bearing part: it lets the form shrink so the body can
+ * scroll instead of the dialog overflowing. The New Task dialog hit this first
+ * because it has the most fields, but every dialog using a bare `<form>` had
+ * the same latent defect.
+ *
+ * Use this instead of a raw `<form>` inside `ModalContent`.
+ */
+export const ModalForm = ({
+  children,
+  className,
+  ...props
+}: ComponentProps<'form'> & { children: ReactNode }) => (
+  <form className={cn('flex min-h-0 flex-1 flex-col', className)} {...props}>
+    {children}
+  </form>
+);
+
+export const ModalFooter = ({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) => (
   <div
     className={cn(
       'flex items-center justify-end gap-2 border-t border-line-subtle bg-ink-25 px-5 py-3',
