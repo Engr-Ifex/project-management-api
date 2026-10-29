@@ -3,3 +3,5 @@
 
 # Throwaway browser-verification scratch (screenshots, CDP scripts, profiles)
 .tmp-shots/
+
+.workbuddy-ai/
